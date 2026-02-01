@@ -1,0 +1,35 @@
+export enum EActivityType {
+  CREATE = 'create',
+  READ = 'read',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LOGIN = 'login',
+  SIGNUP = 'signup',
+  FORGOT_PASSWORD = 'forgot_password',
+  RESET_PASSWORD = 'reset_password',
+  LOGOUT = 'logout',
+  UPLOAD = 'upload',
+  DOWNLOAD = 'download',
+  EXPORT = 'export',
+  IMPORT = 'import',
+  QUEUE_CREATE = 'queue_create',
+  QUEUE_PAUSE = 'queue_pause',
+  QUEUE_RESUME = 'queue_resume',
+  QUEUE_CLEAN = 'queue_clean',
+  JOB_ADD = 'job_add',
+  JOB_RETRY = 'job_retry',
+  JOB_REMOVE = 'job_remove',
+  JOB_COMPLETE = 'job_complete',
+  JOB_FAILED = 'job_failed',
+
+  ACTION_START = 'action_start',
+  ACTION_EXECUTE = 'action_execute',
+  ACTION_SUCCESS = 'action_success',
+  ACTION_ERROR = 'action_error',
+}
+
+export enum EActivityStatus {
+  SUCCESS = 'success',
+  FAILED = 'failed',
+  PENDING = 'pending',
+}

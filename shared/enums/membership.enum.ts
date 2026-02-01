@@ -1,0 +1,32 @@
+export enum EBillingFrequency {
+  DAILY = "DAILY",
+  WEEKLY = "WEEKLY",
+  MONTHLY = "MONTHLY",
+  QUARTERLY = "QUARTERLY",
+  BI_ANNUALLY = "BI_ANNUALLY",
+  ANNUALLY = "ANNUALLY",
+}
+
+export enum EPaymentPreference {
+  CASH = "CASH",
+  ONLINE = "ONLINE",
+}
+
+export enum EMembershipExpiry {
+  AFTER_1_MONTH = "AFTER_1_MONTH",
+  AFTER_3_MONTHS = "AFTER_3_MONTHS",
+  AFTER_6_MONTHS = "AFTER_6_MONTHS",
+  AFTER_1_YEAR = "AFTER_1_YEAR",
+  AFTER_2_YEARS = "AFTER_2_YEARS",
+  NEVER = "NEVER",
+}
+
+export enum EMembershipStatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  EXPIRED = "EXPIRED",
+  CANCELLED = "CANCELLED",
+  SUSPENDED = "SUSPENDED",
+  SCHEDULED = "SCHEDULED",
+}
+

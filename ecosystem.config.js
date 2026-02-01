@@ -1,0 +1,58 @@
+module.exports = {
+  apps: [
+    {
+      name: "trainer-prod",
+      script: "dist/src/main.js",
+      cwd: "/app/backend",
+      env: {
+        NODE_ENV: "production",
+      },
+      error_file: "/app/backend/logs/pm2-error.log",
+      out_file: "/app/backend/logs/pm2-out.log",
+      log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+      merge_logs: true,
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: "10s",
+      restart_delay: 4000,
+    },
+    {
+      name: "trainer-dev",
+      script: "dist/src/main.js",
+      cwd: "/app/backend",
+      env: {
+        NODE_ENV: "development",
+      },
+      error_file: "/app/backend/logs/pm2-error.log",
+      out_file: "/app/backend/logs/pm2-out.log",
+      log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+      merge_logs: true,
+      autorestart: true,
+      max_restarts: 10,
+      min_uptime: "10s",
+      restart_delay: 4000,
+    },
+  ],
+  deploy: {
+    prod: {
+      user: "root",
+      host: "66.103.211.113",
+      ref: "origin/main",
+      repo: "git@github.com:dragsense/trainer-app.git",
+      path: "/var/www/trainer_usr/data/www/trainer.digital.st/prod",
+      key: "C:/Users/ranaa/.ssh/trainer-server",
+      "post-setup": "touch ../shared/.env ../shared/.env ../shared/.env.prod",
+      "post-deploy": "sh ./deploy.sh",
+    },
+    dev: {
+      user: "root",
+      host: "66.103.211.113",
+      ref: "origin/dev",
+      repo: "git@github.com:dragsense/trainer-app.git",
+      path: "/var/www/trainer_usr/data/www/trainer.digital.st/dev",
+      key: "C:/Users/ranaa/.ssh/trainer-server",
+      "post-setup": "touch ../shared/.env ../shared/.env ../shared/.env.prod",
+      "post-deploy": "sh ./deploy.sh",
+    },
+  },
+};

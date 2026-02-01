@@ -1,0 +1,95 @@
+services:
+  # Full-Stack Service (Backend + Frontend in one container)
+  app:
+    build:
+      context: ..
+      dockerfile: shared/Dockerfile
+      target: prod
+    container_name: app-container-prod
+    ports:
+      - "3000:3000" # Backend port
+      - "5173:5173" # Frontend port
+    env_file:
+      - ../backend/.env.production
+    volumes:
+      - app_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ovenmediaengine:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Redis Cache
+  redis:
+    image: redis:latest
+    container_name: app-redis-prod
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app-network
+
+  # PostgreSQL 17 Database
+  postgres:
+    image: postgres:17
+    container_name: app-postgres-prod
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-formance_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # ANT Media Server
+  mediamtx:
+    image: bluenviron/mediamtx:latest-ffmpeg
+    container_name: vivast-mediamtx
+    restart: unless-stopped
+    ports:
+      - "1935:1935"     # RTMP
+      - "8554:8554"     # RTSP
+      - "7222:7222"     # API/Web
+      - "8888:8888"     # Web UI
+      - "8080:8080"     # HLS
+    volumes:
+      - ./mediamtx/config.yml:/mediamtx.yml:ro
+    environment:
+      - RTSP_PROTOCOLS=tcpudp  # allow both TCP & UDP
+      - RTMP_PORT=1935
+      - HLS_PORT=8080
+      - API_PORT=7222
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  app_logs:
+
+networks:
+  app-network:
+    driver: bridge
+

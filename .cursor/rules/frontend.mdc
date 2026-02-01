@@ -1,0 +1,414 @@
+# Frontend Development Rules (React + Vite + TanStack)
+
+## Project Structure
+
+```
+frontend/src/
+├── @types/                   # TypeScript type definitions
+│   ├── handler-types/        # Handler component types
+│   ├── form/                 # Form field types
+│   └── table/                # Table column types
+├── components/
+│   ├── admin/                # Feature-specific components
+│   │   ├── members/
+│   │   │   ├── list/         # List view components
+│   │   │   ├── view/         # Single view components
+│   │   │   └── index.ts      # Barrel export
+│   │   └── ...
+│   ├── ui/                   # shadcn/ui base components
+│   ├── layout-ui/            # Layout components (AppCard, AppDialog, etc.)
+│   ├── shared-ui/            # Shared UI components
+│   ├── form-ui/              # Form-specific components
+│   ├── table-ui/             # Table components
+│   └── list-ui/              # List components
+├── handlers/                 # Data handling components
+│   ├── form-handler.tsx
+│   ├── list-handler.tsx
+│   ├── single-handler.tsx
+│   └── action-handler.tsx
+├── hooks/                    # Custom React hooks
+├── layouts/                  # Page layouts
+├── lib/                      # Utility libraries
+├── pages/                    # Route pages
+│   └── admin/
+│       ├── members/
+│       │   ├── index.tsx     # List page
+│       │   └── detail/
+│       │       └── index.tsx # Detail page
+│       └── ...
+├── page-components/          # Page-specific components (forms, modals)
+│   ├── member/
+│   │   ├── member-form.tsx
+│   │   └── index.ts
+│   └── ...
+├── services/                 # API service functions
+├── stores/                   # Zustand stores
+├── routes/                   # Route guards and redirects
+├── config/                   # App configuration
+└── utils/                    # Utility functions
+```
+
+## Handler Pattern
+
+The app uses a handler-based architecture for data management:
+
+### ListHandler
+Manages paginated lists with filtering, sorting, and actions:
+
+```tsx
+import { ListHandler, SingleHandler } from "@/handlers";
+import { MemberList, MemberView } from "@/components/admin";
+import { fetchMembers, fetchMember, deleteMember } from '@/services/member.api';
+import { MemberForm } from "@/page-components";
+
+export default function MembersPage() {
+  const queryClient = useQueryClient();
+  const STORE_KEY = 'member';
+
+  return (
+    <PageInnerLayout Header={<Header />}>
+      {/* SingleHandler for viewing/editing single items */}
+      <SingleHandler<IMember>
+        queryFn={fetchMember}
+        initialParams={{ _relations: 'user' }}
+        storeKey={STORE_KEY}
+        SingleComponent={MemberView}
+        actionComponents={[
+          { action: 'createOrUpdate', comp: MemberForm }
+        ]}
+      />
+
+      {/* ListHandler for paginated list */}
+      <ListHandler<IMember, TMemberListData, IListExtraProps, IMember, IViewExtraProps>
+        queryFn={fetchMembers}
+        initialParams={{
+          _relations: 'user',
+          _select: 'user.email, user.isActive',
+          sortBy: 'createdAt',
+          sortOrder: 'DESC',
+        }}
+        ListComponent={MemberList}
+        dto={MemberListDto}
+        deleteFn={deleteMember}
+        onDeleteSuccess={() => queryClient.invalidateQueries({ queryKey: [STORE_KEY + "-list"] })}
+        storeKey={STORE_KEY}
+        listProps={{ level: EUserLevels.MEMBER }}
+        actionComponents={[
+          { action: 'updateProfile', comp: ProfileForm }
+        ]}
+      />
+    </PageInnerLayout>
+  );
+}
+```
+
+### FormHandler
+Manages form state, validation, and submission:
+
+```tsx
+import { FormHandler } from "@/handlers";
+
+<FormHandler<TMemberData, IMessageResponse>
+  mutationFn={isEditing ? updateMember(id) : createMember}
+  FormComponent={MemberFormFields}
+  initialValues={initialData}
+  dto={isEditing ? UpdateMemberDto : CreateMemberDto}
+  storeKey="member"
+  isEditing={isEditing}
+  onSuccess={(response) => {
+    queryClient.invalidateQueries({ queryKey: ['member-list'] });
+    closeDialog();
+  }}
+/>
+```
+
+## Store Pattern (Zustand)
+
+Stores are registered globally and accessed via storeKey:
+
+```tsx
+// Accessing store in components
+import { useRegisteredStore, TListHandlerStore } from "@/stores";
+
+const store = useRegisteredStore<TListHandlerStore<IMember, TMemberListData>>(storeKey + "-list");
+
+// Using store state
+const isLoading = store(state => state.isLoading);
+const setAction = store(state => state.setAction);
+const pagination = store(state => state.pagination);
+```
+
+### Store Types
+- `TListHandlerStore<TData, TListData, TExtraProps>` - List management
+- `TSingleHandlerStore<TData, TExtraProps>` - Single item management
+- `TFormHandlerStore<TFormData, TResponse, TExtraProps>` - Form management
+
+## Component Patterns
+
+### List Component Structure
+
+```tsx
+// components/admin/members/list/member-list.tsx
+interface IMemberListProps extends TListHandlerComponentProps<
+  TListHandlerStore<IMember, TMemberListData, IExtraProps>,
+  TSingleHandlerStore<IMember, IViewExtraProps>
+> {}
+
+export default function MemberList({ storeKey, store, singleStore }: IMemberListProps) {
+  const [, startTransition] = useTransition();
+  const { t } = useI18n();
+
+  const setListAction = store(state => state.setAction);
+  const setAction = singleStore(state => state.setAction);
+
+  const handleCreate = () => {
+    startTransition(() => setAction('createOrUpdate'));
+  };
+
+  const handleEdit = (id: string) => {
+    startTransition(() => setAction('createOrUpdate', id));
+  };
+
+  const handleDelete = (id: string) => {
+    startTransition(() => setAction('delete', id));
+  };
+
+  const { columns, listItem } = itemViews({ handleEdit, handleDelete });
+
+  return (
+    <Tabs value={currentView}>
+      <div className="flex justify-between items-center gap-2">
+        <MemberFilters store={store} />
+        <ViewToggle />
+        <Button onClick={handleCreate}>
+          <Plus /> {buildSentence(t, 'add', 'member')}
+        </Button>
+      </div>
+
+      <TabsContent value="table">
+        <AppCard className="px-0">
+          <TTable<IMember>
+            listStore={store}
+            columns={columns}
+            showPagination={true}
+          />
+        </AppCard>
+      </TabsContent>
+
+      <TabsContent value="list">
+        <TList<IMember>
+          listStore={store}
+          renderItem={listItem}
+          showPagination={true}
+        />
+      </TabsContent>
+    </Tabs>
+  );
+}
+```
+
+### Item Views Pattern
+
+```tsx
+// components/admin/members/list/member-item-views.tsx
+interface ItemViewsProps {
+  handleEdit: (id: string) => void;
+  handleDelete: (id: string) => void;
+  handleView: (id: string) => void;
+}
+
+export const memberItemViews = ({ handleEdit, handleDelete, handleView }: ItemViewsProps) => {
+  const { t } = useI18n();
+
+  const columns: ColumnDef<IMember>[] = [
+    {
+      accessorKey: "user.email",
+      header: buildSentence(t, "email"),
+    },
+    {
+      accessorKey: "user.firstName",
+      header: buildSentence(t, "first", "name"),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleView(row.original.id)}>
+              View
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleEdit(row.original.id)}>
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDelete(row.original.id)}>
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  const listItem = (item: IMember) => (
+    <Card key={item.id}>
+      <CardContent>
+        {/* List item content */}
+      </CardContent>
+    </Card>
+  );
+
+  return { columns, listItem };
+};
+```
+
+## API Service Pattern
+
+```tsx
+// services/member.api.ts
+import { BaseService } from "./base.service.api";
+import type { IListQueryParams } from "@shared/interfaces/api/param.interface";
+import type { IMember } from "@shared/interfaces/member.interface";
+import type { TMemberData } from "@shared/types/member.type";
+
+const MEMBERS_API_PATH = "/members";
+
+const memberService = new BaseService<IMember, TMemberData, Partial<TMemberData>>(
+  MEMBERS_API_PATH
+);
+
+export const fetchMembers = (params: IListQueryParams) => memberService.get(params);
+export const fetchMember = (id: string, params: IListQueryParams) => memberService.getSingle(id, params);
+export const createMember = (data: TMemberData) => memberService.post(data);
+export const updateMember = (id: string) => memberService.patch(id);
+export const deleteMember = (id: string) => memberService.delete(id);
+```
+
+## Form Component Pattern
+
+```tsx
+// page-components/member/member-form.tsx
+import { AppDialog } from "@/components/layout-ui/app-dialog";
+import { FormHandler } from "@/handlers";
+import { CreateMemberDto, UpdateMemberDto } from "@shared/dtos";
+
+interface MemberFormProps {
+  store: TSingleHandlerStore<IMember>;
+  storeKey: string;
+}
+
+export function MemberForm({ store, storeKey }: MemberFormProps) {
+  const queryClient = useQueryClient();
+  const action = store(state => state.action);
+  const payload = store(state => state.payload);
+  const data = store(state => state.response);
+  const setAction = store(state => state.setAction);
+
+  const isOpen = action === 'createOrUpdate';
+  const isEditing = !!payload;
+
+  const initialValues = useMemo(() => {
+    if (isEditing && data) {
+      return {
+        goal: data.goal || '',
+        fitnessLevel: data.fitnessLevel || '',
+        user: {
+          email: data.user?.email || '',
+          firstName: data.user?.firstName || '',
+        }
+      };
+    }
+    return { goal: '', fitnessLevel: '', user: { email: '', firstName: '' } };
+  }, [isEditing, data]);
+
+  const handleClose = () => setAction('', null);
+
+  return (
+    <AppDialog
+      open={isOpen}
+      onOpenChange={(open) => !open && handleClose()}
+      title={isEditing ? 'Edit Member' : 'Create Member'}
+    >
+      <FormHandler<TMemberData, IMessageResponse>
+        mutationFn={isEditing ? updateMember(payload) : createMember}
+        FormComponent={MemberFormFields}
+        initialValues={initialValues}
+        dto={isEditing ? UpdateMemberDto : CreateMemberDto}
+        storeKey={storeKey}
+        isEditing={isEditing}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: [storeKey + '-list'] });
+          handleClose();
+        }}
+      />
+    </AppDialog>
+  );
+}
+```
+
+## Shared Types Location
+
+Types and interfaces are in `shared/`:
+
+```
+shared/
+├── dtos/                     # Data Transfer Objects
+│   ├── member-dtos/
+│   │   ├── member.dto.ts
+│   │   └── index.ts
+│   └── common/
+├── interfaces/               # TypeScript interfaces
+│   ├── member.interface.ts
+│   └── api/
+│       ├── param.interface.ts
+│       └── response.interface.ts
+├── types/                    # Type aliases
+│   └── member.type.ts
+├── enums/                    # Enumerations
+│   └── user-levels.enum.ts
+└── decorators/               # Shared decorators
+    └── field.decorator.ts
+```
+
+## FieldType Decorator
+
+DTOs use `@FieldType()` for automatic form field generation:
+
+```typescript
+// In DTO
+@FieldType("text", true)        // (type, required)
+@FieldType("nested", true, UserDto)  // For nested objects
+@FieldType("select", false, { options: [...] })
+@FieldType("switch", false)
+@FieldType("date", false)
+@FieldType("textarea", false)
+```
+
+## Internationalization
+
+Use `useI18n` hook and `buildSentence` for translations:
+
+```tsx
+const { t } = useI18n();
+
+// Build sentences from translation keys
+buildSentence(t, 'add', 'member')     // "Add Member"
+buildSentence(t, 'no', 'members', 'found')  // "No members found"
+```
+
+## Best Practices
+
+1. **Use handlers** for data management - don't manage API state directly
+2. **Use transitions** for state updates that affect UI
+3. **Use storeKey pattern** for consistent store naming
+4. **Invalidate queries** after mutations
+5. **Use shared DTOs** for type safety between frontend and backend
+6. **Use barrel exports** (index.ts) for cleaner imports
+7. **Separate concerns**: pages → handlers → components → services
+8. **Use shadcn/ui** components from `components/ui/`
+9. **Use layout components** from `components/layout-ui/`
+10. **Follow the existing patterns** when adding new features

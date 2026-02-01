@@ -1,0 +1,614 @@
+# Creating a New Feature Guide
+
+This guide walks through creating a complete CRUD feature for a new entity.
+
+## Step 1: Define Shared Types
+
+### 1.1 Create Interface
+```typescript
+// shared/interfaces/ticket.interface.ts
+export interface ITicket  // from DTO
+```
+
+### 1.2 Create Enums (if needed)
+```typescript
+// shared/enums/ticket.enum.ts
+export enum ETicketStatus {
+  OPEN = 'open',
+  IN_PROGRESS = 'in_progress',
+  RESOLVED = 'resolved',
+  CLOSED = 'closed',
+}
+
+export enum ETicketPriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  URGENT = 'urgent',
+}
+```
+
+### 1.3 Create DTOs
+```typescript
+// shared/dtos/ticket-dtos/ticket.dto.ts
+import { IsString, IsNotEmpty, IsOptional, IsEnum, ValidateNested } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { PartialType } from "../../lib/dto-type-adapter";
+import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
+import { PaginationMetaDto } from "../common/pagination.dto";
+import { FieldType } from "../../decorators/field.decorator";
+import { Equals, Like, In } from "../../decorators/crud.dto.decorators";
+import { ETicketStatus, ETicketPriority } from "../../enums/ticket.enum";
+import { ITicket } from "../../interfaces/ticket.interface";
+import { UserDto } from "../user-dtos/user.dto";
+
+export class CreateTicketDto {
+  @ApiProperty({ example: "Bug Report", description: "Ticket title" })
+  @IsNotEmpty()
+  @IsString()
+  @FieldType("text", true)
+  title: string;
+
+  @ApiPropertyOptional({ description: "Ticket description" })
+  @IsOptional()
+  @IsString()
+  @FieldType("textarea")
+  description?: string;
+
+  @ApiProperty({ enum: ETicketStatus, default: ETicketStatus.OPEN })
+  @IsEnum(ETicketStatus)
+  @FieldType("select", true, { options: Object.values(ETicketStatus) })
+  status: ETicketStatus;
+
+  @ApiProperty({ enum: ETicketPriority, default: ETicketPriority.MEDIUM })
+  @IsEnum(ETicketPriority)
+  @FieldType("select", true, { options: Object.values(ETicketPriority) })
+  priority: ETicketPriority;
+
+  @ApiPropertyOptional({ description: "Assignee user ID" })
+  @IsOptional()
+  @IsString()
+  @FieldType("select")  // Will need async options
+  assigneeId?: string;
+}
+
+export class UpdateTicketDto extends PartialType(CreateTicketDto) {}
+
+export class TicketListDto extends ListQueryDto<ITicket> {
+  @ApiPropertyOptional({ enum: ETicketStatus })
+  @IsOptional()
+  @IsEnum(ETicketStatus)
+  @Equals()
+  @FieldType("select", false, { options: Object.values(ETicketStatus) })
+  status?: ETicketStatus;
+
+  @ApiPropertyOptional({ enum: ETicketPriority })
+  @IsOptional()
+  @IsEnum(ETicketPriority)
+  @Equals()
+  @FieldType("select", false, { options: Object.values(ETicketPriority) })
+  priority?: ETicketPriority;
+
+  @ApiPropertyOptional({ description: "Search by title" })
+  @IsOptional()
+  @IsString()
+  @Like()
+  @FieldType("text", false)
+  title?: string;
+}
+
+export class TicketDto {
+  @ApiProperty()
+  id: string;
+
+  @ApiProperty()
+  title: string;
+
+  @ApiPropertyOptional()
+  description?: string;
+
+  @ApiProperty({ enum: ETicketStatus })
+  status: ETicketStatus;
+
+  @ApiProperty({ enum: ETicketPriority })
+  priority: ETicketPriority;
+
+  @ApiPropertyOptional({ type: () => UserDto })
+  @ValidateNested()
+  @Type(() => UserDto)
+  assignee?: UserDto;
+
+  @ApiPropertyOptional({ type: () => UserDto })
+  @ValidateNested()
+  @Type(() => UserDto)
+  createdBy?: UserDto;
+
+  @ApiProperty()
+  createdAt?: Date;
+
+  @ApiProperty()
+  updatedAt?: Date;
+}
+
+export class TicketPaginatedDto extends PaginationMetaDto {
+  @ApiProperty({ type: () => [TicketDto] })
+  @Type(() => TicketDto)
+  data: TicketDto[];
+}
+```
+
+### 1.4 Create Type Aliases
+```typescript
+// shared/types/ticket.type.ts
+import type { CreateTicketDto, UpdateTicketDto, TicketListDto } from "@shared/dtos";
+
+export type TTicketData = CreateTicketDto;
+export type TTicketUpdateData = UpdateTicketDto;
+export type TTicketListData = TicketListDto;
+```
+
+### 1.5 Export from Index
+```typescript
+// shared/dtos/ticket-dtos/index.ts
+export * from './ticket.dto';
+```
+
+## Step 2: Backend Implementation
+
+### 2.1 Create Entity
+```typescript
+// backend/src/modules/v1/tickets/entities/ticket.entity.ts
+import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { GeneralBaseEntity } from '@/common/entities';
+import { User } from '@/common/base-user/entities/user.entity';
+import { ETicketStatus, ETicketPriority } from '@shared/enums';
+
+@Entity('tickets')
+export class Ticket extends GeneralBaseEntity {
+  @ApiProperty({ description: 'Ticket title' })
+  @Column({ type: 'varchar', length: 255 })
+  title: string;
+
+  @ApiPropertyOptional({ description: 'Ticket description' })
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
+  @ApiProperty({ enum: ETicketStatus })
+  @Column({ type: 'enum', enum: ETicketStatus, default: ETicketStatus.OPEN })
+  status: ETicketStatus;
+
+  @ApiProperty({ enum: ETicketPriority })
+  @Column({ type: 'enum', enum: ETicketPriority, default: ETicketPriority.MEDIUM })
+  priority: ETicketPriority;
+
+  @ApiPropertyOptional({ type: () => User })
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'assigneeId' })
+  assignee?: User;
+
+  @ApiPropertyOptional({ type: () => User })
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'createdByUserId' })
+  createdBy?: User;
+}
+```
+
+### 2.2 Create Service
+```typescript
+// backend/src/modules/v1/tickets/tickets.service.ts
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ModuleRef } from '@nestjs/core';
+import { CrudService } from '@/common/crud/crud.service';
+import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
+import { Ticket } from './entities/ticket.entity';
+
+@Injectable()
+export class TicketsService extends CrudService<Ticket> {
+  constructor(
+    @InjectRepository(Ticket)
+    ticketRepo: Repository<Ticket>,
+    moduleRef: ModuleRef,
+  ) {
+    const crudOptions: CrudOptions = {
+      searchableFields: ['title', 'description'],
+    };
+    super(ticketRepo, moduleRef, crudOptions);
+  }
+
+  // Add custom methods if needed
+}
+```
+
+### 2.3 Create Controller
+```typescript
+// backend/src/modules/v1/tickets/tickets.controller.ts
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import { TicketsService } from './tickets.service';
+import { CreateTicketDto, UpdateTicketDto, TicketListDto, TicketDto, TicketPaginatedDto, SingleQueryDto } from '@shared/dtos';
+import { Ticket } from './entities/ticket.entity';
+import { MinUserLevel } from '@/common/decorators/level.decorator';
+import { EUserLevels } from '@shared/enums';
+import { AuthUser } from '@/decorators/user.decorator';
+import { User } from '@/common/base-user/entities/user.entity';
+
+@ApiTags('Tickets')
+@MinUserLevel(EUserLevels.MEMBER)
+@Controller('tickets')
+export class TicketsController {
+  constructor(private readonly ticketsService: TicketsService) {}
+
+  @ApiOperation({ summary: 'Get all tickets with pagination' })
+  @ApiResponse({ status: 200, type: TicketPaginatedDto })
+  @Get()
+  findAll(@Query() query: TicketListDto) {
+    return this.ticketsService.get(query, TicketListDto);
+  }
+
+  @ApiOperation({ summary: 'Get ticket by ID' })
+  @ApiParam({ name: 'id', description: 'Ticket ID' })
+  @ApiResponse({ status: 200, type: TicketDto })
+  @Get(':id')
+  findOne(@Param('id') id: string, @Query() query: SingleQueryDto<Ticket>) {
+    return this.ticketsService.getSingle(id, query);
+  }
+
+  @ApiOperation({ summary: 'Create ticket' })
+  @ApiBody({ type: CreateTicketDto })
+  @ApiResponse({ status: 201, description: 'Ticket created' })
+  @Post()
+  create(@Body() createTicketDto: CreateTicketDto) {
+    return this.ticketsService.create(createTicketDto);
+  }
+
+  @ApiOperation({ summary: 'Update ticket' })
+  @ApiParam({ name: 'id', description: 'Ticket ID' })
+  @ApiBody({ type: UpdateTicketDto })
+  @ApiResponse({ status: 200, description: 'Ticket updated' })
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateTicketDto: UpdateTicketDto) {
+    return this.ticketsService.update(id, updateTicketDto);
+  }
+
+  @ApiOperation({ summary: 'Delete ticket' })
+  @ApiParam({ name: 'id', description: 'Ticket ID' })
+  @ApiResponse({ status: 200, description: 'Ticket deleted' })
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.ticketsService.delete(id);
+  }
+}
+```
+
+### 2.4 Create Module
+```typescript
+// backend/src/modules/v1/tickets/tickets.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Ticket } from './entities/ticket.entity';
+import { TicketsController } from './tickets.controller';
+import { TicketsService } from './tickets.service';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([Ticket])],
+  controllers: [TicketsController],
+  providers: [TicketsService],
+  exports: [TicketsService],
+})
+export class TicketsModule {}
+```
+
+### 2.5 Register Module
+```typescript
+// backend/src/modules/v1/index.ts
+import { TicketsModule } from './tickets/tickets.module';
+
+export const V1Modules = [
+  // ... existing modules
+  TicketsModule,
+];
+```
+
+## Step 3: Frontend Implementation
+
+### 3.1 Create API Service
+```typescript
+// frontend/src/services/ticket.api.ts
+import { BaseService } from "./base.service.api";
+import type { IListQueryParams } from "@shared/interfaces/api/param.interface";
+import type { ITicket } from "@shared/interfaces/ticket.interface";
+import type { TTicketData } from "@shared/types/ticket.type";
+
+const TICKETS_API_PATH = "/tickets";
+
+const ticketService = new BaseService<ITicket, TTicketData, Partial<TTicketData>>(
+  TICKETS_API_PATH
+);
+
+export const fetchTickets = (params: IListQueryParams) => ticketService.get(params);
+export const fetchTicket = (id: string, params: IListQueryParams) => ticketService.getSingle(id, params);
+export const createTicket = (data: TTicketData) => ticketService.post(data);
+export const updateTicket = (id: string) => ticketService.patch(id);
+export const deleteTicket = (id: string) => ticketService.delete(id);
+```
+
+### 3.2 Create List Component
+```typescript
+// frontend/src/components/admin/tickets/list/ticket-list.tsx
+import { useId, useTransition } from "react";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
+import { Plus } from "lucide-react";
+import type { ITicket } from "@shared/interfaces/ticket.interface";
+import { Button } from "@/components/ui/button";
+import { Table as TTable } from "@/components/table-ui/table";
+import { AppCard } from "@/components/layout-ui/app-card";
+import { ticketItemViews } from "./ticket-item-views";
+import type { TListHandlerStore, TSingleHandlerStore } from "@/stores";
+import type { TListHandlerComponentProps } from "@/@types/handler-types";
+import type { TTicketListData } from "@shared/types/ticket.type";
+
+interface ITicketListProps extends TListHandlerComponentProps<
+  TListHandlerStore<ITicket, TTicketListData>,
+  TSingleHandlerStore<ITicket>
+> {}
+
+export default function TicketList({ storeKey, store, singleStore }: ITicketListProps) {
+  const componentId = useId();
+  const [, startTransition] = useTransition();
+  const { t } = useI18n();
+
+  const setAction = singleStore(state => state.setAction);
+
+  const handleCreate = () => startTransition(() => setAction('createOrUpdate'));
+  const handleEdit = (id: string) => startTransition(() => setAction('createOrUpdate', id));
+  const handleDelete = (id: string) => startTransition(() => setAction('delete', id));
+
+  const { columns } = ticketItemViews({ handleEdit, handleDelete });
+
+  return (
+    <div data-component-id={componentId}>
+      <div className="flex justify-between items-center gap-2 mb-4">
+        <Button onClick={handleCreate}>
+          <Plus /> {buildSentence(t, 'add', 'ticket')}
+        </Button>
+      </div>
+
+      <AppCard className="px-0">
+        <TTable<ITicket>
+          listStore={store}
+          columns={columns}
+          emptyMessage={buildSentence(t, 'no', 'tickets', 'found')}
+          showPagination={true}
+        />
+      </AppCard>
+    </div>
+  );
+}
+```
+
+### 3.3 Create Item Views
+```typescript
+// frontend/src/components/admin/tickets/list/ticket-item-views.tsx
+import { ColumnDef } from "@tanstack/react-table";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
+import type { ITicket } from "@shared/interfaces/ticket.interface";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Edit, Trash } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+interface ItemViewsProps {
+  handleEdit: (id: string) => void;
+  handleDelete: (id: string) => void;
+}
+
+export const ticketItemViews = ({ handleEdit, handleDelete }: ItemViewsProps) => {
+  const { t } = useI18n();
+
+  const columns: ColumnDef<ITicket>[] = [
+    {
+      accessorKey: "title",
+      header: buildSentence(t, "title"),
+    },
+    {
+      accessorKey: "status",
+      header: buildSentence(t, "status"),
+      cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>,
+    },
+    {
+      accessorKey: "priority",
+      header: buildSentence(t, "priority"),
+      cell: ({ row }) => <Badge>{row.original.priority}</Badge>,
+    },
+    {
+      accessorKey: "createdAt",
+      header: buildSentence(t, "created"),
+      cell: ({ row }) => new Date(row.original.createdAt!).toLocaleDateString(),
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => handleEdit(row.original.id)}>
+              <Edit className="mr-2 h-4 w-4" /> Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDelete(row.original.id)}>
+              <Trash className="mr-2 h-4 w-4" /> Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  return { columns };
+};
+```
+
+### 3.4 Create Form Component
+```typescript
+// frontend/src/page-components/ticket/ticket-form.tsx
+import { useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { AppDialog } from "@/components/layout-ui/app-dialog";
+import { FormHandler } from "@/handlers";
+import { CreateTicketDto, UpdateTicketDto } from "@shared/dtos";
+import { createTicket, updateTicket } from "@/services/ticket.api";
+import type { TSingleHandlerStore } from "@/stores";
+import type { ITicket } from "@shared/interfaces/ticket.interface";
+import type { TTicketData } from "@shared/types/ticket.type";
+import { ETicketStatus, ETicketPriority } from "@shared/enums";
+import TicketFormFields from "./ticket-form-fields";
+
+interface TicketFormProps {
+  store: TSingleHandlerStore<ITicket>;
+  storeKey: string;
+}
+
+export function TicketForm({ store, storeKey }: TicketFormProps) {
+  const queryClient = useQueryClient();
+  const action = store(state => state.action);
+  const payload = store(state => state.payload);
+  const data = store(state => state.response);
+  const setAction = store(state => state.setAction);
+
+  const isOpen = action === 'createOrUpdate';
+  const isEditing = !!payload;
+
+  const initialValues = useMemo(() => {
+    if (isEditing && data) {
+      return {
+        title: data.title || '',
+        description: data.description || '',
+        status: data.status || ETicketStatus.OPEN,
+        priority: data.priority || ETicketPriority.MEDIUM,
+        assigneeId: data.assignee?.id || '',
+      };
+    }
+    return {
+      title: '',
+      description: '',
+      status: ETicketStatus.OPEN,
+      priority: ETicketPriority.MEDIUM,
+      assigneeId: '',
+    };
+  }, [isEditing, data]);
+
+  const handleClose = () => setAction('', null);
+
+  return (
+    <AppDialog
+      open={isOpen}
+      onOpenChange={(open) => !open && handleClose()}
+      title={isEditing ? 'Edit Ticket' : 'Create Ticket'}
+    >
+      <FormHandler<TTicketData>
+        mutationFn={isEditing ? updateTicket(payload) : createTicket}
+        FormComponent={TicketFormFields}
+        initialValues={initialValues}
+        dto={isEditing ? UpdateTicketDto : CreateTicketDto}
+        storeKey={storeKey}
+        isEditing={isEditing}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: [storeKey + '-list'] });
+          handleClose();
+        }}
+      />
+    </AppDialog>
+  );
+}
+```
+
+### 3.5 Create Page
+```typescript
+// frontend/src/pages/admin/tickets/index.tsx
+import { useQueryClient } from "@tanstack/react-query";
+import type { ITicket } from '@shared/interfaces/ticket.interface';
+import { ListHandler, SingleHandler } from "@/handlers";
+import { TicketList } from "@/components/admin";
+import { fetchTickets, fetchTicket, deleteTicket } from '@/services/ticket.api';
+import { TicketForm } from "@/page-components";
+import { PageInnerLayout } from "@/layouts";
+import type { TTicketListData } from "@shared/types";
+import { TicketListDto } from "@shared/dtos";
+
+export default function TicketsPage() {
+  const queryClient = useQueryClient();
+  const STORE_KEY = 'ticket';
+
+  return (
+    <PageInnerLayout Header={<Header />}>
+      <SingleHandler<ITicket>
+        queryFn={fetchTicket}
+        initialParams={{ _relations: 'assignee,createdBy' }}
+        storeKey={STORE_KEY}
+        actionComponents={[
+          { action: 'createOrUpdate', comp: TicketForm }
+        ]}
+      />
+
+      <ListHandler<ITicket, TTicketListData>
+        queryFn={fetchTickets}
+        initialParams={{
+          _relations: 'assignee,createdBy',
+          sortBy: 'createdAt',
+          sortOrder: 'DESC',
+        }}
+        ListComponent={TicketList}
+        dto={TicketListDto}
+        deleteFn={deleteTicket}
+        onDeleteSuccess={() => queryClient.invalidateQueries({ queryKey: [STORE_KEY + "-list"] })}
+        storeKey={STORE_KEY}
+      />
+    </PageInnerLayout>
+  );
+}
+
+const Header = () => null;
+```
+
+### 3.6 Add Route
+```typescript
+// frontend/src/pages/admin/admin-routes.tsx
+import TicketsPage from './tickets';
+
+// Add to routes array
+{ path: 'tickets', element: <TicketsPage /> }
+```
+
+### 3.7 Create Barrel Exports
+```typescript
+// frontend/src/components/admin/tickets/index.ts
+export { default as TicketList } from './list/ticket-list';
+
+// frontend/src/page-components/ticket/index.ts
+export * from './ticket-form';
+```
+
+## Checklist
+
+- [ ] Shared interface created
+- [ ] Shared enums created (if needed)
+- [ ] Shared DTOs created (Create, Update, List, Response, Paginated)
+- [ ] Shared types created
+- [ ] Backend entity created
+- [ ] Backend service created
+- [ ] Backend controller created
+- [ ] Backend module created and registered
+- [ ] Frontend API service created
+- [ ] Frontend list component created
+- [ ] Frontend item views created
+- [ ] Frontend form component created
+- [ ] Frontend page created
+- [ ] Route added
+- [ ] Barrel exports added

@@ -1,0 +1,342 @@
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsBoolean,
+  IsEnum,
+  IsEmail,
+  Min,
+  Max,
+  IsUrl,
+  ValidateNested,
+} from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { PartialType } from "../../lib/dto-type-adapter";
+import { Type } from "class-transformer";
+import { FieldType, FieldOptions } from "../../decorators/field.decorator";
+import {
+  ECurrency,
+  EDateFormat,
+  ETimeFormat,
+  ENotificationFrequency,
+  ETheme,
+} from "../../enums/user-settings.enum";
+import { getTimezoneOptionsWithSystem } from "../../constants/timezone.constants";
+
+// Currency Settings
+export class CurrencySettingsDto {
+  @ApiProperty({
+    example: "USD",
+    description: "Default currency",
+    enum: ECurrency,
+  })
+  @IsEnum(ECurrency)
+  @IsOptional()
+  @FieldType("select", false)
+  @FieldOptions(Object.values(ECurrency).map((v) => ({ value: v, label: v })))
+  defaultCurrency?: ECurrency;
+
+  @ApiProperty({ example: "$", description: "Currency symbol" })
+  @IsString()
+  @IsOptional()
+  @FieldType("text", false)
+  currencySymbol?: string;
+}
+
+export class TimeSettingsDto {
+  @ApiProperty({
+    example: "MM/DD/YYYY",
+    description: "Date format",
+    enum: EDateFormat,
+  })
+  @IsEnum(EDateFormat)
+  @IsOptional()
+  @FieldType("select", false)
+  @FieldOptions(Object.values(EDateFormat).map((v) => ({ value: v, label: v })))
+  dateFormat?: EDateFormat;
+
+  @ApiProperty({
+    example: "12h",
+    description: "Time format",
+    enum: ETimeFormat,
+  })
+  @IsEnum(ETimeFormat)
+  @IsOptional()
+  @FieldType("select", false)
+  @FieldOptions(Object.values(ETimeFormat).map((v) => ({ value: v, label: v })))
+  timeFormat?: ETimeFormat;
+
+  @ApiProperty({
+    example: "America/New_York",
+    description: "Timezone (IANA timezone identifier)",
+  })
+  @IsString()
+  @IsOptional()
+  @FieldType("select", false)
+  @FieldOptions(
+    getTimezoneOptionsWithSystem().map((tz) => ({
+      value: tz.value,
+      label: tz.label,
+    }))
+  )
+  timezone?: string;
+}
+
+// Limits Settings
+export class LimitSettingsDto {
+  @ApiProperty({ example: 10, description: "Maximum sessions per day" })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(50)
+  @FieldType("number", false)
+  @Type(() => Number)
+  maxSessionsPerDay?: number;
+
+  @ApiProperty({ example: 20, description: "Maximum members per trainer" })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  @FieldType("number", false)
+  @Type(() => Number)
+  maxMembersPerSession?: number;
+
+  @ApiProperty({ example: 20, description: "Maximum members per trainer" })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  @FieldType("number", false)
+  @Type(() => Number)
+  maxMembersPerTrainer?: number;
+
+  @ApiProperty({
+    example: 60,
+    description: "Default session duration in minutes",
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(15)
+  @Max(480)
+  @FieldType("number", false)
+  @Type(() => Number)
+  maxSessionDuration?: number;
+
+  @ApiProperty({
+    example: 15,
+    description: "Time slot step in minutes when generating availability",
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(5)
+  @Max(180)
+  @FieldType("number", false)
+  @Type(() => Number)
+  slotStepMinutes?: number;
+}
+
+// Business Settings
+export class BusinessSettingsDto {
+  @ApiProperty({ example: "FitLife Gym", description: "Business name" })
+  @IsOptional()
+  @IsString()
+  @IsOptional()
+  @FieldType("text", false)
+  businessName?: string;
+
+  @ApiProperty({
+    example: "contact@fitlifegym.com",
+    description: "Business email",
+  })
+  @IsOptional()
+  @IsEmail()
+  @FieldType("email", false)
+  businessEmail?: string;
+
+  @ApiProperty({ example: "+1-555-123-4567", description: "Business phone" })
+  @IsOptional()
+  @IsString()
+  @FieldType("text", false)
+  businessPhone?: string;
+
+  @ApiProperty({
+    example: "123 Main St, City, State 12345",
+    description: "Business address",
+  })
+  @IsOptional()
+  @IsString()
+  @FieldType("textarea", false)
+  businessAddress?: string;
+
+  @ApiProperty({
+    example: "https://example.com/logo.png",
+    description: "Business logo URL",
+  })
+  @IsOptional()
+  @IsUrl()
+  @FieldType("text", false)
+  businessLogo?: string;
+}
+
+// Billing Settings
+export class BillingSettingsDto {
+  @ApiProperty({ example: 8.5, description: "Tax rate (%)" })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(50)
+  @FieldType("number", false)
+  @Type(() => Number)
+  taxRate?: number;
+
+  @ApiProperty({ example: "INV-", description: "Invoice prefix" })
+  @IsString()
+  @IsOptional()
+  @FieldType("text", false)
+  invoicePrefix?: string;
+
+  @ApiProperty({ example: 2.5, description: "Platform commission rate (%)" })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  @FieldType("number", false)
+  @Type(() => Number)
+  commissionRate?: number;
+}
+
+// Notification Settings
+export class NotificationSettingsDto {
+  @ApiProperty({ example: true, description: "Enable email notifications" })
+  @IsOptional()
+  @IsBoolean()
+  @FieldType("switch", false)
+  emailEnabled?: boolean;
+
+  @ApiProperty({ example: true, description: "Enable SMS notifications" })
+  @IsOptional()
+  @IsBoolean()
+  @FieldType("switch", false)
+  smsEnabled?: boolean;
+
+  @ApiProperty({ example: true, description: "Enable push notifications" })
+  @IsOptional()
+  @IsBoolean()
+  @FieldType("switch", false)
+  pushEnabled?: boolean;
+
+  @ApiProperty({ example: true, description: "Enable in-app notifications" })
+  @IsOptional()
+  @IsBoolean()
+  @FieldType("switch", false)
+  inAppEnabled?: boolean;
+}
+
+// Theme Settings
+export class ThemeSettingsDto {
+  @ApiProperty({
+    example: "system",
+    description: "Theme preference",
+    enum: ETheme,
+  })
+  @IsEnum(ETheme)
+  @IsOptional()
+  @FieldType("select", false)
+  @FieldOptions(
+    Object.values(ETheme).map((v) => ({
+      value: v,
+      label: v.charAt(0).toUpperCase() + v.slice(1),
+    }))
+  )
+  theme?: ETheme;
+}
+
+// Main User Settings DTO
+export class CreateOrUpdateUserSettingsDto {
+  @ApiProperty({ type: CurrencySettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => CurrencySettingsDto)
+  @FieldType("nested", false, CurrencySettingsDto)
+  currency?: CurrencySettingsDto;
+
+  @ApiProperty({ type: TimeSettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => TimeSettingsDto)
+  @FieldType("nested", false, TimeSettingsDto)
+  time?: TimeSettingsDto;
+
+  @ApiProperty({ type: LimitSettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LimitSettingsDto)
+  @FieldType("nested", false, LimitSettingsDto)
+  limits?: LimitSettingsDto;
+
+  @ApiProperty({ type: BusinessSettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BusinessSettingsDto)
+  @FieldType("nested", false, BusinessSettingsDto)
+  business?: BusinessSettingsDto;
+
+  @ApiProperty({ type: BillingSettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => BillingSettingsDto)
+  @FieldType("nested", false, BillingSettingsDto)
+  billing?: BillingSettingsDto;
+
+  @ApiProperty({ type: NotificationSettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => NotificationSettingsDto)
+  @FieldType("nested", false, NotificationSettingsDto)
+  notifications?: NotificationSettingsDto;
+
+  @ApiProperty({ type: ThemeSettingsDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => ThemeSettingsDto)
+  @FieldType("nested", false, ThemeSettingsDto)
+  theme?: ThemeSettingsDto;
+}
+
+export class UserSettingsDto {
+  @ApiProperty({ type: CurrencySettingsDto })
+  @IsOptional()
+  currency?: CurrencySettingsDto;
+
+  @ApiProperty({ type: TimeSettingsDto })
+  @IsOptional()
+  time?: TimeSettingsDto;
+
+  @ApiProperty({ type: LimitSettingsDto })
+  @IsOptional()
+  limits?: LimitSettingsDto;
+
+  @ApiProperty({ type: BusinessSettingsDto })
+  @IsOptional()
+  business?: BusinessSettingsDto;
+
+  @ApiProperty({ type: BillingSettingsDto })
+  @IsOptional()
+  billing?: BillingSettingsDto;
+
+  @ApiProperty({ type: NotificationSettingsDto })
+  @IsOptional()
+  notifications?: NotificationSettingsDto;
+
+  @ApiProperty({ type: ThemeSettingsDto })
+  @IsOptional()
+  theme?: ThemeSettingsDto;
+
+  @IsOptional()
+  createdAt?: Date;
+
+  @IsOptional()
+  updatedAt?: Date;
+}

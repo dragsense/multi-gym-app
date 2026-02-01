@@ -1,0 +1,16 @@
+export enum EBillingStatus {
+  PENDING = "PENDING",
+  PAID = "PAID",
+  OVERDUE = "OVERDUE",
+  CANCELLED = "CANCELLED",
+  REFUNDED = "REFUNDED",
+  FAILED = "FAILED",
+}
+
+export enum EBillingType {
+  SESSION = "SESSION",
+  MONTHLY = "MONTHLY",
+  PACKAGE = "PACKAGE",
+  MEMBERSHIP = "MEMBERSHIP",
+  BUSINESS = "BUSINESS",
+}
