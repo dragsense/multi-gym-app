@@ -330,7 +330,7 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden md:block dark">
+      <div className="hidden md:block">
         <Sidebar
           collapsible="offcanvas"
           themeClass={themeClass}

@@ -42,7 +42,7 @@ export function CustomizationPreview({ store }: ICustomizationPreviewProps) {
     const fontOption = FONT_OPTIONS.find(f => f.family === fontFamily);
     return fontOption?.url || '';
   }, [formValues.fontUrl, fontFamily]);
-  const title = formValues.title || 'Vivast';
+  const title = formValues.title || 'formance';
 
   // Use activeTab to determine main content theme (sidebar is always dark)
   const isDark = activeTab === 'dark';

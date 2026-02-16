@@ -15,7 +15,7 @@ cp -f ../shared/.env.shared ./shared/.env
 # Build and start Docker
 make safe-setup-prod
 
-# Show last 15 lines of logs from vivast-app container
-docker logs --tail 15 vivast-app-staging
+# Show last 15 lines of logs from formance-app container
+docker logs --tail 15 formance-app-staging
 
 echo "✅ Backend server started!"

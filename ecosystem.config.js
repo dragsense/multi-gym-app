@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "vivast-prod",
+      name: "formance-prod",
       script: "dist/backend/src/main.js",
       cwd: "/app/backend",
       env: {
@@ -17,7 +17,7 @@ module.exports = {
       restart_delay: 4000,
     },
     {
-      name: "vivast-staging",
+      name: "formance-staging",
       script: "dist/backend/src/main.js",
       cwd: "/app/backend",
       env: {
@@ -38,10 +38,10 @@ module.exports = {
       user: "ubuntu",
       host: "35.84.225.108",
       ref: "origin/main",
-      repo: "git@octa_github.com:Octathorn/vivast.git",
-      path: "/var/www/vivast_io_usr/data/www/vivast.io",
-      // Use WSL path (no spaces) or copy key to ~/.ssh/vivast-dev.pem
-      key: process.env.HOME + "/.ssh/vivast-dev.pem",
+      repo: "git@octa_github.com:Octathorn/formance.git",
+      path: "/var/www/formance_io_usr/data/www/formance.io",
+      // Use WSL path (no spaces) or copy key to ~/.ssh/formance-dev.pem
+      key: process.env.HOME + "/.ssh/formance-dev.pem",
       "post-setup": "touch ../shared/.env ../shared/.env.prod ../shared/.env.shared",
       "post-deploy": "sh ./deploy.sh",
     },
@@ -49,9 +49,9 @@ module.exports = {
       user: "ubuntu",
       host: "35.84.225.108",
       ref: "origin/testing",
-      repo: "git@octa_github.com:Octathorn/vivast.git",
-      path: "/var/www/vivast_io_usr/data/www/vivast.io/staging",
-      key: process.env.HOME + "/.ssh/vivast-dev.pem",
+      repo: "git@octa_github.com:Octathorn/formance.git",
+      path: "/var/www/formance_io_usr/data/www/formance.io/staging",
+      key: process.env.HOME + "/.ssh/formance-dev.pem",
       "post-setup": "touch ../shared/.env ../shared/.env.prod ../shared/.env.shared",
       "post-deploy": "sh ./deploy.sh",
     },
