@@ -1,0 +1,63 @@
+# Docker ignore file for shared folder context
+# This controls what gets copied when building Docker images
+
+# Node modules (will be installed during build)
+**/node_modules
+node_modules
+
+# Build outputs
+**/dist
+**/build
+dist
+build
+
+# Logs
+**/logs
+**/*.log
+logs
+*.log
+
+# Environment files (will be copied explicitly if needed)
+**/.env*
+.env*
+
+# Git
+.git
+.gitignore
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# Test files
+**/test
+**/tests
+**/*.test.*
+**/*.spec.*
+test
+tests
+
+# Coverage reports
+coverage
+**/coverage
+
+# Temporary files
+tmp
+temp
+**/tmp
+**/temp

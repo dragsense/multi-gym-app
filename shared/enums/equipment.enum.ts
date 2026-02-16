@@ -1,0 +1,5 @@
+export enum EEquipmentStatus {
+  MAINTENANCE = "MAINTENANCE",
+  AVAILABLE = "AVAILABLE",
+  NOT_AVAILABLE = "NOT_AVAILABLE",
+}

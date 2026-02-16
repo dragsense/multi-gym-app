@@ -1,0 +1,232 @@
+# General Project Rules
+
+## Tech Stack
+
+### Backend
+- **Framework**: NestJS
+- **Database**: PostgreSQL with TypeORM
+- **Authentication**: JWT-based with user levels
+- **API Documentation**: Swagger/OpenAPI
+- **Caching**: Redis
+- **Real-time**: WebSockets with Socket.IO
+- **Queue**: Bull (Redis-based)
+
+### Frontend
+- **Framework**: React 19 with Vite
+- **State Management**: Zustand + TanStack Query
+- **Forms**: React Hook Form with class-validator
+- **UI Components**: shadcn/ui + Tailwind CSS
+- **Routing**: React Router v6
+- **i18n**: Custom i18n implementation
+
+### Shared
+- **Validation**: class-validator + class-transformer
+- **Types**: TypeScript with strict mode
+
+## Project Layout
+
+```
+vivast/
+├── backend/                  # NestJS backend
+│   └── src/
+│       ├── common/           # Shared modules
+│       ├── modules/v1/       # API modules
+│       ├── config/           # Configuration
+│       ├── decorators/       # Custom decorators
+│       ├── guards/           # Auth guards
+│       └── interceptors/     # Request interceptors
+├── frontend/                 # React frontend
+│   └── src/
+│       ├── components/       # UI components
+│       ├── handlers/         # Data handlers
+│       ├── hooks/            # Custom hooks
+│       ├── pages/            # Route pages
+│       ├── page-components/  # Page-specific components
+│       ├── services/         # API services
+│       └── stores/           # Zustand stores
+└── shared/                   # Shared code
+    ├── dtos/                 # Data Transfer Objects
+    ├── interfaces/           # TypeScript interfaces
+    ├── types/                # Type aliases
+    ├── enums/                # Enumerations
+    └── decorators/           # Shared decorators
+```
+
+## Naming Conventions
+
+### Files
+- **Components**: PascalCase (`MemberList.tsx`)
+- **Hooks**: camelCase with `use` prefix (`useApiQuery.ts`)
+- **Services**: kebab-case with `.api.ts` suffix (`member.api.ts`)
+- **Types/Interfaces**: kebab-case (`member.interface.ts`)
+- **DTOs**: kebab-case with `.dto.ts` suffix (`member.dto.ts`)
+- **Entities**: kebab-case with `.entity.ts` suffix (`member.entity.ts`)
+
+### Code
+- **Components**: PascalCase (`MemberList`)
+- **Functions/Methods**: camelCase (`fetchMembers`)
+- **Variables**: camelCase (`memberData`)
+- **Constants**: SCREAMING_SNAKE_CASE (`API_BASE_URL`)
+- **Interfaces**: PascalCase with `I` prefix (`IMember`)
+- **Types**: PascalCase with `T` prefix (`TMemberData`)
+- **Enums**: PascalCase with `E` prefix (`EUserLevels`)
+- **DTOs**: PascalCase with `Dto` suffix (`CreateMemberDto`)
+
+### Database
+- **Tables**: snake_case plural (`members`, `user_profiles`)
+- **Columns**: camelCase in code, snake_case in DB
+
+## Import Order
+
+```typescript
+// 1. React/Framework imports
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// 2. External libraries
+import { useQuery } from '@tanstack/react-query';
+import { Plus, Edit } from 'lucide-react';
+
+// 3. Types/Interfaces (with type keyword for type-only imports)
+import type { IMember } from '@shared/interfaces/member.interface';
+
+// 4. Shared imports
+import { CreateMemberDto } from '@shared/dtos';
+import { EUserLevels } from '@shared/enums';
+
+// 5. Internal absolute imports
+import { Button } from '@/components/ui/button';
+import { useApiQuery } from '@/hooks/use-api-query';
+
+// 6. Relative imports
+import { MemberFilters } from './member-filters';
+```
+
+## API Conventions
+
+### Endpoints
+- Use plural nouns: `/members`, `/users`
+- Use kebab-case: `/user-availability`
+- Version prefix: `/api/v1/members`
+- Nested resources: `/members/:id/notes`
+
+### Query Parameters
+- `page`, `limit` - Pagination
+- `sortBy`, `sortOrder` - Sorting
+- `search` - Text search
+- `_relations` - Include relations
+- `_select` - Select specific fields
+- `_countable` - Count relations instead of loading
+
+### Response Format
+```typescript
+// Single item
+{ id, ...data }
+
+// List with pagination
+{
+  data: [...],
+  total: number,
+  page: number,
+  limit: number,
+  lastPage: number,
+  hasNextPage: boolean,
+  hasPrevPage: boolean
+}
+
+// Message response
+{ message: string, [entity]?: data }
+```
+
+## Error Handling
+
+### Backend
+```typescript
+// Use NestJS exceptions
+throw new NotFoundException('Member not found');
+throw new BadRequestException('Invalid data');
+throw new UnauthorizedException('Not authorized');
+```
+
+### Frontend
+```typescript
+// Use ErrorBoundary for component errors
+<ErrorBoundary FallbackComponent={ErrorFallback}>
+  <Component />
+</ErrorBoundary>
+
+// Use toast for user feedback
+toast.success('Member created successfully');
+toast.error(`Failed to create member: ${error.message}`);
+```
+
+## Authentication & Authorization
+
+### User Levels
+```typescript
+enum EUserLevels {
+  SUPER_ADMIN = 100,  // Platform-wide access
+  ADMIN = 90,         // Business admin
+  STAFF = 40,         // Staff access
+  MEMBER = 10,        // Member access
+}
+```
+
+### Backend Protection
+```typescript
+@MinUserLevel(EUserLevels.STAFF)  // Class or method level
+@Controller('members')
+export class MembersController {}
+```
+
+### Frontend Protection
+```typescript
+// Route guards in routes/
+<PrivateRoute minLevel={EUserLevels.STAFF}>
+  <MembersPage />
+</PrivateRoute>
+```
+
+## Multi-tenancy
+
+The application supports multi-tenant architecture:
+- Tenant identification via subdomain
+- Separate databases per tenant
+- `EntityRouterService` handles database routing
+- `RequestContext` stores tenant info per request
+
+## Code Quality
+
+### TypeScript
+- Use strict mode
+- Avoid `any` - use proper types
+- Use `type` imports for type-only imports
+- Define interfaces for all data structures
+
+### React
+- Use functional components
+- Use hooks for state and effects
+- Use `useTransition` for non-urgent updates
+- Memoize expensive computations with `useMemo`
+- Use `useCallback` for stable function references
+
+### Testing
+- Unit tests for services and utilities
+- Integration tests for API endpoints
+- Component tests for UI components
+
+## Git Conventions
+
+### Branch Naming
+- `feature/` - New features
+- `fix/` - Bug fixes
+- `refactor/` - Code refactoring
+- `docs/` - Documentation
+
+### Commit Messages
+- Use conventional commits format
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `refactor:` - Code refactoring
+- `docs:` - Documentation
+- `chore:` - Maintenance tasks

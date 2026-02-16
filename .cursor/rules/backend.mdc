@@ -1,0 +1,305 @@
+# Backend Development Rules (NestJS + TypeORM)
+
+## Project Structure
+
+```
+backend/src/
+├── common/                    # Shared modules, services, entities
+│   ├── base-user/            # Base user entity and service
+│   ├── crud/                 # Generic CRUD service
+│   ├── entities/             # Base entities (GeneralBaseEntity)
+│   ├── database/             # Multi-tenant database management
+│   ├── cache/                # Caching layer
+│   ├── notification/         # Push notifications
+│   ├── gateways/             # WebSocket gateways
+│   └── ...
+├── modules/
+│   └── v1/                   # API version 1 modules
+│       ├── members/
+│       ├── users/
+│       ├── auth/
+│       └── ...
+├── config/                   # Configuration files
+├── decorators/               # Custom decorators
+├── guards/                   # Auth and permission guards
+├── interceptors/             # Request/response interceptors
+├── pipes/                    # Validation pipes
+└── seeds/                    # Database seeders
+```
+
+## Module Structure Pattern
+
+Each module should follow this structure:
+
+```
+module-name/
+├── entities/
+│   └── module-name.entity.ts
+├── controllers/              # Optional: for sub-resources
+│   └── sub-resource.controller.ts
+├── services/                 # Optional: for additional services
+│   └── helper.service.ts
+├── subscribers/              # Optional: TypeORM subscribers
+│   └── module-name.subscriber.ts
+├── module-name.controller.ts
+├── module-name.module.ts
+└── module-name.service.ts
+```
+
+## Entity Rules
+
+### Base Entity
+All entities MUST extend `GeneralBaseEntity`:
+
+```typescript
+import { GeneralBaseEntity } from '@/common/entities';
+
+@Entity('table_name')
+export class MyEntity extends GeneralBaseEntity {
+  // GeneralBaseEntity provides:
+  // - id: string (UUID)
+  // - createdAt: Date
+  // - updatedAt: Date
+  // - createdByUserId: string
+  // - updatedByUserId: string
+  // - deletedByUserId: string
+  // - deletedAt: Date (soft delete)
+}
+```
+
+### Entity Conventions
+- Use `@Entity('table_name')` with snake_case table names
+- Use `@ApiProperty()` or `@ApiPropertyOptional()` for Swagger documentation
+- Use `@Column()` with explicit type definitions
+- Relations should use `@ManyToOne`, `@OneToMany`, `@ManyToMany` with proper JoinColumn
+
+```typescript
+@Entity('members')
+export class Member extends GeneralBaseEntity {
+  @ApiPropertyOptional({ example: 'Weight Loss', description: 'Member goal' })
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  goal?: string;
+
+  @ApiProperty({ type: () => User, description: 'Associated user' })
+  @ManyToOne(() => User, { eager: true })
+  @JoinColumn()
+  user: User;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'createdByUserId' })
+  createdBy?: User;
+}
+```
+
+## Service Rules
+
+### Extending CrudService
+Services MUST extend `CrudService<T>` for standard CRUD operations:
+
+```typescript
+import { CrudService } from '@/common/crud/crud.service';
+import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
+
+@Injectable()
+export class MembersService extends CrudService<Member> {
+  constructor(
+    @InjectRepository(Member)
+    memberRepo: Repository<Member>,
+    moduleRef: ModuleRef,
+  ) {
+    const crudOptions: CrudOptions = {
+      restrictedFields: ['user.password'],  // Fields to exclude from responses
+      searchableFields: [                    // Fields for search functionality
+        'user.email',
+        'user.profile.firstName',
+        'user.profile.lastName',
+      ],
+    };
+    super(memberRepo, moduleRef, crudOptions);
+  }
+}
+```
+
+### CrudService Methods Available
+- `create(dto, callbacks?)` - Create with beforeCreate/afterCreate hooks
+- `update(key, dto, callbacks?)` - Update with beforeUpdate/afterUpdate hooks
+- `get(queryDto, dtoClass, callbacks?)` - Paginated list
+- `getAll(queryDto, dtoClass, callbacks?)` - All items without pagination
+- `getSingle(key, queryDto?)` - Single item by ID or conditions
+- `delete(key, callbacks?)` - Soft delete
+- `restore(key, callbacks?)` - Restore soft-deleted
+- `permanentlyDelete(key, callbacks?)` - Hard delete
+
+### Custom Methods Pattern
+```typescript
+async createMember(createMemberDto: CreateMemberDto): Promise<IMessageResponse & { member: Member }> {
+  const { user, ...memberData } = createMemberDto;
+  
+  const savedMember = await this.create(memberData, {
+    afterCreate: async (savedEntity, manager) => {
+      // Post-creation logic with transaction manager
+      const createdUser = await this.userService.createUser({
+        ...user,
+        level: EUserLevels.MEMBER,
+      });
+      savedEntity.user = createdUser.user;
+      await manager.update(Member, savedEntity.id, { user: createdUser.user });
+    },
+  });
+
+  return { message: 'Member created successfully', member: savedMember };
+}
+```
+
+## Controller Rules
+
+### Structure Pattern
+```typescript
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody } from '@nestjs/swagger';
+import { MinUserLevel } from '@/common/decorators/level.decorator';
+import { AuthUser } from '@/decorators/user.decorator';
+
+@ApiTags('Members')
+@MinUserLevel(EUserLevels.STAFF)  // Default access level for all routes
+@Controller('members')
+export class MembersController {
+  constructor(private readonly membersService: MembersService) {}
+
+  @ApiOperation({ summary: 'Get all members with pagination and filtering' })
+  @ApiResponse({ status: 200, description: 'Returns paginated list', type: MemberPaginatedDto })
+  @Get()
+  findAll(@Query() query: MemberListDto, @AuthUser() currentUser: User) {
+    return this.membersService.get(query, MemberListDto, {
+      beforeQuery: (query: SelectQueryBuilder<Member>) => {
+        // Custom query modifications
+        return query;
+      },
+    });
+  }
+
+  @ApiOperation({ summary: 'Get member by ID' })
+  @ApiParam({ name: 'id', description: 'Member ID' })
+  @ApiResponse({ status: 200, type: MemberDto })
+  @ApiResponse({ status: 404, description: 'Not found' })
+  @Get(':id')
+  findOne(@Param('id') id: string, @Query() query: SingleQueryDto<Member>) {
+    return this.membersService.getSingle(id, query);
+  }
+
+  @ApiOperation({ summary: 'Create member' })
+  @ApiBody({ type: CreateMemberDto })
+  @ApiResponse({ status: 201, description: 'Created successfully' })
+  @Post()
+  create(@Body() createMemberDto: CreateMemberDto) {
+    return this.membersService.createMember(createMemberDto);
+  }
+
+  @MinUserLevel(EUserLevels.MEMBER)  // Override default access level
+  @Get('me')
+  async getMyMember(@AuthUser() currentUser: User) {
+    return this.membersService.getSingle({ userId: currentUser.id }, { _relations: ['user'] });
+  }
+}
+```
+
+## Module Registration
+
+```typescript
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([Member]),
+    // Other module imports
+  ],
+  controllers: [MembersController],
+  providers: [MembersService],
+  exports: [MembersService],
+})
+export class MembersModule {}
+```
+
+## DTOs Location
+
+DTOs are defined in `shared/dtos/` and shared between frontend and backend:
+
+```
+shared/dtos/
+├── member-dtos/
+│   ├── member.dto.ts      # CreateMemberDto, UpdateMemberDto, MemberDto, MemberListDto
+│   └── index.ts
+└── common/
+    ├── pagination.dto.ts   # PaginationMetaDto
+    └── list-query.dto.ts   # ListQueryDto, SingleQueryDto
+```
+
+## Query Decorators (shared/decorators/crud.dto.decorators.ts)
+
+Use these decorators in ListDto classes for filtering:
+
+```typescript
+export class MemberListDto extends ListQueryDto<IMember> {
+  @IsOptional()
+  @IsBoolean()
+  @Equals()                    // Exact match filter
+  @FieldType("switch", false)
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @Like()                      // ILIKE '%value%' filter
+  @FieldType("text", false)
+  goal?: string;
+
+  @IsOptional()
+  @DateRange()                 // Date range filter
+  @TransformToDate()
+  createdAtRange?: [Date, Date];
+
+  @IsOptional()
+  @In()                        // IN (...values) filter
+  @TransformToArray()
+  status?: string[];
+
+  @IsOptional()
+  @RelationFilter('user.email')  // Filter on relation field
+  @Like()
+  userEmail?: string;
+}
+```
+
+Available filter decorators:
+- `@Equals()` - Exact match
+- `@NotEquals()` - Not equal
+- `@Like()` - ILIKE pattern match
+- `@In()` - IN array
+- `@NotIn()` - NOT IN array
+- `@Between()` - Range filter
+- `@LessThan()`, `@GreaterThan()`, `@LessThanOrEqual()`, `@GreaterThanOrEqual()`
+- `@IsNull()`, `@IsNotNull()`
+- `@DateRange()` - Date range with transform
+- `@RelationFilter('path')` - Filter on relation fields
+
+## User Levels (EUserLevels)
+
+```typescript
+enum EUserLevels {
+  SUPER_ADMIN = 100,
+  ADMIN = 90,
+  STAFF = 40,
+  MEMBER = 10,
+}
+```
+
+## Best Practices
+
+1. **Always use transactions** for operations involving multiple entities
+2. **Use callbacks** (beforeCreate, afterCreate, etc.) for related operations
+3. **Soft delete by default** - use `deletedAt` field
+4. **Document all endpoints** with Swagger decorators
+5. **Use DTOs** for all request/response data
+6. **Validate input** with class-validator decorators
+7. **Use proper access control** with `@MinUserLevel()` decorator
+8. **Emit events** for cross-module communication via EventService
+9. **Use RequestContext** for accessing current user in services

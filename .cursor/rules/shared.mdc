@@ -1,0 +1,298 @@
+# Shared Code Rules
+
+## Shared Directory Structure
+
+```
+shared/
+├── constants/                # Shared constants
+├── decorators/               # Shared decorators (FieldType, CRUD filters)
+├── dtos/                     # Data Transfer Objects
+│   ├── common/               # Common DTOs (pagination, query)
+│   ├── member-dtos/
+│   ├── user-dtos/
+│   └── [feature]-dtos/
+├── enums/                    # Enumerations
+├── interfaces/               # TypeScript interfaces
+│   ├── api/                  # API-related interfaces
+│   └── [feature].interface.ts
+├── lib/                      # Shared utilities
+└── types/                    # Type aliases
+```
+
+## DTO Patterns
+
+### Create DTO
+```typescript
+import { IsString, IsNotEmpty, IsOptional, ValidateNested } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { FieldType } from "../../decorators/field.decorator";
+
+export class CreateMemberDto {
+  @ApiProperty({ type: CreateUserDto })
+  @ValidateNested()
+  @Type(() => CreateUserDto)
+  @FieldType("nested", true, CreateUserDto)
+  user: CreateUserDto;
+
+  @ApiPropertyOptional({ example: "Weight Loss", description: "Member goal" })
+  @IsOptional()
+  @IsString()
+  @FieldType("text")
+  goal?: string;
+}
+```
+
+### Update DTO
+```typescript
+import { PartialType, OmitType } from "../../lib/dto-type-adapter";
+
+export class UpdateMemberDto extends PartialType(
+  OmitType(CreateMemberDto, ["user"])
+) {
+  @ApiProperty({ type: UpdateUserDto })
+  @ValidateNested()
+  @Type(() => UpdateUserDto)
+  @FieldType("nested", true, UpdateUserDto)
+  @IsOptional()
+  user?: UpdateUserDto;
+}
+```
+
+### List Query DTO
+```typescript
+import { ListQueryDto } from "../common/list-query.dto";
+import { Equals, Like, In, Between, DateRange, RelationFilter } from "../../decorators/crud.dto.decorators";
+
+export class MemberListDto extends ListQueryDto<IMember> {
+  @ApiPropertyOptional({ description: "Filter by active status" })
+  @IsOptional()
+  @IsBoolean()
+  @Equals()
+  @FieldType("switch", false)
+  isActive?: boolean;
+
+  @ApiPropertyOptional({ description: "Filter by goal" })
+  @IsOptional()
+  @IsString()
+  @Like()
+  @FieldType("text", false)
+  goal?: string;
+
+  @ApiPropertyOptional({ description: "Filter by created date range" })
+  @IsOptional()
+  @DateRange()
+  @TransformToDate()
+  @FieldType("dateRange", false)
+  createdAtRange?: [Date, Date];
+}
+```
+
+### Response DTO
+```typescript
+export class MemberDto {
+  @ApiProperty({ description: "Member ID" })
+  @IsNotEmpty()
+  @IsString()
+  @FieldType("text", true)
+  id: string;
+
+  @ApiPropertyOptional({ description: "Member goal" })
+  @IsOptional()
+  @IsString()
+  goal?: string;
+
+  @ApiProperty({ description: "Associated user" })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UserDto)
+  @FieldType("nested", true, UserDto)
+  user?: UserDto;
+
+  @IsOptional()
+  createdAt?: Date;
+
+  @IsOptional()
+  updatedAt?: Date;
+}
+```
+
+### Paginated Response DTO
+```typescript
+import { PaginationMetaDto } from "../common/pagination.dto";
+
+export class MemberPaginatedDto extends PaginationMetaDto {
+  @ApiProperty({ type: () => [MemberDto] })
+  @Type(() => MemberDto)
+  data: MemberDto[];
+}
+```
+
+## Interface Patterns
+
+```typescript
+// interfaces/member.interface.ts
+export interface IMember {
+  id: string;
+  goal?: string;
+  fitnessLevel?: string;
+  medicalConditions?: string;
+  user?: IUser;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+```
+
+## Type Patterns
+
+```typescript
+// types/member.type.ts
+import type { CreateMemberDto, UpdateMemberDto, MemberListDto } from "@shared/dtos";
+
+export type TMemberData = CreateMemberDto;
+export type TMemberUpdateData = UpdateMemberDto;
+export type TMemberListData = MemberListDto;
+```
+
+## Enum Patterns
+
+```typescript
+// enums/user-levels.enum.ts
+export enum EUserLevels {
+  SUPER_ADMIN = 100,
+  ADMIN = 90,
+  STAFF = 40,
+  MEMBER = 10,
+}
+``` 
+
+## FieldType Decorator Reference
+
+```typescript
+@FieldType(type, required?, nestedClass?)
+
+// Available types:
+"text"        // Text input
+"textarea"    // Multiline text
+"number"      // Number input
+"email"       // Email input
+"password"    // Password input
+"select"      // Select dropdown
+"multiselect" // Multi-select
+"switch"      // Boolean toggle
+"checkbox"    // Checkbox
+"date"        // Date picker
+"dateRange"   // Date range picker
+"time"        // Time picker
+"file"        // File upload
+"nested"      // Nested DTO (requires nestedClass)
+"array"       // Array of items
+```
+
+## CRUD Filter Decorators Reference
+
+```typescript
+// Exact match
+@Equals()
+field?: string;
+
+// Not equal
+@NotEquals()
+field?: string;
+
+// Pattern match (ILIKE '%value%')
+@Like()
+field?: string;
+
+// Array inclusion
+@In()
+@TransformToArray()
+field?: string[];
+
+// Array exclusion
+@NotIn()
+@TransformToArray()
+field?: string[];
+
+// Range filters
+@Between()
+@TransformToDate()
+field?: [Date, Date];
+
+@LessThan()
+field?: number;
+
+@GreaterThan()
+field?: number;
+
+@LessThanOrEqual()
+field?: number;
+
+@GreaterThanOrEqual()
+field?: number;
+
+// Null checks
+@IsNull()
+field?: boolean;
+
+@IsNotNull()
+field?: boolean;
+
+// Date range (convenience)
+@DateRange()
+@TransformToDate()
+dateField?: [Date, Date];
+
+// Relation field filter
+@RelationFilter('user.email')
+@Like()
+userEmail?: string;
+```
+
+## Barrel Exports
+
+Always create index.ts files for clean imports:
+
+```typescript
+// dtos/member-dtos/index.ts
+export * from './member.dto';
+
+// Usage
+import { CreateMemberDto, MemberDto, MemberListDto } from '@shared/dtos';
+```
+
+## Import Aliases
+
+```typescript
+// Backend
+import { Something } from '@shared/dtos';
+import { Something } from '@shared/interfaces';
+import { Something } from '@shared/enums';
+
+// Frontend
+import { Something } from '@shared/dtos';
+import type { ISomething } from '@shared/interfaces/something.interface';
+```
+
+## Validation Decorators (class-validator)
+
+Common validators used:
+- `@IsString()`, `@IsNumber()`, `@IsBoolean()`
+- `@IsNotEmpty()`, `@IsOptional()`
+- `@IsEmail()`, `@IsUUID()`
+- `@IsDateString()`, `@IsDate()`
+- `@Min()`, `@Max()`, `@Length()`
+- `@ValidateNested()` with `@Type(() => NestedDto)`
+- `@IsEnum(EnumType)`
+- `@IsArray()`, `@ArrayMinSize()`, `@ArrayMaxSize()`
+
+## Best Practices
+
+1. **Keep DTOs in shared/** - They're used by both frontend and backend
+2. **Use FieldType decorator** - Enables automatic form generation
+3. **Use proper validation** - class-validator for backend, form validation for frontend
+4. **Use ApiProperty decorators** - For Swagger documentation
+5. **Create separate Create/Update DTOs** - Update usually extends PartialType of Create
+6. **Use ListQueryDto base** - For consistent filtering/pagination
+7. **Export from index.ts** - For cleaner imports
+8. **Use type aliases** - For complex type combinations

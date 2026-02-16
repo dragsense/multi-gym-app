@@ -1,0 +1,125 @@
+services:
+  # Full-Stack Service (Backend + Frontend in one container)
+  app:
+    build:
+      context: ..
+      dockerfile: shared/Dockerfile
+      target: prod
+    container_name: vivast-app-staging
+    ports:
+      - "3001:3000" # Backend port
+    env_file:
+      - ../backend/.env
+    volumes:
+      - app_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Redis Cache
+  redis:
+    image: redis:latest
+    container_name: vivast-redis-staging
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: vivast-redis-commander-staging
+    environment:
+      - REDIS_HOSTS=local:vivast-dragonfly-staging:6381
+    ports:
+      - "8082:8081"
+    depends_on:
+      - dragonfly
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    container_name: vivast-dragonfly-staging
+    restart: unless-stopped
+    mem_limit: 6g # optional, matches Docker memory
+    command: >
+      dragonfly
+      --maxmemory=5g # slightly less than container memory
+    ports:
+      - "6381:6379"
+    networks:
+      - app-network
+
+  # PostgreSQL 17 Database
+  postgres:
+    image: postgres:17
+    container_name: vivast-postgres-staging
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-vivast_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+
+  # Mailpit for email testing
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: vivast-mailpit-staging
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - app-network
+
+   # SRS - Host network for WebRTC ICE (UDP works); app reaches via host.docker.internal
+  srs:
+    image: ossrs/srs:latest
+    container_name: vivast-srs-staging
+    environment:
+      CANDIDATE: "35.84.225.108"
+      SRS_RTC_SERVER_CANDIDATE: "35.84.225.108"
+      SRS_RTC_SERVER_USE_AUTO_DETECT_NETWORK_IP: "off"
+    volumes:
+      - ./srs_conf:/usr/local/srs/conf
+    command: >
+      ./objs/srs -c conf/srs.conf
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  app_logs:
+
+networks:
+  app-network:
+    driver: bridge
+
