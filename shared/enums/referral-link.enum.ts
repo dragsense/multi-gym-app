@@ -7,5 +7,4 @@ export enum EReferralLinkStatus {
 
 export enum EReferralLinkType {
   USER = "USER",
-  MEMBER = "MEMBER",
 }

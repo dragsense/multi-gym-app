@@ -41,7 +41,7 @@ export class RewardsService extends CrudService<RewardPoints> {
 
     if (
       !referralLink ||
-      (referralLink.maxUses || 0) <= referralLink.currentUses
+      (referralLink.maxUses && referralLink.maxUses <= referralLink.currentUses)
     ) {
       this.logger.error(`Invalid referral code: ${referralCode}`);
       return; // Invalid referral code, no reward

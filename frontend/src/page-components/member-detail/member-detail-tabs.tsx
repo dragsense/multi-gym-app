@@ -40,10 +40,10 @@ export function MemberDetailTabs({ member, storeKey }: IMemberDetailTabsProps) {
           <LayoutDashboard className="h-4 w-4" />
           Overview
         </TabsTrigger>
-        <TabsTrigger value="membership" className="flex items-center gap-2">
+    {/*     <TabsTrigger value="membership" className="flex items-center gap-2">
           <CreditCard className="h-4 w-4" />
           Membership
-        </TabsTrigger>
+        </TabsTrigger> */}
         <TabsTrigger value="billings" className="flex items-center gap-2">
           <Receipt className="h-4 w-4" />
           Billings
@@ -52,27 +52,27 @@ export function MemberDetailTabs({ member, storeKey }: IMemberDetailTabsProps) {
           <Calendar className="h-4 w-4" />
           Sessions
         </TabsTrigger>
-        <TabsTrigger value="link-members" className="flex items-center gap-2">
+     {/*    <TabsTrigger value="link-members" className="flex items-center gap-2">
           <Link2 className="h-4 w-4" />
           Link Members
-        </TabsTrigger>
+        </TabsTrigger> */}
         <TabsTrigger value="communications" className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
           Communications
         </TabsTrigger>
-        <TabsTrigger value="notes" className="flex items-center gap-2">
+   {/*      <TabsTrigger value="notes" className="flex items-center gap-2">
           <FileText className="h-4 w-4" />
           Notes
-        </TabsTrigger>
+        </TabsTrigger> */}
       </TabsList>
 
       <TabsContent value="overview" className="mt-4">
         <MemberOverviewTab member={member} storeKey={storeKey} />
       </TabsContent>
 
-      <TabsContent value="membership" className="mt-4">
+ {/*      <TabsContent value="membership" className="mt-4">
         <MemberMembershipTab member={member} storeKey={storeKey} />
-      </TabsContent>
+      </TabsContent> */}
 
       <TabsContent value="billings" className="mt-4">
         <MemberBillingsTab member={member} storeKey={storeKey} />
@@ -82,17 +82,17 @@ export function MemberDetailTabs({ member, storeKey }: IMemberDetailTabsProps) {
         <MemberSessionsTab member={member} storeKey={storeKey} />
       </TabsContent>
 
-      <TabsContent value="link-members" className="mt-4">
+ {/*      <TabsContent value="link-members" className="mt-4">
         <MemberLinkMembersTab member={member} storeKey={storeKey} />
-      </TabsContent>
+      </TabsContent> */}
 
       <TabsContent value="communications" className="mt-4">
         <MemberCommunicationsTab member={member} />
       </TabsContent>
 
-      <TabsContent value="notes" className="mt-4">
-        <MemberNotesTab member={member} storeKey={storeKey} />
-      </TabsContent>
+        <TabsContent value="notes" className="mt-4">
+          <MemberNotesTab member={member} storeKey={storeKey} />
+        </TabsContent>
     </Tabs>
   );
 }

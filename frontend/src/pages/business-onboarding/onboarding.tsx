@@ -27,8 +27,8 @@ import { buildRoutePath } from "@/lib/utils";
 
 const STEPS = [
   { id: 1, name: "Business Setup", component: BusinessSetupStep },
-  { id: 2, name: "Subscription", component: SubscriptionStep },
-  { id: 3, name: "Payment", component: PaymentStep },
+ /*  { id: 2, name: "Subscription", component: SubscriptionStep },
+  { id: 3, name: "Payment", component: PaymentStep }, */
 ] as const;
 
 interface IBusinessData {
@@ -72,6 +72,7 @@ export default function BusinessOnboardingPage() {
     if (currentStep === 1) {
       setBusinessData(stepData);
       setCurrentStep(2);
+      handlePaymentSuccess();
       localStorage.setItem("business_onboarding_step", "2");
     } else if (currentStep === 2) {
       setSelectedSubscription(stepData);

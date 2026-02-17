@@ -26,8 +26,8 @@ import { buildRoutePath } from "@/lib/utils";
 
 const STEPS = [
   { id: 1, name: "Profile", component: ProfileStep },
-  { id: 2, name: "Membership", component: MembershipStep },
-  { id: 3, name: "Payment", component: PaymentStep },
+/*   { id: 2, name: "Membership", component: MembershipStep },
+  { id: 3, name: "Payment", component: PaymentStep }, */
 ] as const;
 
 export default function MemberOnboardingPage() {
@@ -46,6 +46,7 @@ export default function MemberOnboardingPage() {
     if (currentStep === 1) {
       setCurrentStep(2);
       localStorage.setItem('member_onboarding_step', '2');
+      handlePaymentSuccess();
     } else if (currentStep === 2) {
       setSelectedMembership(stepData);
       setCurrentStep(3);

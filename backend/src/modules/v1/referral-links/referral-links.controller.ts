@@ -27,10 +27,12 @@ import { User } from '@/common/base-user/entities/user.entity';
 import { AuthUser } from '@/decorators/user.decorator';
 import { EUserLevels } from '@shared/enums';
 import { SelectQueryBuilder } from 'typeorm';
+import { MinUserLevel } from '@/decorators/level.decorator';
 
 @ApiTags('Referral Links')
 @ApiBearerAuth()
 @Controller('referral-links')
+@MinUserLevel(EUserLevels.SUPER_ADMIN)
 export class ReferralLinksController {
   constructor(private readonly referralLinksService: ReferralLinksService) {}
 
@@ -57,11 +59,9 @@ export class ReferralLinksController {
     const isSuperAdmin = currentUser.level === EUserLevels.SUPER_ADMIN;
     return this.referralLinksService.get(query, ReferralLinkListDto, {
       beforeQuery: (query: SelectQueryBuilder<ReferralLink>) => {
-        if (!isSuperAdmin) {
           query.andWhere('entity.createdByUserId = :createdByUserId', {
             createdByUserId: currentUser.id,
           });
-        }
       },
     });
   }

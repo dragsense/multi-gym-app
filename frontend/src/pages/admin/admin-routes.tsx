@@ -190,7 +190,6 @@ const adminRoutes: RouteDefinition[] = [
   createRoute(ADMIN_ROUTES.EQUIPMENT, EquipmentPage, "Admin", ["loading", "equipment"]),
   createRoute(ADMIN_ROUTES.MEMBERS, MembersPage, "Admin", ["loading", "members"]),
   createRoute(ADMIN_ROUTES.MEMBER_DETAIL, MemberDetailPage, "Admin", ["loading", "member", "detail"]),
-  createRoute(ADMIN_ROUTES.REFERRAL_LINKS, ReferralLinksPage, "Admin", ["loading", "referral", "links"]),
   createRoute(ADMIN_ROUTES.DASHBOARD, DashboardPage, "Admin", ["loading", "dashboard"]),
   createRoute(ADMIN_ROUTES.FILES, FilesPage, "Admin", ["loading", "files"]),
   createRoute(ADMIN_ROUTES.AUTOMATION, AutomationPage, 'Admin', ["loading", "automation"]),
@@ -201,6 +200,7 @@ const superAdminRoutes: RouteDefinition[] = [
   ...commonRoutes("Super Admin"),
   ...platformOwnerAndSuperAdminSharedRoutes("Super Admin"),
   ...platformOwnerAndSuperAdminAndAdminSharedRoutes("Super Admin"),
+  createRoute(ADMIN_ROUTES.REFERRAL_LINKS, ReferralLinksPage, "Admin", ["loading", "referral", "links"]),
   createRoute(ADMIN_ROUTES.DASHBOARD, SuperAdminDashboardPage, "Super Admin", ["loading", "dashboard"]),
   createRoute(ADMIN_ROUTES.CUSTOMIZATION, CustomizationPage, "Super Admin", ["loading", "customization"]),
 ];
@@ -251,6 +251,13 @@ const routeFeatureMap: Record<string, ESubscriptionFeatures> = {
   [ADMIN_ROUTES.LINK_MEMBERS.DETAIL]: ESubscriptionFeatures.LINK_MEMBERS,
   [ADMIN_ROUTES.LINK_MEMBERS.SESSIONS]: ESubscriptionFeatures.LINK_MEMBERS,
   [ADMIN_ROUTES.LINK_MEMBERS.BILLINGS]: ESubscriptionFeatures.LINK_MEMBERS,
+  [ADMIN_ROUTES.DEVICE_READERS]: ESubscriptionFeatures.LOCATIONS,
+  [ADMIN_ROUTES.CART]: ESubscriptionFeatures.E_COMMERCE,
+  [ADMIN_ROUTES.CHECKOUT]: ESubscriptionFeatures.E_COMMERCE,
+  [ADMIN_ROUTES.ORDERS]: ESubscriptionFeatures.E_COMMERCE,
+  [ADMIN_ROUTES.ORDER_DETAIL]: ESubscriptionFeatures.E_COMMERCE,
+  [ADMIN_ROUTES.STORE]: ESubscriptionFeatures.E_COMMERCE,
+  [ADMIN_ROUTES.STORE_PRODUCT]: ESubscriptionFeatures.E_COMMERCE,
 };
 
 // Helper to filter routes by subscription features
@@ -299,7 +306,7 @@ export const filterStaffRoutes = (
     [ADMIN_ROUTES.MEMBERS]: EResource.MEMBERS,
     [ADMIN_ROUTES.MEMBERSHIPS]: EResource.MEMBERSHIPS,
     [ADMIN_ROUTES.STAFF]: EResource.STAFF,
-    [ADMIN_ROUTES.SERVICE_OFFERS]: EResource.SERVICE_OFFERS,
+    [ADMIN_ROUTES.SERVICE_OFFERS]: EResource.SERVICE_OFFERS
   };
 
   return routes.filter((route) => {

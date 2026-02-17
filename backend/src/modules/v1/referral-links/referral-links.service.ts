@@ -71,15 +71,14 @@ export class ReferralLinksService extends CrudService<ReferralLink> {
 
       try {
         // Check if code already exists
-        await this.getSingle({
+        const existingReferralLink = await this.getSingle({
           referralCode,
         });
+        if (!existingReferralLink) isUnique = true;
       } catch (error: unknown) {
-        if (error instanceof NotFoundException) isUnique = true;
-        else
-          throw new Error('Failed to generate unique referral code', {
-            cause: error,
-          });
+        throw new Error('Failed to generate unique referral code', {
+          cause: error,
+        });
       }
     }
 

@@ -69,15 +69,15 @@ export function LocationSelectionModal({
     if (!isOpen) return null;
 
     const footerContent = (
-        <div className="flex justify-between items-center w-full">
-            <Button
+        <div className="flex justify-end items-center w-full">
+        {/*     <Button
                 variant="outline"
                 onClick={handleManageLocations}
                 className="flex items-center gap-2"
             >
                 <Settings className="h-4 w-4" />
                 {t("manageLocations")}
-            </Button>
+            </Button> */}
             <div className="flex gap-2">
                 <Button variant="outline" onClick={handleClose}>
                     {t("cancel")}

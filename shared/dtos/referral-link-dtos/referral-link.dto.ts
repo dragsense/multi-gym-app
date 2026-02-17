@@ -68,6 +68,7 @@ export class CreateReferralLinkDto {
     description: "Commission percentage for referrals",
   })
   @IsNumber()
+  @IsNotEmpty()
   @Min(0)
   @Max(100)
   @FieldType("number", true)

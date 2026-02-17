@@ -22,9 +22,8 @@ export class DashboardController {
   })
   async getDashboardStats(
     @AuthUser() currentUser: User,
-    @Query() query: DashboardAnalyticsDto,
   ): Promise<DashboardStatsResponseDto> {
-    return this.dashboardService.getDashboardStats(currentUser, query);
+    return this.dashboardService.getDashboardStats(currentUser);
   }
 
   @MinUserLevel(EUserLevels.ADMIN)
@@ -33,12 +32,6 @@ export class DashboardController {
   @ApiResponse({
     status: 200,
     description: 'Sessions analytics retrieved successfully',
-  })
-  @ApiQuery({
-    name: 'period',
-    required: false,
-    enum: ['daily', 'weekly', 'monthly', 'year'],
-    description: 'Time period for session analysis',
   })
   async getSessionsAnalytics(
     @AuthUser() currentUser: User,
@@ -61,63 +54,45 @@ export class DashboardController {
     return this.dashboardService.getBillingAnalytics(currentUser, query);
   }
 
-  @MinUserLevel(EUserLevels.ADMIN)
-  @Get('members/analytics')
-  @ApiOperation({ summary: 'Get members analytics' })
-  @ApiResponse({
-    status: 200,
-    description: 'Members analytics retrieved successfully',
-  })
-  @ApiQuery({
-    name: 'period',
-    required: false,
-    enum: ['daily', 'weekly', 'monthly', 'year'],
-    description: 'Time period for members analysis',
-  })
-  async getMembersAnalytics(
-    @AuthUser() currentUser: User,
-    @Query() query: DashboardAnalyticsDto,
-  ) {
-    return this.dashboardService.getMembersAnalytics(currentUser, query);
-  }
+  // @MinUserLevel(EUserLevels.ADMIN)
+  // @Get('members/analytics')
+  // @ApiOperation({ summary: 'Get members analytics' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Members analytics retrieved successfully',
+  // })
+  // async getMembersAnalytics(
+  //   @AuthUser() currentUser: User,
+  //   @Query() query: DashboardAnalyticsDto,
+  // ) {
+  //   return this.dashboardService.getMembersAnalytics(currentUser, query);
+  // }
 
-  @MinUserLevel(EUserLevels.ADMIN)
-  @Get('memberships/analytics')
-  @ApiOperation({ summary: 'Get memberships analytics' })
-  @ApiResponse({
-    status: 200,
-    description: 'Memberships analytics retrieved successfully',
-  })
-  @ApiQuery({
-    name: 'period',
-    required: false,
-    enum: ['daily', 'weekly', 'monthly', 'year'],
-    description: 'Time period for memberships analysis',
-  })
-  async getMembershipsAnalytics(
-    @AuthUser() currentUser: User,
-    @Query() query: DashboardAnalyticsDto,
-  ) {
-    return this.dashboardService.getMembershipsAnalytics(currentUser, query);
-  }
+  // @MinUserLevel(EUserLevels.ADMIN)
+  // @Get('memberships/analytics')
+  // @ApiOperation({ summary: 'Get memberships analytics' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Memberships analytics retrieved successfully',
+  // })
+  // async getMembershipsAnalytics(
+  //   @AuthUser() currentUser: User,
+  //   @Query() query: DashboardAnalyticsDto,
+  // ) {
+  //   return this.dashboardService.getMembershipsAnalytics(currentUser, query);
+  // }
 
-  @MinUserLevel(EUserLevels.ADMIN)
-  @Get('checkins/analytics')
-  @ApiOperation({ summary: 'Get checkins analytics' })
-  @ApiResponse({
-    status: 200,
-    description: 'Checkins analytics retrieved successfully',
-  })
-  @ApiQuery({
-    name: 'period',
-    required: false,
-    enum: ['daily', 'weekly', 'monthly', 'year'],
-    description: 'Time period for checkins analysis',
-  })
-  async getCheckinsAnalytics(
-    @AuthUser() currentUser: User,
-    @Query() query: DashboardAnalyticsDto,
-  ) {
-    return this.dashboardService.getCheckinsAnalytics(currentUser, query);
-  }
+  // @MinUserLevel(EUserLevels.ADMIN)
+  // @Get('checkins/analytics')
+  // @ApiOperation({ summary: 'Get checkins analytics' })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: 'Checkins analytics retrieved successfully',
+  // })
+  // async getCheckinsAnalytics(
+  //   @AuthUser() currentUser: User,
+  //   @Query() query: DashboardAnalyticsDto,
+  // ) {
+  //   return this.dashboardService.getCheckinsAnalytics(currentUser, query);
+  // }
 }

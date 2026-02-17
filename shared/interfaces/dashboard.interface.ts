@@ -1,22 +1,16 @@
 import { EAnalyticsPeriod } from "../enums/dashboard-analytics.enum";
 import { 
   DashboardStatsResponseDto,
-  MembersStatsDto,
-  MembershipsStatsDto,
-  SessionsStatsDto,
-  RecentSessionsDto,
-  CheckinStatsDto,
-  RevenueStatsDto
+  SessionsAnalyticsResponseDto,
+  BillingAnalyticsResponseDto,
+  CombinedDashboardDataDto
 } from "../dtos/dashboard-dtos/dashboard.dto";
 
 
 export type IDashboardStats = DashboardStatsResponseDto;
-export type IMembersStats = MembersStatsDto;
-export type IMembershipsStats = MembershipsStatsDto;
-export type ISessionsStats = SessionsStatsDto;
-export type IRecentSessions = RecentSessionsDto;
-export type ICheckinStats = CheckinStatsDto;
-export type IRevenueStats = RevenueStatsDto;
+export type ISessionsAnalytics = SessionsAnalyticsResponseDto;
+export type IBillingAnalytics = BillingAnalyticsResponseDto;
+export type ICombinedDashboardData = CombinedDashboardDataDto;
 
 //below are the old interfaces (hard coded) just to keep for reference
 

@@ -125,10 +125,10 @@ const StaffFormModal = React.memo(function StaffFormModal({
             {user.gender as ReactNode}
        
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> 
+         {/*  <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> 
           {user.roles as ReactNode}
           {user.permissions as ReactNode}
-          </div>
+          </div> */}
         </div>
       ),
     };
@@ -231,7 +231,7 @@ const StaffFormModal = React.memo(function StaffFormModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {inputs.specialization as ReactNode}
               {inputs.experience as ReactNode}
-              {inputs.location as ReactNode}
+             {/*  {inputs.location as ReactNode} */}
             </div>
           </div>
         )}

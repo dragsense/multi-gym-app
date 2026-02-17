@@ -45,7 +45,7 @@ export const SessionFormSteps = React.memo(function SessionFormSteps({
             {inputs.type}
           </div>
           <div className="mt-6">{inputs.description}</div>
-          <div className="mt-6">{inputs.location}</div>
+          {/* <div className="mt-6">{inputs.location}</div> */}
         </div>
       )}
 

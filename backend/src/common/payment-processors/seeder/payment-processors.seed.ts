@@ -21,7 +21,7 @@ export class PaymentProcessorsSeed {
       },
       {
         type: EPaymentProcessorType.PAYSAFE,
-        enabled: true,
+        enabled: false,
         description: 'Credit card payments via Paysafe (Paysafe.js hosted fields, Payments API)',
       },
       {

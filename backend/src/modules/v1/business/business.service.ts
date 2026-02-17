@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException, forwardRef, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
@@ -17,6 +17,8 @@ import { TokenService } from '@/modules/v1/auth/services/tokens.service';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { IMessageResponse } from '@shared/interfaces';
+import { BusinessSubscriptionService } from './services/business-subscription.service';
+import { BaseUsersService } from '@/common/base-user/base-users.service';
 
 @Injectable()
 export class BusinessService extends CrudService<Business> {
@@ -29,6 +31,9 @@ export class BusinessService extends CrudService<Business> {
         private readonly configService: ConfigService,
         private readonly usersService: UsersService,
         private readonly paymentProcessorsService: PaymentProcessorsService,
+        @Inject(forwardRef(() => BusinessSubscriptionService))
+        private readonly businessSubscriptionService: BusinessSubscriptionService,
+        private readonly baseUsersService: BaseUsersService,
     ) {
         const crudOptions: CrudOptions = {
             restrictedFields: [],
@@ -39,7 +44,7 @@ export class BusinessService extends CrudService<Business> {
 
     getRepository(): Repository<Business> {
         return this.businessRepo;
-      }
+    }
 
     async createBusiness(createDto: CreateBusinessDto, currentUser: User): Promise<Business> {
         if (createDto.paymentProcessorId) {
@@ -63,7 +68,10 @@ export class BusinessService extends CrudService<Business> {
                     user: currentUser,
                     tenantId,
                 };
-            }
+            },
+            afterCreate: async (savedEntity, manager) => {
+                await this.businessSubscriptionService.activateBusiness(savedEntity.id, manager);
+            },
         });
     }
 
@@ -109,6 +117,10 @@ export class BusinessService extends CrudService<Business> {
                         });
 
                         savedEntity.user = savedUser.user;
+
+                        await this.businessSubscriptionService.activateBusiness(savedEntity.id, manager);
+
+
                     } catch (error) {
                         throw new BadRequestException(
                             `Failed to create user: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -293,11 +305,28 @@ export class BusinessService extends CrudService<Business> {
         );
 
         // Find user in tenant DB where refUserId matches current user
-        const tenantUser = await tenantUserRepo.findOne({
+        let tenantUser = await tenantUserRepo.findOne({
             where: {
                 refUserId: currentUser.id,
             },
         });
+
+
+        if (!tenantUser) {
+            const user = await this.baseUsersService.getUserByIdWithPassword(business.user.id);
+  
+            const newUser = tenantUserRepo.create({
+              firstName: user?.firstName || business.user.firstName,
+              lastName: user?.lastName || business.user.lastName,
+              email: user?.email || business.user.email,
+              password: user?.password,
+              isActive: true,
+              isVerified: true,
+              level: EUserLevels.ADMIN,
+              refUserId: user?.id || business.user.id || undefined,
+            });
+            tenantUser = await tenantUserRepo.save(newUser) as User;
+        }
 
         if (!tenantUser) {
             throw new NotFoundException('User not found in tenant database');

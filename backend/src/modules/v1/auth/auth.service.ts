@@ -67,17 +67,23 @@ export class AuthService {
           throw error;
         }
       } else {
+
+
+
+
         const res = await this.userService.createUser({
           ...userData,
           isActive: true,
           level,
         });
         user = res.user;
+
+        if (referralCode && user) {
+          await this.rewardsService.processReferralSignup(user.id, referralCode);
+        }
       }
 
-      if (referralCode && user) {
-        await this.rewardsService.processReferralSignup(user.id, referralCode);
-      }
+
 
       // Log successful signup activity
       await this.activityLogsService.createActivityLog({

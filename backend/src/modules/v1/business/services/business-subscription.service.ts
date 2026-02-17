@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, forwardRef, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { EntityManager, Not, Repository } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { DateTime } from 'luxon';
 
@@ -243,6 +243,49 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
     });
   }
 
+    /**
+   * Activate a business
+   * No Subscription is required
+   */
+    async activateBusiness(
+      businessId: string,
+      manager: EntityManager,
+    ): Promise<void> {
+      const business = await manager.findOne(Business, { where: { id: businessId } });
+      if (!business) {
+        throw new NotFoundException('Business not found');
+      }
+  
+      // Create tenant database if tenantId exists
+      if (business.tenantId) {
+        await this.databaseManager.createTenantResources(business.tenantId).then(async () => {
+          this.customLogger.log(`Tenant database created for business ${business.id}`);
+  
+          const user = await this.baseUsersService.getUserByIdWithPassword(business.user.id);
+  
+          const userRepository = this.databaseManager.getRepository(User, { tenantId: business.tenantId });
+          const newUser = userRepository.create({
+            firstName: user?.firstName || business.user.firstName,
+            lastName: user?.lastName || business.user.lastName,
+            email: user?.email || business.user.email,
+            password: user?.password,
+            isActive: true,
+            isVerified: true,
+            level: EUserLevels.ADMIN,
+            refUserId: user?.id || business.user.id || null,
+          });
+          await userRepository.save(newUser);
+  
+        }).catch((error: Error) => {
+          this.customLogger.error(
+            `Failed to create tenant database for business ${business.id}: ${error.message}`,
+            error.stack,
+          );
+        });
+      }
+    
+    }
+
   /**
    * Get subscription status for a business subscription
    */
@@ -277,7 +320,21 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       throw new NotFoundException('Business not found');
     }
 
-    const businessSubscription = await this.getCurrentBusinessSubscription(businessId);
+    if (!business) {
+      return {
+        status: ESubscriptionStatus.INACTIVE,
+        activatedAt: null,
+        subdomain: null,
+      };
+    } else
+      return {
+        status: ESubscriptionStatus.ACTIVE,
+        activatedAt: null,
+        subdomain: business.subdomain,
+      };
+
+
+   /*  const businessSubscription = await this.getCurrentBusinessSubscription(businessId);
     if (!businessSubscription) {
       return {
         status: ESubscriptionStatus.INACTIVE,
@@ -290,7 +347,7 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       status: status.status,
       activatedAt: status.activatedAt,
       subdomain: business.subdomain,
-    };
+    }; */
   }
 
   async getUserBusinessSubscriptionStatus(currentUser: User): Promise<{
@@ -300,7 +357,21 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
   }> {
     const business = await this.businessService.getMyBusiness(currentUser);
 
-    const businessSubscription = await this.getCurrentBusinessSubscription(business.id);
+    if (!business) {
+      return {
+        status: ESubscriptionStatus.INACTIVE,
+        activatedAt: null,
+        subdomain: null,
+      };
+    } else
+      return {
+        status: ESubscriptionStatus.ACTIVE,
+        activatedAt: null,
+        subdomain: business.subdomain,
+      };
+
+
+    /* const businessSubscription = await this.getCurrentBusinessSubscription(business.id);
     if (!businessSubscription) {
       return {
         status: ESubscriptionStatus.INACTIVE,
@@ -313,7 +384,7 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       status: status.status,
       activatedAt: status.activatedAt,
       subdomain: business.subdomain,
-    };
+    }; */
   }
 
   /**
@@ -378,8 +449,11 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
    * @returns Array of features available for the business, or empty array if no active subscription
    */
   async getBusinessFeatures(businessId: string): Promise<ESubscriptionFeatures[]> {
-    const businessSubscription = await this.getCurrentBusinessSubscription(businessId);
-    
+
+    return [ESubscriptionFeatures.SESSIONS, ESubscriptionFeatures.CHAT, ESubscriptionFeatures.FAQS, ESubscriptionFeatures.STAFF];
+
+    /* const businessSubscription = await this.getCurrentBusinessSubscription(businessId);
+
     if (!businessSubscription || !businessSubscription.isActive) {
       return [];
     }
@@ -390,7 +464,7 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       return [];
     }
 
-    return businessSubscription.subscription?.features || [];
+    return businessSubscription.subscription?.features || []; */
   }
 
   /**
@@ -405,7 +479,7 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
     }
 
     const businessFeatures = await this.getBusinessFeatures(businessId);
-    
+
     // Check if business has ALL required modules
     return requiredModules.every(module => businessFeatures.includes(module));
   }
@@ -422,7 +496,7 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
     }
 
     const businessFeatures = await this.getBusinessFeatures(businessId);
-    
+
     return requiredModules.filter(module => !businessFeatures.includes(module));
   }
 }

@@ -15,7 +15,7 @@ import { AppCard } from '@/components/layout-ui/app-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/lib/utils';
-import type { IBillingAnalytics } from '@shared/interfaces/dashboard.interface';
+import type { BillingAnalyticsResponseDto } from '@shared/dtos';
 import { useUserSettings } from '@/hooks/use-user-settings';
 import { useI18n } from '@/hooks/use-i18n';
 import { buildSentence } from '@/locales/translations';
@@ -23,15 +23,13 @@ import { buildSentence } from '@/locales/translations';
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
 interface IBillingOverviewProps {
-  data: IBillingAnalytics | null;
+  data: BillingAnalyticsResponseDto | null;
   loading?: boolean;
-  isSuperAdmin?: boolean;
   dynamicDateLabel?: string;
 }
 
 export const BillingOverview = ({
   data: analyticsData,
-  isSuperAdmin = false,
   loading = false,
   dynamicDateLabel,
 }: IBillingOverviewProps) => {
@@ -53,7 +51,7 @@ export const BillingOverview = ({
         header={
           <div>
             <h2 className="text-md font-semibold tracking-tight">{buildSentence(t, 'billing', 'analytics')}</h2>
-            <p className="text-muted-foreground text-sm">{isSuperAdmin ? t('platform') : t('your')} {dynamicDateLabel}</p>
+            <p className="text-muted-foreground text-sm">{dynamicDateLabel}</p>
           </div>
 
         }
@@ -133,8 +131,7 @@ export const BillingOverview = ({
 
           {/* Revenue Tab */}
           <TabsContent value="revenue" className="space-y-6">
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <AppCard
                 header={<span className="text-sm font-medium">{buildSentence(t, 'total', 'revenue')}</span>}
                 footer={`${analyticsData.revenue.transactions} ${t('transactions')}`}
@@ -155,21 +152,6 @@ export const BillingOverview = ({
               >
                 <div className="text-2xl font-bold">{formatCurrency(analyticsData.revenue.pending / 100, undefined, undefined, 2, 2, settings)}</div>
               </AppCard>
-
-              {isSuperAdmin ? (
-                <AppCard
-                  header={<span className="text-sm font-medium">{buildSentence(t, 'platform', 'revenue')}</span>}
-                >
-                  <div className="text-2xl font-bold">{formatCurrency(analyticsData.revenue.platform / 100, undefined, undefined, 2, 2, settings)}</div>
-                </AppCard>
-              ) : (
-                <AppCard
-                  header={<span className="text-sm font-medium">{buildSentence(t, 'your', 'earnings')}</span>}
-                  footer={buildSentence(t, 'after', 'platform', 'fees')}
-                >
-                  <div className="text-2xl font-bold">{formatCurrency(analyticsData.revenue.trainer / 100, undefined, undefined, 2, 2, settings)}</div>
-                </AppCard>
-              )}
             </div>
 
 
@@ -181,7 +163,7 @@ export const BillingOverview = ({
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={analyticsData.timeline}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="bucket" />
+                    <XAxis dataKey="month" />
                     <YAxis tickFormatter={currencyFormatter} />
                     <Tooltip formatter={currencyFormatter} />
                     <Legend />
@@ -245,52 +227,11 @@ export const BillingOverview = ({
 
             </div>
 
-            {analyticsData.summary && (
-              <AppCard
-                header={<span className="text-sm font-medium">{buildSentence(t, 'performance', 'metrics')}</span>}
-                footer={buildSentence(t, 'key', 'billing', 'indicators')}
-              >
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <span className="text-sm text-muted-foreground">{buildSentence(t, 'avg', 'billing')}</span>
-                    <div className="text-xl font-semibold">
-                      {formatCurrency((analyticsData.summary.average_billing_amount || 0) / 100, undefined, undefined, 2, 2, settings)}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-sm text-muted-foreground">{buildSentence(t, 'avg', 'paid')}</span>
-                    <div className="text-xl font-semibold">
-                      {formatCurrency((analyticsData.summary.average_paid_amount || 0) / 100, undefined, undefined, 2, 2, settings)}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-sm text-muted-foreground">{buildSentence(t, 'success', 'rate')}</span>
-                    <div className="text-xl font-semibold">
-                      {analyticsData.summary.total_billings > 0
-                        ? ((analyticsData.summary.paid_billings / analyticsData.summary.total_billings) * 100).toFixed(1)
-                        : 0}
-                      %
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <span className="text-sm text-muted-foreground">{buildSentence(t, 'pending', 'rate')}</span>
-                    <div className="text-xl font-semibold">
-                      {analyticsData.summary.total_billings > 0
-                        ? ((analyticsData.summary.pending_billings / analyticsData.summary.total_billings) * 100).toFixed(
-                          1,
-                        )
-                        : 0}
-                      %
-                    </div>
-                  </div>
-                </div>
-              </AppCard>
-            )}
+          
           </TabsContent>
         </Tabs>
       </AppCard>
     </div>
   )
 }
-
 
