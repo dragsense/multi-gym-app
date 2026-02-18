@@ -94,9 +94,9 @@ const createRoute = (
 
 // Common routes (shared across ALL user levels)
 const commonRoutes = (userLevel: string): RouteDefinition[] => [
-  createRoute(ADMIN_ROUTES.BILLINGS, BillingsPage, userLevel, ["loading", "billings"]),
+  //createRoute(ADMIN_ROUTES.BILLINGS, BillingsPage, userLevel, ["loading", "billings"]),
+
   createRoute(ADMIN_ROUTES.SETTINGS, SettingsPage, userLevel, ["loading", "settings"]),
-  createRoute(ADMIN_ROUTES.PAYMENT_PROCESSOR, PaymentProcessorPage, userLevel, ["loading", "payment", "processor"]),
   createRoute(ADMIN_ROUTES.CMS.FAQS, FaqsPage, userLevel, ["loading", "faqs"]),
   createRoute(ADMIN_ROUTES.ACCOUNT, AccountPage, userLevel, ["loading", "account"]),
   createRoute(ADMIN_ROUTES.NOTIFICATIONS, NotificationsPage, 'Admin', ["loading", "notifications"]),
@@ -120,6 +120,8 @@ const adminAndStaffSharedRoutes = (userLevel: string): RouteDefinition[] => [
 ];
 
 const adminAndMemberAndStaffSharedRoutes = (userLevel: string): RouteDefinition[] => [
+  createRoute(ADMIN_ROUTES.BILLINGS, BillingsPage, userLevel, ["loading", "billings"]),
+
   createRoute(ADMIN_ROUTES.CHECKINS, CheckinsPage, userLevel, ["loading", "checkins"]),
   createRoute(ADMIN_ROUTES.SESSIONS, SessionsPage, userLevel, ["loading", "sessions"]),
   createRoute(ADMIN_ROUTES.CHAT, ChatPage, userLevel, ["loading", "chat"]),
@@ -128,7 +130,7 @@ const adminAndMemberAndStaffSharedRoutes = (userLevel: string): RouteDefinition[
 const platformOwnerAndSuperAdminSharedRoutes = (userLevel: string): RouteDefinition[] => [
   createRoute(ADMIN_ROUTES.TICKETS, TicketsPage, userLevel, ["loading", "tickets"]),
   createRoute(ADMIN_ROUTES.TICKET_DETAIL, TicketDetailPage, userLevel, ["loading", "ticket", "detail"]),
-  createRoute(ADMIN_ROUTES.SCHEDULES, SchedulesPage, userLevel, ["loading", "schedules"]),
+  //createRoute(ADMIN_ROUTES.SCHEDULES, SchedulesPage, userLevel, ["loading", "schedules"]),
 ];
 
 const platformOwnerAndSuperAdminAndAdminSharedRoutes = (userLevel: string): RouteDefinition[] => [
@@ -137,11 +139,12 @@ const platformOwnerAndSuperAdminAndAdminSharedRoutes = (userLevel: string): Rout
 const platformOwnerAndAdminSharedRoutes = (userLevel: string): RouteDefinition[] => [
   createRoute(ADMIN_ROUTES.ACTIVITY_LOGS, ActivityLogsPage, userLevel, ["loading", "activity", "logs"]),
 
-  createRoute(ADMIN_ROUTES.CMS.EMAIL_TEMPLATES, EmailTemplatesPage, userLevel, ["loading", "email", "templates"]),
+ /*  createRoute(ADMIN_ROUTES.CMS.EMAIL_TEMPLATES, EmailTemplatesPage, userLevel, ["loading", "email", "templates"]),
   createRoute(ADMIN_ROUTES.CMS.EMAIL_TEMPLATE_CREATE, CreateEmailTemplatePage, userLevel, ["loading", "email", "template", "create"]),
   createRoute(ADMIN_ROUTES.CMS.EMAIL_TEMPLATE_EDIT, EditEmailTemplatePage, userLevel, ["loading", "email", "template", "edit"]),
   createRoute(ADMIN_ROUTES.CMS.EMAIL_TEMPLATE_PREVIEW, EmailTemplatePreviewPage, userLevel, ["loading", "email", "template", "preview"]),
-  createRoute(ADMIN_ROUTES.CMS.PAGES, PagesPage, userLevel, ["loading", "pages"]),
+  */ 
+ createRoute(ADMIN_ROUTES.CMS.PAGES, PagesPage, userLevel, ["loading", "pages"]),
   createRoute(ADMIN_ROUTES.CMS.PAGE_CREATE, CreatePagePage, userLevel, ["loading", "page", "create"]),
   createRoute(ADMIN_ROUTES.CMS.PAGE_EDIT, EditPagePage, userLevel, ["loading", "page", "edit"]),
   createRoute(ADMIN_ROUTES.CMS.PAGE_PREVIEW, PagePreviewPage, userLevel, ["loading", "page", "preview"]),
@@ -152,16 +155,16 @@ const platformOwnerRoutes: RouteDefinition[] = [
   ...platformOwnerAndAdminSharedRoutes("Platform Owner"),
   ...platformOwnerAndSuperAdminSharedRoutes("Platform Owner"),
   ...platformOwnerAndSuperAdminAndAdminSharedRoutes("Platform Owner"),
-  createRoute(ADMIN_ROUTES.USERS, UsersPage, "Platform Owner", ["loading", "users"]),
+  //createRoute(ADMIN_ROUTES.USERS, UsersPage, "Platform Owner", ["loading", "users"]),
   createRoute(ADMIN_ROUTES.SYSTEM_DASHBOARD, SystemDashboardPage, "Super Admin", ["loading", "system", "dashboard"]),
   createRoute(ADMIN_ROUTES.PLATFORM_OWNER_DASHBOARD, PlatformOwnerDashboardPage, "Platform Owner", ["loading", "platform", "owner", "dashboard"]),
   createRoute(ADMIN_ROUTES.SUBSCRIPTION, SubscriptionPage, "Platform Owner", ["loading", "subscription"]),
   createRoute(ADMIN_ROUTES.BUSINESS, BusinessPage, "Platform Owner", ["loading", "business"]),
   createRoute(ADMIN_ROUTES.BUSINESS_DETAIL, BusinessDetailPage, "Platform Owner", ["loading", "business", "detail"]),
-  createRoute(ADMIN_ROUTES.QUEUES, QueuesPage, "Super Admin", ["loading", "queues"]),
-  createRoute(ADMIN_ROUTES.WORKERS, WorkersPage, "Super Admin", ["loading", "workers"]),
-  createRoute(ADMIN_ROUTES.QUEUE_BOARD, QueuesPage, "Super Admin", ["loading", "queue", "board"]),
-  createRoute(ADMIN_ROUTES.CACHE, CachePage, "Super Admin", ["loading", "cache"]),
+  //createRoute(ADMIN_ROUTES.QUEUES, QueuesPage, "Super Admin", ["loading", "queues"]),
+  //createRoute(ADMIN_ROUTES.WORKERS, WorkersPage, "Super Admin", ["loading", "workers"]),
+  //createRoute(ADMIN_ROUTES.QUEUE_BOARD, QueuesPage, "Super Admin", ["loading", "queue", "board"]),
+  //createRoute(ADMIN_ROUTES.CACHE, CachePage, "Super Admin", ["loading", "cache"]),
 ];
 
 //Admin-only routes
@@ -185,13 +188,13 @@ const adminRoutes: RouteDefinition[] = [
   createRoute(ADMIN_ROUTES.ADVERTISEMENTS, AdvertisementsPage, "Admin", ["loading", "advertisements"]),
   createRoute(ADMIN_ROUTES.LOCATIONS, LocationsPage, "Admin", ["loading", "locations"]),
   createRoute(ADMIN_ROUTES.DEVICE_READERS, DeviceReadersPage, "Admin", ["loading", "device", "readers"]),
-  createRoute(ADMIN_ROUTES.FACILITY_INFO, FacilityInfoPage, "Admin", ["loading", "facility", "info"]),
+  //createRoute(ADMIN_ROUTES.FACILITY_INFO, FacilityInfoPage, "Admin", ["loading", "facility", "info"]),
   createRoute(ADMIN_ROUTES.EQUIPMENT_RESERVATIONS, EquipmentReservationsPage, "Admin", ["loading", "equipment", "reservations"]),
   createRoute(ADMIN_ROUTES.EQUIPMENT, EquipmentPage, "Admin", ["loading", "equipment"]),
   createRoute(ADMIN_ROUTES.MEMBERS, MembersPage, "Admin", ["loading", "members"]),
   createRoute(ADMIN_ROUTES.MEMBER_DETAIL, MemberDetailPage, "Admin", ["loading", "member", "detail"]),
   createRoute(ADMIN_ROUTES.DASHBOARD, DashboardPage, "Admin", ["loading", "dashboard"]),
-  createRoute(ADMIN_ROUTES.FILES, FilesPage, "Admin", ["loading", "files"]),
+  //createRoute(ADMIN_ROUTES.FILES, FilesPage, "Admin", ["loading", "files"]),
   createRoute(ADMIN_ROUTES.AUTOMATION, AutomationPage, 'Admin', ["loading", "automation"]),
   createRoute(ADMIN_ROUTES.CAMERAS, CamerasPage, "Admin", ["loading", "cameras"]),
 ];
@@ -200,6 +203,8 @@ const superAdminRoutes: RouteDefinition[] = [
   ...commonRoutes("Super Admin"),
   ...platformOwnerAndSuperAdminSharedRoutes("Super Admin"),
   ...platformOwnerAndSuperAdminAndAdminSharedRoutes("Super Admin"),
+    //createRoute(ADMIN_ROUTES.PAYMENT_PROCESSOR, PaymentProcessorPage, userLevel, ["loading", "payment", "processor"]),
+
   createRoute(ADMIN_ROUTES.REFERRAL_LINKS, ReferralLinksPage, "Admin", ["loading", "referral", "links"]),
   createRoute(ADMIN_ROUTES.DASHBOARD, SuperAdminDashboardPage, "Super Admin", ["loading", "dashboard"]),
   createRoute(ADMIN_ROUTES.CUSTOMIZATION, CustomizationPage, "Super Admin", ["loading", "customization"]),

@@ -44,14 +44,14 @@ export class CreateBusinessDto {
     @FieldType("text", true)
     subdomain: string;
 
-    @ApiPropertyOptional({
+   /*  @ApiPropertyOptional({
         example: "550e8400-e29b-41d4-a716-446655440002",
         description: "Payment processor ID (Stripe, Paysafe, etc.)",
     })
     @IsOptional()
     @IsUUID()
     @FieldType("custom", false)
-    paymentProcessorId?: string | null;
+    paymentProcessorId?: string | null; */
 }
 
 export class CreateBusinessWithUserDto {
@@ -84,6 +84,15 @@ export class CreateBusinessWithUserDto {
     @Type(() => CreateUserDto)
     @FieldType("nested", true, CreateUserDto)
     user: CreateUserDto;
+
+ /*    @ApiPropertyOptional({
+        example: "550e8400-e29b-41d4-a716-446655440002",
+        description: "Payment processor ID (Stripe, Paysafe, etc.)",
+    })
+    @IsOptional()
+    @IsUUID()
+    @FieldType("custom", false)
+    paymentProcessorId?: string | null; */
 }
 
 export class UpdateBusinessDto extends PartialType(CreateBusinessDto) {}

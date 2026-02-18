@@ -25,13 +25,14 @@ export interface MiniCalendarProps {
 }
 
 const dayNames = [
+  "saturday",
   "sunday",
   "monday",
   "tuesday",
   "wednesday",
   "thursday",
   "friday",
-  "saturday",
+ 
 ] as const;
 
 export function MiniCalendar({
@@ -183,7 +184,8 @@ export function MiniCalendar({
           const isDisabled = isDateDisabled(date);
 
           // Check if it's an off day
-          const dayIndex = dtDate.weekday % 7;
+          // Use JavaScript's getDay() which returns 0-6 (Sunday-Saturday)
+          const dayIndex = date.getDay();
           const dayName = dayNames[dayIndex];
           const isOffDay = offDays.includes(dayName);
 

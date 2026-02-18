@@ -48,7 +48,7 @@ export function StaffOverviewTab({ staff, storeKey }: IStaffOverviewTabProps) {
       </div>
 
       {/* Checkins Section */}
-      {staff.user && (
+   {/*    {staff.user && (
         <>
           <SingleHandler<ICheckin>
             queryFn={fetchCheckin}
@@ -102,7 +102,7 @@ export function StaffOverviewTab({ staff, storeKey }: IStaffOverviewTabProps) {
             />
           </AppCard>
         </>
-      )}
+      )} */}
     </div>
   );
 }

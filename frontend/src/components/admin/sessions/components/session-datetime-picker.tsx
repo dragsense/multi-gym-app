@@ -23,6 +23,8 @@ export const SessionDateTimePicker = React.memo(function SessionDateTimePicker(
   const trainer = watch("trainer");
   const members = watch("members");
 
+  console.log('trainer', trainer);
+
   const trainerId = trainer?.id;
   const memberIds = members?.map((c: MemberDto) => c.id) || [];
 

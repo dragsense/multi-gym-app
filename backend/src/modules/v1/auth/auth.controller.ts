@@ -94,7 +94,7 @@ export class AuthController {
 
     const trusted = await this.mfaService.isDeviceTrusted(user.id, deviceId);
 
-    if (trusted) {
+    if (trusted || process.env.NODE_ENV === 'development') {
       const { accessToken, refreshToken } =
         await this.tokenService.generateTokens({
           id: user.id,
@@ -217,7 +217,7 @@ export class AuthController {
   async findMe(@AuthUser() currentUser: User) {
     const user = await this.baseUsersService.getSingle(currentUser.id, {
       _relations: ['roles.role', 'permissions.permission', 'privileges.permissions.permission'],
-      _select: ['id', 'email', 'firstName', 'lastName', 'level', 'roles.id', 'roles.role.name', 'permissions.id', 'permissions.permission.name', 'privileges.id', 'privileges.permissions.id', 'privileges.permissions.permission.name'],
+      _select: ['id', 'email', 'firstName', 'lastName','gender','dateOfBirth', 'level', 'roles.id', 'roles.role.name', 'permissions.id', 'permissions.permission.name', 'privileges.id', 'privileges.permissions.id', 'privileges.permissions.permission.name'],
     });
     if (!user) throw new NotFoundException('User not found');
 

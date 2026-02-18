@@ -1,7 +1,7 @@
 // External Libraries
 import { useShallow } from "zustand/shallow";
 import { Loader2 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useCallback, useId, useTransition } from "react";
 
 // Handlers
@@ -39,10 +39,10 @@ import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 import type { IMember } from "@shared/interfaces/member.interface";
 import type { IStaff } from "@shared/interfaces/staff.interface";
+import { getMyMember } from "@/services/member.api";
+import { getCurrentUserStaff } from "@/services/staff.api";
 
 export type TSessionExtraProps = {
-  member?: IMember;
-  trainer?: IStaff;
   [key: string]: any; // Allow additional properties for other action components
 };
 
@@ -70,19 +70,30 @@ export default function SessionForm({ storeKey, store }: ISessionFormProps) {
     );
   }
 
-  const { action, response, isLoading, setAction, reset, extra } = store(
+
+    // Fetch current user's member and trainer information
+    const { data: member } = useQuery<IMember | null>({
+      queryKey: ["myMember"],
+      queryFn: getMyMember,
+    });
+  
+    const { data: currentUserStaff } = useQuery<IStaff | null>({
+      queryKey: ["currentUserStaff"],
+      queryFn: getCurrentUserStaff,
+    });
+  
+    const trainer = currentUserStaff?.isTrainer ? currentUserStaff : undefined;
+
+  const { action, response, isLoading, setAction, reset } = store(
     useShallow((state) => ({
       action: state.action,
       response: state.response,
       isLoading: state.isLoading,
       setAction: state.setAction,
       reset: state.reset,
-      extra: state.extra,
     }))
   );
 
-  const member = extra.member ?? null;
-  const trainer = extra.trainer ?? null;
 
   // Use default duration from settings if available
   const defaultDuration = (settings?.limits as any)?.sessionDurationDefault || 60;
@@ -121,7 +132,7 @@ export default function SessionForm({ storeKey, store }: ISessionFormProps) {
     location: undefined,
     locationText: "",
     price: undefined,
-    useCustomPrice: false,
+    useCustomPrice: true,
     customPrice: undefined,
     notes: "",
     reminderConfig: { reminderTypes: [EReminderType.EMAIL] } as ReminderDto,

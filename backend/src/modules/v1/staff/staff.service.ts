@@ -45,7 +45,7 @@ export class StaffService extends CrudService<Staff> {
 
   async createStaff(
     createStaffDto: CreateStaffDto,
-  ): Promise<IMessageResponse & { user: User; }> {
+  ): Promise<IMessageResponse & { user?: User; }> {
 
     const { user, location, ...staffData } = createStaffDto;
 
@@ -63,8 +63,9 @@ export class StaffService extends CrudService<Staff> {
       level: EUserLevels.STAFF,
     };
 
+    let savedUser: User | undefined = undefined;
     // Create staff entity
-    const savedStaff = await this.create({
+    await this.create({
       ...staffData,
       ...(location?.id ? {
         location: {
@@ -75,15 +76,16 @@ export class StaffService extends CrudService<Staff> {
       afterCreate: async (savedEntity, manager) => {
         const privilegeName = createStaffDto.isTrainer ? 'trainer' : 'staff';
         const userResult = await this.usersService.createUser(userData as CreateUserDto, privilegeName);
+        savedUser = userResult.user;
         await manager.update(Staff, savedEntity.id, {
-          user: userResult.user,
+          user: savedUser,
         });
       },
     });
 
     return {
       message: 'Staff member created successfully',
-      user: savedStaff.user,
+      user: savedUser,
     };
   }
 
@@ -169,7 +171,11 @@ export class StaffService extends CrudService<Staff> {
     currentUser: User,
     query?: SingleQueryDto,
   ): Promise<Staff | null> {
-    return this.getSingle({ userId: currentUser.id }, query);
+    return this.getSingle({ userId: currentUser.id }, {
+      ...query,
+      _relations: ['user'],
+      _select: ['user.id', 'user.email', 'user.firstName', 'user.lastName'],
+    });
   }
 
 }

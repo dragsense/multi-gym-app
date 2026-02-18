@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { DashboardService } from './dashboard.service';
+import { DashboardService } from '../services/dashboard.service';
 import { EUserLevels } from '@shared/enums';
 import { MinUserLevel } from '@/decorators/level.decorator';
 import { DashboardAnalyticsDto, DashboardStatsResponseDto } from '@shared/dtos';

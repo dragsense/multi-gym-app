@@ -137,49 +137,6 @@ export class LimitSettingsDto {
   slotStepMinutes?: number;
 }
 
-// Business Settings
-export class BusinessSettingsDto {
-  @ApiProperty({ example: "FitLife Gym", description: "Business name" })
-  @IsOptional()
-  @IsString()
-  @IsOptional()
-  @FieldType("text", false)
-  businessName?: string;
-
-  @ApiProperty({
-    example: "contact@fitlifegym.com",
-    description: "Business email",
-  })
-  @IsOptional()
-  @IsEmail()
-  @FieldType("email", false)
-  businessEmail?: string;
-
-  @ApiProperty({ example: "+1-555-123-4567", description: "Business phone" })
-  @IsOptional()
-  @IsString()
-  @FieldType("text", false)
-  businessPhone?: string;
-
-  @ApiProperty({
-    example: "123 Main St, City, State 12345",
-    description: "Business address",
-  })
-  @IsOptional()
-  @IsString()
-  @FieldType("textarea", false)
-  businessAddress?: string;
-
-  @ApiProperty({
-    example: "https://example.com/logo.png",
-    description: "Business logo URL",
-  })
-  @IsOptional()
-  @IsUrl()
-  @FieldType("text", false)
-  businessLogo?: string;
-}
-
 // Billing Settings
 export class BillingSettingsDto {
   @ApiProperty({ example: 8.5, description: "Tax rate (%)" })
@@ -276,13 +233,6 @@ export class CreateOrUpdateUserSettingsDto {
   @FieldType("nested", false, LimitSettingsDto)
   limits?: LimitSettingsDto;
 
-  @ApiProperty({ type: BusinessSettingsDto })
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => BusinessSettingsDto)
-  @FieldType("nested", false, BusinessSettingsDto)
-  business?: BusinessSettingsDto;
-
   @ApiProperty({ type: BillingSettingsDto })
   @IsOptional()
   @ValidateNested()
@@ -317,10 +267,6 @@ export class UserSettingsDto {
   @ApiProperty({ type: LimitSettingsDto })
   @IsOptional()
   limits?: LimitSettingsDto;
-
-  @ApiProperty({ type: BusinessSettingsDto })
-  @IsOptional()
-  business?: BusinessSettingsDto;
 
   @ApiProperty({ type: BillingSettingsDto })
   @IsOptional()

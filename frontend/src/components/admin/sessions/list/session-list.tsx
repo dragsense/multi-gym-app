@@ -140,7 +140,7 @@ export default function SessionList({
       <div className="flex flex-1 justify-between items-start md:items-center gap-2 flex-wrap">
         <SessionFilters store={store} />
         <ViewToggle componentId={componentId} />
-        {user?.level <= EUserLevels.STAFF ? (
+        {user?.level === EUserLevels.STAFF || user?.level === EUserLevels.ADMIN ? (
           <Button onClick={handleCreate} data-component-id={componentId}>
             <Plus />{" "}
             <span className="hidden sm:inline capitalize">

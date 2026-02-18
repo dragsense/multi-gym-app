@@ -127,11 +127,7 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
       isGlobal: true,
     }),
 
-    // Serve frontend static files, excluding API and uploads
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client', 'dist'),
-    }),
-
+    
     // Serve public directory (includes uploads) at root path
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'public'),
@@ -158,6 +154,13 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
         },
       },
     }),
+
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client', 'dist'),
+      serveRoot: '/',
+      exclude: ['/api/*', '/uploads/*'],
+    }),
+
 
 
 

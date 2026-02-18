@@ -104,12 +104,12 @@ export function BusinessSetupForm({ store, storeKey }: IBusinessSetupFormProps) 
           ...storeFields.subdomain,
           endAdornment: <SubdomainPreview />,
         },
-        paymentProcessorId: {
+      /*   paymentProcessorId: {
           ...storeFields.paymentProcessorId,
           type: "custom" as const,
           label: "Payment processor",
           Component: PaymentProcessorRadio,
-        },
+        }, */
       }) as TFieldConfigObject<CreateBusinessDto>,
     [storeFields]
   );
@@ -147,13 +147,13 @@ export function BusinessSetupForm({ store, storeKey }: IBusinessSetupFormProps) 
                 This will be your unique subdomain for accessing your business portal
               </p>
             </div>
-            <div>
+            {/* <div>
               <p className="text-xs text-muted-foreground mb-2">
                 Your business will use the selected payment processor for all payments. You can
                 change this later in business settings.
               </p>
               {inputs.paymentProcessorId}
-            </div>
+            </div> */}
           </div>
         </AppCard>
       </div>

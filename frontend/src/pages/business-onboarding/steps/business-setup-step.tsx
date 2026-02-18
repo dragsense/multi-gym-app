@@ -47,16 +47,16 @@ export function BusinessSetupStep({
   const INITIAL_VALUES: CreateBusinessDto = {
     name: "",
     subdomain: "",
-    paymentProcessorId: undefined,
-  };
+/*     paymentProcessorId: undefined,
+ */  };
 
   const businessInitialValues = useMemo(() => {
     if (existingBusiness) {
       return strictDeepMerge<CreateBusinessDto>(INITIAL_VALUES, {
         name: existingBusiness.name || "",
         subdomain: existingBusiness.subdomain || "",
-        paymentProcessorId: existingBusiness.paymentProcessorId ?? undefined,
-      });
+/*         paymentProcessorId: existingBusiness.paymentProcessorId ?? undefined,
+ */      });
     }
     return INITIAL_VALUES;
   }, [existingBusiness]);

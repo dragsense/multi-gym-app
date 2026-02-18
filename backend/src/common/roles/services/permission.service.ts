@@ -139,20 +139,20 @@ export class PermissionService {
   async hasPermission(
     entityId: number,
     resourceName: string,
-    action: EPermissionAction,
+    action: EPermissionAction[],
   ): Promise<boolean> {
     const context = await this.getEntityPermissionContext(entityId);
-    const permissionString = `${resourceName}:${action}`;
+    const permissionStrings = action.map(a => `${resourceName}:${a}`).join(',');
 
     // Check direct permissions
-    if (context.permissions.includes(permissionString)) {
+    if (context.permissions.some(name => permissionStrings.includes(name))) {
       return true;
     }
 
     // Check wildcard permissions
     if (
       context.permissions.includes(`${resourceName}:*`) ||
-      context.permissions.includes(`*:${action}`) ||
+      context.permissions.some(name => name.startsWith(`*:${action}`)) ||
       context.permissions.includes('*:*')
     ) {
       return true;

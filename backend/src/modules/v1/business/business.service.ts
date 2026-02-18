@@ -11,7 +11,7 @@ import { CreateBusinessDto, CreateBusinessWithUserDto, UpdateBusinessDto, Update
 import { User } from '@/common/base-user/entities/user.entity';
 import { PaymentProcessorsService } from '@/common/payment-processors/payment-processors.service';
 import { EBusinessStatus } from '@shared/enums/business/business.enum';
-import { EUserLevels } from '@shared/enums';
+import { EPaymentProcessorType, EUserLevels } from '@shared/enums';
 import { DatabaseManager } from '@/common/database/database-manager.service';
 import { TokenService } from '@/modules/v1/auth/services/tokens.service';
 import { ConfigService } from '@nestjs/config';
@@ -47,10 +47,21 @@ export class BusinessService extends CrudService<Business> {
     }
 
     async createBusiness(createDto: CreateBusinessDto, currentUser: User): Promise<Business> {
-        if (createDto.paymentProcessorId) {
+       /*  if (createDto.paymentProcessorId) {
             await this.validatePaymentProcessorId(createDto.paymentProcessorId);
-        }
-        return this.create(createDto, {
+        } else {
+            const paymentProcessor = await this.paymentProcessorsService.getSingle({
+                type: EPaymentProcessorType.CASH,
+            });
+            createDto.paymentProcessorId = paymentProcessor?.id;
+        } */
+
+            const paymentProcessor = await this.paymentProcessorsService.getSingle({
+                type: EPaymentProcessorType.STRIPE,
+            });
+    
+
+        return this.create({...createDto, paymentProcessor: {id: paymentProcessor?.id}}, {
             beforeCreate: async (dto, manager) => {
                 const business = await manager.findOne(Business, {
                     where: { user: { id: currentUser.id } },
@@ -80,6 +91,14 @@ export class BusinessService extends CrudService<Business> {
     ): Promise<IMessageResponse & { business: Business }> {
         const { user, ...businessData } = createDto;
 
+      /*   if (createDto.paymentProcessorId) {
+            await this.validatePaymentProcessorId(createDto.paymentProcessorId);
+        }  */
+
+        const paymentProcessor = await this.paymentProcessorsService.getSingle({
+            type: EPaymentProcessorType.STRIPE,
+        });
+
         // Check if business with same subdomain exists
         const existingBusiness = await this.businessRepo.findOne({
             where: { subdomain: businessData.subdomain },
@@ -92,6 +111,7 @@ export class BusinessService extends CrudService<Business> {
         const savedBusiness = await this.create(
             {
                 ...businessData,
+                paymentProcessor: {id: paymentProcessor?.id}
             },
             {
                 beforeCreate: async (dto, manager) => {
@@ -314,16 +334,16 @@ export class BusinessService extends CrudService<Business> {
 
         if (!tenantUser) {
             const user = await this.baseUsersService.getUserByIdWithPassword(business.user.id);
-  
+
             const newUser = tenantUserRepo.create({
-              firstName: user?.firstName || business.user.firstName,
-              lastName: user?.lastName || business.user.lastName,
-              email: user?.email || business.user.email,
-              password: user?.password,
-              isActive: true,
-              isVerified: true,
-              level: EUserLevels.ADMIN,
-              refUserId: user?.id || business.user.id || undefined,
+                firstName: user?.firstName || business.user.firstName,
+                lastName: user?.lastName || business.user.lastName,
+                email: user?.email || business.user.email,
+                password: user?.password,
+                isActive: true,
+                isVerified: true,
+                level: EUserLevels.ADMIN,
+                refUserId: user?.id || business.user.id || undefined,
             });
             tenantUser = await tenantUserRepo.save(newUser) as User;
         }
@@ -383,7 +403,7 @@ export class BusinessService extends CrudService<Business> {
     ): Promise<Business> {
         const business = await this.getMyBusiness(currentUser);
         const allowedData: Partial<UpdateBusinessDto> = {};
-        if (updateDto.paymentProcessorId !== undefined) {
+    /*     if (updateDto.paymentProcessorId !== undefined) {
             allowedData.paymentProcessorId = updateDto.paymentProcessorId;
         }
         if (Object.keys(allowedData).length === 0) {
@@ -391,7 +411,7 @@ export class BusinessService extends CrudService<Business> {
         }
         if (allowedData.paymentProcessorId) {
             await this.validatePaymentProcessorId(allowedData.paymentProcessorId);
-        }
+        } */
         await this.update(business.id, allowedData);
         return this.getSingle(business.id) as Promise<Business>;
     }

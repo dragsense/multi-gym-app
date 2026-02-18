@@ -113,8 +113,9 @@ export class UsersService {
 
         // SUPER_ADMIN and ADMIN can see all users in their business
         // STAFF and below can only see users they created
-        if (currentUser.level !== (EUserLevels.SUPER_ADMIN as number) &&
-          currentUser.level !== (EUserLevels.ADMIN as number)) {
+        if (
+          currentUser.level !== (EUserLevels.ADMIN as number) &&
+          currentUser.level !== (EUserLevels.PLATFORM_OWNER as number)) {
           query.andWhere('entity.createdByUserId = :createdByUserId', {
             createdByUserId: currentUser.id,
           });

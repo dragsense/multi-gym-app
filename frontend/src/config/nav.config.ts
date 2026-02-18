@@ -68,7 +68,7 @@ export type NavItem = {
   children?: NavItem[];
   // Permission-based access control (for STAFF level)
   requiredResource?: EResource;
-  requiredAction?: 'read' | 'create' | 'update' | 'delete' | 'manage';
+  requiredAction?: ('read' | 'create' | 'update' | 'delete' | 'manage')[];
   // Subscription feature requirement
   requiredFeature?: ESubscriptionFeatures;
 };
@@ -109,7 +109,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: Calendar,
         roles: [EUserLevels.ADMIN, EUserLevels.MEMBER],
         requiredResource: EResource.SESSIONS,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],
         requiredFeature: ESubscriptionFeatures.SESSIONS,
       },
       {
@@ -118,7 +118,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: LayoutDashboard,
         roles: [EUserLevels.ADMIN, EUserLevels.STAFF],
         requiredResource: EResource.TASKS,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],
         requiredFeature: ESubscriptionFeatures.TASKS,
       },
       {
@@ -133,7 +133,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: LogIn,
         roles: [EUserLevels.ADMIN, EUserLevels.MEMBER],
         requiredResource: EResource.CHECKINS,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],
         requiredFeature: ESubscriptionFeatures.CHECKINS,
       },
     ],
@@ -146,13 +146,14 @@ const baseNavItems: NavItemGroup[] = [
         url: ADMIN_ROUTES.BILLINGS,
         icon: DollarSign,
         requiredResource: EResource.BILLINGS,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],
+        roles: [EUserLevels.ADMIN, EUserLevels.MEMBER, EUserLevels.STAFF],
       },
       {
         title: "subscription",
         url: ADMIN_ROUTES.SUBSCRIPTION,
         icon: ClipboardList,
-        roles: [EUserLevels.PLATFORM_OWNER],
+        roles: [],
       },
       {
         title: "business",
@@ -182,7 +183,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: MessageCircle,
         roles: [EUserLevels.ADMIN, EUserLevels.MEMBER, EUserLevels.STAFF],
         requiredResource: EResource.CHAT,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],
         requiredFeature: ESubscriptionFeatures.CHAT,
       },
       {
@@ -194,9 +195,9 @@ const baseNavItems: NavItemGroup[] = [
         title: "automation",
         url: ADMIN_ROUTES.AUTOMATION,
         icon: Bot,
-        roles: [EUserLevels.ADMIN],
+        roles: [],
         requiredFeature: ESubscriptionFeatures.EMAIL_TEMPLATES,
-      },
+      }, 
     ],
   },
   {
@@ -239,9 +240,9 @@ const baseNavItems: NavItemGroup[] = [
         title: "emailTemplates",
         url: ADMIN_ROUTES.CMS.EMAIL_TEMPLATES,
         icon: Mail,
-        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.ADMIN,],
+        roles: [],
         requiredFeature: ESubscriptionFeatures.EMAIL_TEMPLATES,
-      },
+      }, 
       {
         title: "pages",
         url: ADMIN_ROUTES.CMS.PAGES,
@@ -280,12 +281,12 @@ const baseNavItems: NavItemGroup[] = [
         title: "paymentProcessor",
         url: ADMIN_ROUTES.PAYMENT_PROCESSOR,
         icon: CreditCard,
-        roles: [EUserLevels.SUPER_ADMIN],
+        roles: [],
       },
     ],
   },
   {
-    groupTitle: "Activity Logs",
+    groupTitle: "Logs",
     items: [
       {
         title: "activityLogs",
@@ -302,7 +303,7 @@ const baseNavItems: NavItemGroup[] = [
         title: "users",
         url: ADMIN_ROUTES.USERS,
         icon: UserCheck,
-        roles: [EUserLevels.PLATFORM_OWNER],
+        roles: [],
       },
       {
         title: "members",
@@ -310,7 +311,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: UserPlus,
         roles: [EUserLevels.ADMIN],
         requiredResource: EResource.MEMBERS,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],
       },
       {
         title: "memberships",
@@ -318,7 +319,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: CreditCard,
         roles: [EUserLevels.ADMIN],
         requiredResource: EResource.MEMBERSHIPS,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],
         requiredFeature: ESubscriptionFeatures.MEMBERSHIPS,
       },
 
@@ -328,7 +329,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: Users,
         roles: [EUserLevels.ADMIN],
         requiredResource: EResource.STAFF,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],
         requiredFeature: ESubscriptionFeatures.STAFF,
       },
 
@@ -381,7 +382,7 @@ const baseNavItems: NavItemGroup[] = [
         title: "files",
         url: ADMIN_ROUTES.FILES,
         icon: FileText,
-        roles: [EUserLevels.ADMIN],
+        roles: [],
       },
       {
         title: "bannerImages",
@@ -408,7 +409,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: Tag,
         roles: [EUserLevels.ADMIN, EUserLevels.STAFF],
         requiredResource: EResource.SERVICE_OFFERS,
-        requiredAction: 'read',
+        requiredAction: ['read', 'manage'],   
         requiredFeature: ESubscriptionFeatures.SERVICE_OFFERS,
       },
     ],
@@ -450,12 +451,12 @@ const baseNavItems: NavItemGroup[] = [
         roles: [EUserLevels.ADMIN,],
         requiredFeature: ESubscriptionFeatures.LOCATIONS,
       },
-      {
+   /*    {
         title: "facilityInfo",
         url: ADMIN_ROUTES.FACILITY_INFO,
         icon: Building2,
         roles: [EUserLevels.ADMIN,],
-      },
+      }, */
       {
         title: "cameras",
         url: ADMIN_ROUTES.CAMERAS,
@@ -472,7 +473,7 @@ const baseNavItems: NavItemGroup[] = [
         title: "schedules",
         url: ADMIN_ROUTES.SCHEDULES,
         icon: CalendarClock,
-        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.ADMIN],
+        roles: [],
       },
     ],
   },
@@ -502,7 +503,7 @@ const baseNavItems: NavItemGroup[] = [
         title: "queueBoard",
         url: ADMIN_ROUTES.QUEUE_BOARD,
         icon: BarChart3,
-        roles: [EUserLevels.PLATFORM_OWNER],
+        roles: [],
       },
     ],
   },
@@ -513,7 +514,7 @@ const baseNavItems: NavItemGroup[] = [
         title: "cache",
         url: ADMIN_ROUTES.CACHE,
         icon: Database,
-        roles: [EUserLevels.PLATFORM_OWNER],
+        roles: [],
       },
     ],
   },

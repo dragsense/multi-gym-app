@@ -54,9 +54,9 @@ export const faqItemViews = ({
             <div className="flex items-center justify-between">
               <AccordionTrigger className="flex-1 text-left hover:no-underline py-2">
                 <div className="flex items-center gap-3 flex-1">
-                  <Badge variant={item.enabled ? "default" : "secondary"}>
+                  {handleToggleEnabled && <Badge variant={item.enabled ? "default" : "secondary"}>
                     {item.enabled ? buildSentence(t, "enabled") : buildSentence(t, "disabled")}
-                  </Badge>
+                  </Badge>}
                   <span className="font-medium">{item.question}</span>
                 </div>
               </AccordionTrigger>

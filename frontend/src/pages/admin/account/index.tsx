@@ -31,11 +31,17 @@ export default function AccountPage() {
 
     // Support deep-linking to tabs via ?tab=stripe-connect
     const tabFromUrl = searchParams.get("tab");
-    const [activeTab, setActiveTab] = useState(tabFromUrl || "account");
+    const [activeTab, setActiveTab] = useState(tabFromUrl || "password-reset");
 
     const accountTabs = useMemo(() => {
         const tabs = [
             {
+                id: "password-reset",
+                label: "Password Reset",
+                icon: Lock,
+                description: "Change your password"
+            },
+            ...(user?.level !== EUserLevels.PLATFORM_OWNER && user?.level !== EUserLevels.ADMIN ? [{
                 id: "account",
                 label: "Account",
                 icon: User,
@@ -46,29 +52,24 @@ export default function AccountPage() {
                 label: "Profile",
                 icon: UserCircle,
                 description: "Profile information"
-            },
-            {
-                id: "password-reset",
-                label: "Password Reset",
-                icon: Lock,
-                description: "Change your password"
-            },
-            ...(user?.level === EUserLevels.SUPER_ADMIN ? [{
+            }] : []),
+           
+     /*        ...(user?.level === EUserLevels.SUPER_ADMIN ? [{
                 id: "current-subscription",
                 label: "Current Subscription",
                 icon: CreditCard,
                 description: "Your current subscription"
-            }] : []),
+            }] : []), 
             ...(user?.level === EUserLevels.MEMBER ? [{
                 id: "current-membership",
                 label: "Current Membership",
                 icon: BadgeCheck,
                 description: "Your current membership"
-            }] : []),
+            }] : []),*/
         ];
 
         if (paymentProcessorType === EPaymentProcessorType.STRIPE) {
-            if (user?.level >= EUserLevels.SUPER_ADMIN) {
+            if (user?.level >= EUserLevels.STAFF) {
                 tabs.push({
                     id: "payment-cards",
                     label: "Payment Cards",
@@ -125,13 +126,13 @@ export default function AccountPage() {
                     <PasswordResetTab />
                 </TabsContent>
 
-                <TabsContent value="current-subscription" className="mt-0">
+              {/*   <TabsContent value="current-subscription" className="mt-0">
                     <CurrentSubscriptionTab />
-                </TabsContent>
+                </TabsContent> 
 
                 <TabsContent value="current-membership" className="mt-0">
                     <CurrentMembershipTab />
-                </TabsContent>
+                </TabsContent>*/}
 
                 <TabsContent value="payment-cards" className="mt-0">
                     <PaymentCardsTab />

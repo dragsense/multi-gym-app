@@ -39,6 +39,8 @@ import { useRegisteredStore } from "@/stores/store-registry";
 import type { TSingleHandlerStore } from "@/stores/single/single-handler-store";
 import { Badge } from "@/components/ui/badge";
 import { AppSelect } from "@/components/layout-ui/app-select";
+import { useAuthUser } from "@/hooks/use-auth-user";
+import { EUserLevels } from "@shared/enums/user.enum";
 
 interface ISessionsCalendarProps {
   storeKey: string;
@@ -47,6 +49,7 @@ interface ISessionsCalendarProps {
 const DEFAULT_STATUSES = [];
 
 export default function SessionsCalendar({ storeKey }: ISessionsCalendarProps) {
+  const { user } = useAuthUser();
   const { settings } = useUserSettings();
   const store = useRegisteredStore<TSingleHandlerStore<ISession, any>>(
     storeKey + "-single"
@@ -325,10 +328,12 @@ export default function SessionsCalendar({ storeKey }: ISessionsCalendarProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={handleAddSession}>
+              {user?.level === EUserLevels.ADMIN || user?.level === EUserLevels.STAFF && (
+                <Button size="sm" onClick={handleAddSession}>
                 <Plus className="h-4 w-4" />
                 Add Session
               </Button>
+              )}
             </div>
           </div>
         </div>

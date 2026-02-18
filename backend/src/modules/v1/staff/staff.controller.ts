@@ -43,6 +43,7 @@ export class StaffController {
 
   @ApiOperation({ summary: 'Get all staff members with pagination and filters' })
   @ApiResponse({ status: 200, type: StaffPaginatedDto })
+  @MinUserLevel(EUserLevels.STAFF)
   @Get()
   findAll(@Query() query: StaffListDto) {
     return this.staffService.get(query, StaffListDto);
@@ -54,6 +55,7 @@ export class StaffController {
     description: 'Returns staff if exists, null otherwise',
     type: StaffDto,
   })
+  @MinUserLevel(EUserLevels.STAFF)
   @Get('me')
     getCurrentUserStaff(
     @Query() query: SingleQueryDto,

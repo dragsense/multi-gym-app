@@ -84,10 +84,12 @@ export default function FaqList({
     });
   }, [setAction, startTransition]);
 
+  const isAdmin = user?.level === EUserLevels.ADMIN || user?.level === EUserLevels.PLATFORM_OWNER;
+
   const { listItem } = faqItemViews({
-    handleEdit: user?.level <= EUserLevels.SUPER_ADMIN ? handleEdit : undefined,
-    handleDelete: user?.level <= EUserLevels.SUPER_ADMIN ? handleDelete : undefined,
-    handleToggleEnabled: user?.level <= EUserLevels.SUPER_ADMIN ? handleToggleEnabled : undefined,
+    handleEdit: isAdmin ? handleEdit : undefined,
+    handleDelete: isAdmin ? handleDelete : undefined,
+    handleToggleEnabled: isAdmin ? handleToggleEnabled : undefined,
     componentId,
     t,
   });
@@ -95,7 +97,7 @@ export default function FaqList({
   return (
     <div data-component-id={componentId} className="space-y-4">
       <div className="flex justify-end">
-        {user?.level <= EUserLevels.SUPER_ADMIN && (
+        {isAdmin && (
           <Button
             onClick={handleCreate}
             data-component-id={componentId}
@@ -111,10 +113,11 @@ export default function FaqList({
         showPagination={true}
         renderItem={(faq) => listItem(
           faq,
-          user?.level <= EUserLevels.SUPER_ADMIN ? handleEdit : undefined,
-          user?.level <= EUserLevels.SUPER_ADMIN ? handleDelete : undefined,
-          user?.level <= EUserLevels.SUPER_ADMIN ? handleToggleEnabled : undefined
+          isAdmin ? handleEdit : undefined,
+          isAdmin ? handleDelete : undefined,
+          isAdmin ? handleToggleEnabled : undefined
         )}
+        rowClassName="grid grid-cols-1"
       />
     </div>
   );

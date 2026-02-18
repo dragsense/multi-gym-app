@@ -10,7 +10,6 @@ import { AppCard } from "@/components/layout-ui/app-card";
 import {
   DollarSign,
   Shield,
-  Building,
   CreditCard,
   Bell,
   Loader2,
@@ -29,7 +28,6 @@ import { type FormInputs } from "@/hooks/use-input";
 import { useInput } from "@/hooks/use-input";
 import type {
   BillingSettingsDto,
-  BusinessSettingsDto,
   LimitSettingsDto,
   CurrencySettingsDto,
   NotificationSettingsDto,
@@ -95,20 +93,6 @@ export default function UserSettingsForm({
                   {item.maxMembersPerTrainer}
                   {item.maxSessionDuration}
                   {item.slotStepMinutes}
-                </div>
-              );
-            },
-          },
-          business: {
-            ...originalFields.business,
-            renderItem: (item: BusinessSettingsDto) => {
-              return (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {item.businessName}
-                  {item.businessEmail}
-                  {item.businessPhone}
-                  {item.businessAddress}
-                  {item.businessLogo}
                 </div>
               );
             },
@@ -209,18 +193,7 @@ export default function UserSettingsForm({
           icon: Shield,
           description: buildSentence(t, "session", "and", "member", "limits"),
         },
-        {
-          id: "business",
-          label: t("business"),
-          icon: Building,
-          description: buildSentence(
-            t,
-            "business",
-            "information",
-            "and",
-            "branding"
-          ),
-        },
+        
       ]
       : []),
 
@@ -332,8 +305,6 @@ export default function UserSettingsForm({
                   {tab.id === "time" && inputs.time}
 
                   {tab.id === "currency" && inputs.currency}
-
-                  {tab.id === "business" && inputs.business}
 
                   {tab.id === "billing" && inputs.billing}
 

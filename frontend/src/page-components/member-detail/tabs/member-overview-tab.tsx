@@ -48,7 +48,7 @@ export function MemberOverviewTab({ member, storeKey }: IMemberOverviewTabProps)
       </div>
 
       {/* Checkins Section */}
-      {member.user && (
+  {/*     {member.user && (
         <>
           <SingleHandler<ICheckin>
             queryFn={fetchCheckin}
@@ -77,7 +77,7 @@ export function MemberOverviewTab({ member, storeKey }: IMemberOverviewTabProps)
             ]}
           />
 
-   {/*        <AppCard
+          <AppCard
             header={
               <div className="flex items-center gap-2">
                 <LogIn className="h-5 w-5" />
@@ -100,9 +100,9 @@ export function MemberOverviewTab({ member, storeKey }: IMemberOverviewTabProps)
               storeKey={CHECKINS_STORE_KEY}
               listProps={{}}
             />
-          </AppCard> */}
+          </AppCard>
         </>
-      )}
+      )} */}
     </div>
   );
 }

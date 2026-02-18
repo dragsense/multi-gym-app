@@ -67,13 +67,6 @@ export default function UserSettingsFormHandler({
       maxSessionDuration: undefined,
       slotStepMinutes: undefined,
     },
-    business: {
-      businessName: undefined,
-      businessEmail: undefined,
-      businessPhone: undefined,
-      businessAddress: undefined,
-      businessLogo: undefined,
-    },
     billing: {
       taxRate: undefined,
       invoicePrefix: undefined,

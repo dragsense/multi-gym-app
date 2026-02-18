@@ -111,20 +111,20 @@ export const SessionFormSteps = React.memo(function SessionFormSteps({
             <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "selected", "price")}:  {formatCurrency(formValues?.price || 0)}</h3>
           </div>}
           {/* Service Offer (Optional) */}
-          <div>
+          {/* <div>
             <h3 className="text-sm font-semibold mb-3">
               {buildSentence(t, "service", "offer")} ({t("optional")})
             </h3>
             <div className="mb-6">
               {inputs.serviceOffer as ReactNode}
             </div>
-          </div>
+          </div> */}
 
           {/* Price Options */}
           <div>
             <h3 className="text-sm font-semibold mb-3">{t("pricing")}</h3>
             <div className="space-y-4">
-              {inputs.useCustomPrice}
+           {/*    {inputs.useCustomPrice} */}
               {formValues?.useCustomPrice && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                   {inputs.customPrice}

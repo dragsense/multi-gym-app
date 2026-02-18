@@ -293,7 +293,7 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
             <span>
               {isLoading
                 ? buildSentence(t, "logging", "out")
-                : buildSentence(t, "log", "out")}
+                : buildSentence(t, "logOut")}
             </span>
           </Button>
         </DropdownMenuTrigger>
@@ -311,14 +311,14 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
             disabled={isLoading}
             className="cursor-pointer"
           >
-            {buildSentence(t, "log", "out", "this", "device")}
+            {buildSentence(t, "logOut", "this", "device")}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => startTransition(() => logout(true))}
             disabled={isLoading}
             className="cursor-pointer"
           >
-            {buildSentence(t, "log", "out", "from", "all", "devices")}
+            {buildSentence(t, "logOutFromAllDevices")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -849,7 +849,7 @@ export class SessionsService extends CrudService<Session> {
     excludeSessionId?: string,
   ): Promise<SessionDto[]> {
     const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
+      currentUser.level === (EUserLevels.ADMIN as number);
 
     const { statuses, startDate, endDate, limit } = requestDto;
 
@@ -862,9 +862,24 @@ export class SessionsService extends CrudService<Session> {
       {
         beforeQuery: (query: SelectQueryBuilder<Session>) => {
           if (!isSuperAdmin) {
-            query.andWhere('entity.createdByUserId = :uid', {
-              uid: currentUser.id,
-            });
+              query
+                .leftJoin('entity.trainer', '_trainer')
+                .leftJoin('entity.members', '_members')
+                .andWhere(
+                  new Brackets((qb2) => {
+                    qb2
+                      .where('entity.createdByUserId = :uid', {
+                        uid: currentUser.id,
+                      })
+                      .orWhere('_trainer.userId = :uid', {
+                        uid: currentUser.id,
+                      })
+                      .orWhere('_members.userId = :uid', {
+                        uid: currentUser.id,
+                      });
+
+                }),
+              );
           }
 
           if (trainerId)
@@ -974,7 +989,7 @@ export class SessionsService extends CrudService<Session> {
           specialization: overrideSession.trainer.specialization,
           experience: overrideSession.trainer.experience,
         } as Staff)
-        : session.trainer; 
+        : session.trainer;
       sessionObject.members =
         overrideSession.members && overrideSession.members.length > 0
           ? overrideSession.members.map(

@@ -1032,5 +1032,7 @@
   "formDataNotFound": "Form data not found. Please try again.",
   "paymentMethod": "Payment Method",
   "orderProcessing": "Order is being processed. You will receive an email with the order details.",
-  "orderProcessingFailed": "Failed to process order. Please try again."
+  "orderProcessingFailed": "Failed to process order. Please try again.",
+  "logOut": "Log Out",
+  "logOutFromAllDevices": "Log Out from All Devices"
 }

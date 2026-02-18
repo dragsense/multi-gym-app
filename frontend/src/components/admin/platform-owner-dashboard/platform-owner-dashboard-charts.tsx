@@ -51,7 +51,7 @@ export const PlatformOwnerDashboardCharts: React.FC<IPlatformOwnerDashboardChart
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
       {/* Business Growth Chart */}
       <AppCard>
         <div className="mb-4">
@@ -98,7 +98,7 @@ export const PlatformOwnerDashboardCharts: React.FC<IPlatformOwnerDashboardChart
       </AppCard>
 
       {/* Subscription Distribution */}
-      <AppCard>
+     {/*  <AppCard>
         <div className="mb-4">
           <h3 className="text-lg font-semibold">{t('subscriptionDistribution')}</h3>
           
@@ -138,7 +138,7 @@ export const PlatformOwnerDashboardCharts: React.FC<IPlatformOwnerDashboardChart
             No subscriptions in this period
           </div>
         )}
-      </AppCard>
+      </AppCard> */}
     </div>
   );
 };

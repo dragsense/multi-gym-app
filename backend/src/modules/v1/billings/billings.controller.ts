@@ -97,7 +97,7 @@ export class BillingsController {
     @Query() query: BillingListDto,
     @AuthUser() currentUser: User,
   ) {
-    const isAdmin = currentUser.level === EUserLevels.ADMIN;
+    const isAdmin = currentUser.level === EUserLevels.ADMIN || currentUser.level === EUserLevels.PLATFORM_OWNER;
 
     const {linkedMemberId, ...restQuery} = query;
 
@@ -149,7 +149,7 @@ export class BillingsController {
   })
   @ApiResponse({ status: 404, description: 'Billing not found' })
   @Get(':id')
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
   async findOne(
     @Param('id') id: string,
     @Query() query: SingleQueryDto<Billing>,
@@ -193,7 +193,7 @@ export class BillingsController {
   }
 
   @Post(':id/send-email')
-  @MinUserLevel(EUserLevels.SUPER_ADMIN)
+  @MinUserLevel(EUserLevels.ADMIN)
   @ApiOperation({ summary: 'Send billing email to recipient' })
   @ApiParam({ name: 'id', description: 'Billing ID' })
   @ApiResponse({ status: 200, description: 'Email sent successfully' })
@@ -296,7 +296,7 @@ export class BillingsController {
     description: 'Returns recent billings and total outstanding amount',
   })
   @Get('user/:userId/recent')
-  @MinUserLevel(EUserLevels.SUPER_ADMIN)
+  @MinUserLevel(EUserLevels.ADMIN)
   async getOutstandingBillingSummary(
     @Param('userId') userId: string,
     @Query() query: { limit?: number },
@@ -310,7 +310,7 @@ export class BillingsController {
     description: 'Returns recent billings and total outstanding amount for current user',
   })
   @Get('me/outstanding')
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
   async getMyOutstandingBillingSummary(
     @AuthUser() currentUser: User,
     @Query() query: { limit?: number },

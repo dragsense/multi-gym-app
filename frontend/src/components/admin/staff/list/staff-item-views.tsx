@@ -38,25 +38,29 @@ const StaffActions = ({
   const componentId = useId();
   const [, startTransition] = useTransition();
 
-  const handleViewClick = () => {
+  const handleViewClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (handleView) {
       startTransition(() => handleView(staff.id));
     }
   };
 
-  const handleUpdateProfileClick = () => {
+  const handleUpdateProfileClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (handleUpdateProfile) {
       startTransition(() => handleUpdateProfile(staff.id));
     }
   };
 
-  const handleEditClick = () => {
+  const handleEditClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (handleEdit) {
       startTransition(() => handleEdit(staff.id));
     }
   };
 
-  const handleDeleteClick = () => {
+  const handleDeleteClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
     if (handleDelete) {
       startTransition(() => handleDelete(staff.id));
     }

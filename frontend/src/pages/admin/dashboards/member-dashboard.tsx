@@ -31,8 +31,8 @@ function MemberDashboardView() {
       <AdvertisementsBannerHandler />
 
       {/* Member Overview Cards - using hooks directly */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <MyMembershipCard />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+       {/*  <MyMembershipCard /> */}
         <MyOutstandingBillingsCard />
         <MyUpcomingSessionsCard />
       </div>

@@ -21,17 +21,17 @@ export const PlatformOwnerDashboardOverview: React.FC<IPlatformOwnerDashboardOve
       value: overview?.activeBusinesses || 0,
       description: t('inDateRange'),
     },
-    {
+   /*  {
       title: buildSentence(t, 'total', 'revenue'),
       value: formatCurrency(overview?.totalRevenue || 0),
       description: t('fromPaidSubscriptions'),
-    },
+    }, */
   ];
 
 
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         {stats.map((stat, index) => (
           <AppCard key={index} className="hover:shadow-md transition-shadow">
             <div className="p-6">

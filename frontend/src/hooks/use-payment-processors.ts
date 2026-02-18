@@ -14,8 +14,7 @@ export function usePaymentProcessors(params?: { limit?: number; page?: number })
 
   const processors: IPaymentProcessor[] = (data?.data ?? []).filter(
     (p) =>
-      p.enabled &&
-      (p.type === EPaymentProcessorType.STRIPE || p.type === EPaymentProcessorType.PAYSAFE)
+      p.enabled
   );
 
   const options: TPaymentProcessorOption[] = processors.map((p) => ({

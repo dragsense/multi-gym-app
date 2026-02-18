@@ -11,12 +11,13 @@ const QUERY_KEYS = {
   points: ["rewards", "points"],
 } as const;
 
-export function useUserRewardPoints() {
+export function useUserRewardPoints(enabled: boolean = true) {
   const queryClient = useQueryClient();
 
   const query = useQuery<IUserRewardPointsResponse, Error>({
     queryKey: QUERY_KEYS.points,
     queryFn: getMyRewardPoints,
+    enabled,
   });
 
   // Listen for live reward updates and invalidate cache

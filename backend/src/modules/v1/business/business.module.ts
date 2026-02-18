@@ -21,8 +21,6 @@ import { BusinessSubscriptionHistory } from './entities/business-subscription-hi
 import { BusinessSubscriptionService } from './services/business-subscription.service';
 import { BusinessSubscriptionHistoryService } from './services/business-subscription-history.service';
 import { BusinessSubscriptionEventListenerService } from './services/business-subscription-event-listener.service';
-import { PlatformOwnerDashboardService } from './services/platform-owner-dashboard.service';
-import { PlatformOwnerDashboardController } from './controllers/platform-owner-dashboard.controller';
 import { BusinessEmailService } from './services/business-email.service';
 import { BusinessEventListenerService } from './services/business-event-listener.service';
 import { BusinessTheme } from './entities/business-theme.entity';
@@ -74,7 +72,6 @@ import { FileUploadModule } from '@/common/file-upload/file-upload.module';
     BusinessSubscriptionBillingController,
     BusinessSubscriptionController,
     BusinessSubscriptionHistoryController,
-    PlatformOwnerDashboardController,
     BusinessThemeController,
   ],
   providers: [
@@ -84,7 +81,6 @@ import { FileUploadModule } from '@/common/file-upload/file-upload.module';
     BusinessSubscriptionService,
     BusinessSubscriptionHistoryService,
     BusinessSubscriptionEventListenerService,
-    PlatformOwnerDashboardService,
     BusinessEmailService,
     BusinessEventListenerService,
     BusinessThemeService,

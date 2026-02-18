@@ -209,12 +209,19 @@ export default function MultiFileUpload({
     file: File | IFileUpload,
     index: number,
     onRemove: () => void
-  ) => (
+  ) => {
+
+    const fileType = getFileType(file);
+
+    return (
     <div
       key={index}
       className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50"
     >
-      <img src={getPreviewUrl(file)} alt={file.name} className="w-20 h-20 object-cover rounded-lg" />
+      {fileType.startsWith("image/") && <img src={getPreviewUrl(file)} alt={file.name} className="w-20 h-20 object-cover rounded-lg" />}
+      {fileType.startsWith("video/") && <video src={getPreviewUrl(file)} alt={file.name} className="w-20 h-20 object-cover rounded-lg" />}
+      {fileType.startsWith("audio/") && <audio src={getPreviewUrl(file)} alt={file.name} className="w-20 h-20 object-cover rounded-lg" />}
+      {fileType.startsWith("image/") && <img src={getPreviewUrl(file)} alt={file.name} className="w-20 h-20 object-cover rounded-lg" />}
       {getFileIcon(getFileType(file))}
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{getFileName(file)}</p>
@@ -232,7 +239,7 @@ export default function MultiFileUpload({
         </Button>
       )}
     </div>
-  );
+  );}
 
   const renderFileList = () => {
     if (value.length === 0 && uploadedFiles.length === 0) return null;

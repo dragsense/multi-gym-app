@@ -94,7 +94,8 @@ export function AppHeader() {
   }, [deferredUser]);
 
   // Rewards points (single endpoint)
-  const { data: rewardsData, isLoading: isLoadingRewards } = useUserRewardPoints();
+  const isSuperAdmin = user?.level === EUserLevels.SUPER_ADMIN;
+  const { data: rewardsData, isLoading: isLoadingRewards } = useUserRewardPoints(isSuperAdmin);
   const userPoints = rewardsData?.points ?? 0;
 
   // React 19: Smooth logout transitions
@@ -132,9 +133,9 @@ export function AppHeader() {
           )}
 
           {/* Rewards points badge */}
-          <div className="flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+          {isSuperAdmin && <div className="flex items-center rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
             {buildSentence(t, 'points')}: {!isLoadingRewards ? userPoints : "--"}
-          </div>
+          </div>}
 
           {/* Chat */}
           {/* Language Switcher */}
@@ -214,7 +215,7 @@ export function AppHeader() {
                     <LogOut className="h-4 w-4" />
                   )}
 
-                  <span>{buildSentence(t, 'log', 'out')}</span>
+                  <span>{buildSentence(t, 'logOut')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleLogout(true)}>
                   {isLoading ? (
@@ -223,7 +224,7 @@ export function AppHeader() {
                     <LogOut className="h-4 w-4" />
                   )}
 
-                  <span>{buildSentence(t, 'log', 'out', 'from', 'all', 'devices')}</span>
+                  <span>{buildSentence(t, 'logOutFromAllDevices')}</span>
                 </DropdownMenuItem>
               </div>
             </DropdownMenuContent>

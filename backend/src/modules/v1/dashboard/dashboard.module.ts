@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DashboardController } from './dashboard.controller';
-import { DashboardService } from './dashboard.service';
+import { DashboardController } from './controllers/dashboard.controller';
+import { DashboardService } from './services/dashboard.service';
 
 // Entities
 import { Session } from '@/modules/v1/sessions/entities/session.entity';
@@ -14,6 +14,11 @@ import { Checkin } from '@/modules/v1/checkins/entities/checkin.entity';
 import { Membership } from '@/modules/v1/memberships/entities/membership.entity';
 import { MemberMembership } from '@/modules/v1/memberships/entities/member-membership.entity';
 import { Staff } from '../staff/entities/staff.entity';
+import { PlatformOwnerDashboardController } from './controllers/platform-owner-dashboard.controller';
+import { PlatformOwnerDashboardService } from './services/platform-owner-dashboard.service';
+import { Business } from '../business/entities/business.entity';
+import { BusinessSubscription } from '../business/entities/business-subscription.entity';
+import { BusinessSubscriptionBilling } from '../business/entities/business-susbscription-billing.entity';
 
 @Module({
   imports: [
@@ -28,10 +33,13 @@ import { Staff } from '../staff/entities/staff.entity';
       Checkin,
       Membership,
       MemberMembership,
+      Business,
+      BusinessSubscription,
+      BusinessSubscriptionBilling,
     ]),
   ],
-  controllers: [DashboardController],
-  providers: [DashboardService],
-  exports: [DashboardService],
+  controllers: [PlatformOwnerDashboardController, DashboardController],
+  providers: [DashboardService, PlatformOwnerDashboardService],
+  exports: [DashboardService, PlatformOwnerDashboardService],
 })
 export class DashboardModule {}

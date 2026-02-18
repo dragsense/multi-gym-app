@@ -23,13 +23,11 @@ export class UserSettingsService {
 
     switch (currentUser.level) {
       case EUserLevels.PLATFORM_OWNER:
-        settings.business = undefined;
         settings.limits = undefined;
         break;
       case EUserLevels.SUPER_ADMIN:
       case EUserLevels.MEMBER:
       case EUserLevels.STAFF:
-        settings.business = undefined;
         settings.limits = undefined;
         settings.currency = undefined;
         settings.billing = undefined;

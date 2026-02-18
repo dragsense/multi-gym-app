@@ -33,27 +33,27 @@ export function BusinessDetailTabs({ business, storeKey }: IBusinessDetailTabsPr
           <LayoutDashboard className="h-4 w-4" />
           Overview
         </TabsTrigger>
-        <TabsTrigger value="subscription" className="flex items-center gap-2">
+        {/* <TabsTrigger value="subscription" className="flex items-center gap-2">
           <CreditCard className="h-4 w-4" />
           Subscription
         </TabsTrigger>
         <TabsTrigger value="billings" className="flex items-center gap-2">
           <Receipt className="h-4 w-4" />
           Billings & Invoices
-        </TabsTrigger>
+        </TabsTrigger> */}
       </TabsList>
 
       <TabsContent value="overview" className="mt-4">
         <BusinessOverviewTab business={business} storeKey={storeKey} />
       </TabsContent>
 
-      <TabsContent value="subscription" className="mt-4">
+{/*       <TabsContent value="subscription" className="mt-4">
         <BusinessSubscriptionTab business={business} storeKey={storeKey} />
-      </TabsContent>
-
+      </TabsContent> */}
+{/* 
       <TabsContent value="billings" className="mt-4">
         <BusinessBillingsTab business={business} storeKey={storeKey} />
-      </TabsContent>
+      </TabsContent> */}
     </Tabs>
   );
 }

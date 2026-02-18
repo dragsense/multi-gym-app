@@ -2,12 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { DateTime } from 'luxon';
-import { Business } from '../entities/business.entity';
-import { BusinessSubscription } from '../entities/business-subscription.entity';
-import { BusinessSubscriptionBilling } from '../entities/business-susbscription-billing.entity';
-import { BusinessSubscriptionHistory } from '../entities/business-subscription-history.entity';
-import { Billing } from '../../billings/entities/billing.entity';
-import { Subscription } from '../subscription/entities/subscription.entity';
+import { Business } from '../../business/entities/business.entity';
+import { BusinessSubscription } from '../../business/entities/business-subscription.entity';
+import { BusinessSubscriptionBilling } from '../../business/entities/business-susbscription-billing.entity';
 import { PlatformOwnerDashboardDto } from '@shared/dtos';
 import { IPlatformOwnerDashboardStats } from '@shared/interfaces/platform-owner-dashboard.interface';
 import { EBillingStatus } from '@shared/enums';
@@ -55,9 +52,9 @@ export class PlatformOwnerDashboardService {
       // Active businesses in the time range - businesses with at least one active subscription created in the range
       this.businessRepository
         .createQueryBuilder('business')
-        .innerJoin('business_subscriptions', 'bs', 'bs."businessId" = business.id')
-        .where('bs."isActive" = :isActive', { isActive: true })
-        .andWhere('bs."createdAt" BETWEEN :start AND :end', {
+        //.innerJoin('business_subscriptions', 'bs', 'bs."businessId" = business.id')
+        //.where('bs."isActive" = :isActive', { isActive: true })
+        .andWhere('business."createdAt" BETWEEN :start AND :end', {
           start: startDate,
           end: endDate,
         })
@@ -88,12 +85,10 @@ export class PlatformOwnerDashboardService {
     // Get business growth over time - always group by day
     const businessGrowthQuery = `
       SELECT 
-        TO_CHAR(DATE_TRUNC('day', b."createdAt"), 'YYYY-MM-DD') as period,
         COUNT(b.id) as businesses
       FROM businesses b
       WHERE b."createdAt" BETWEEN $1 AND $2
       GROUP BY DATE_TRUNC('day', b."createdAt")
-      ORDER BY period ASC
     `;
 
     const businessGrowthData = await this.businessRepository.query(businessGrowthQuery, [

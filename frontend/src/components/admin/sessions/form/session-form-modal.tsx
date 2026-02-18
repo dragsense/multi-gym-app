@@ -257,6 +257,7 @@ const SessionFormModal = React.memo(function SessionFormModal({
       notes: {
         ...(storeFields as any).notes,
         placeholder: t("notes"),
+        label:""
       },
       duration: {
         ...(storeFields as any).duration,
@@ -271,7 +272,6 @@ const SessionFormModal = React.memo(function SessionFormModal({
         ...(storeFields as any).trainer,
         type: "custom" as const,
         Component: TrainerSelect,
-        visible: () => user?.level !== EUserLevels.STAFF,
         disabled: !!trainer,
       },
       members: {
@@ -280,7 +280,7 @@ const SessionFormModal = React.memo(function SessionFormModal({
         Component: MembersSelect,
         disabled: !!member,
       },
-      serviceOffer: {
+/*       serviceOffer: {
         ...(storeFields as any).serviceOffer,
         name: "serviceOffer", // Ensure name is set
         type: "custom" as const,
@@ -289,7 +289,7 @@ const SessionFormModal = React.memo(function SessionFormModal({
         visible: (ctx: { values: Record<string, unknown> }) =>
           ctx.values.useCustomPrice !== true,
         subFields: undefined, // Remove subFields since we're using custom component
-      },
+      }, */
       useCustomPrice: {
         ...(storeFields as any).useCustomPrice,
         label: buildSentence(t, "use", "custom", "price"),
@@ -298,10 +298,10 @@ const SessionFormModal = React.memo(function SessionFormModal({
       },
       customPrice: {
         ...(storeFields as any).customPrice,
-        placeholder: t("customPrice"),
+        label: "",
+        placeholder: t("price"),
         visible: (ctx: { values: Record<string, unknown> }) =>
           ctx.values.useCustomPrice === true,
-        
       },
       startDateTime: {
         ...(storeFields as any).startDateTime,

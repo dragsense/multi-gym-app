@@ -68,64 +68,7 @@ export class MembersController {
   })
   @Get()
   async findAll(@Query() query: MemberListDto, @AuthUser() currentUser: User) {
-    const isAdmin = currentUser.level === EUserLevels.ADMIN;
-    const result = await this.membersService.get(query, MemberListDto, {
-      beforeQuery: (query: SelectQueryBuilder<Member>) => {
-        if (!isAdmin) {
-          query
-            .leftJoin(
-              'trainer_members',
-              'trainerMembers',
-              'trainerMembers.memberId = entity.id',
-            )
-            .leftJoin('trainerMembers.trainer', 'memberTrainer')
-            .andWhere(
-              new Brackets((qb2) => {
-                qb2
-                  .where('entity.createdByUserId = :uid', {
-                    uid: currentUser.id,
-                  })
-                  .orWhere('memberTrainer.userId = :uid', {
-                    uid: currentUser.id,
-                  });
-              }),
-            )
-            .distinct(true);
-        }
-        return query;
-      },
-    });
-
-    // Manually fetch profiles and attach to users
-    if (result.data.length > 0) {
-      const userIds = result.data
-        .map((member) => member.user?.id)
-        .filter((id) => !!id);
-
-      if (userIds.length > 0) {
-        const profiles = await this.profilesService.getRepository().find({
-          where: {
-            user: { id: In(userIds) },
-          },
-          relations: ['user'],
-        });
-
-        console.log('Fetching profiles for userIds:', userIds);
-        console.log('Found profiles:', profiles.length, profiles.map(p => ({ id: p.id, userId: p.user?.id, phone: p.phoneNumber })));
-
-        // Map profiles to members
-        result.data.forEach((member) => {
-          if (member.user) {
-            const profile = profiles.find((p) => p.user?.id === member.user!.id);
-            if (profile) {
-              (member.user as any).profile = profile;
-            }
-          }
-        });
-      }
-    }
-
-    return result;
+    return await this.membersService.get(query, MemberListDto);
   }
 
   @ApiOperation({ summary: 'Get member by ID' })
