@@ -7,7 +7,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FieldType } from "../../decorators/field.decorator";
 
 export class CreateBillingLineItemDto {
@@ -24,6 +24,7 @@ export class CreateBillingLineItemDto {
   @IsNumber()
   @Min(1)
   @FieldType("number", true)
+  @Expose()
   @Type(() => Number)
   quantity: number;
 
@@ -31,6 +32,7 @@ export class CreateBillingLineItemDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", true)
+  @Expose()
   @Type(() => Number)
   unitPrice: number;
 }

@@ -111,4 +111,3 @@ export class DeviceReadersController {
     return this.deviceReadersService.updateDeviceReaderStatus(id, updateStatusDto);
   }
 }
-

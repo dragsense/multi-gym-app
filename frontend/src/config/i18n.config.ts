@@ -32,7 +32,7 @@ i18n
   .init({
     resources,
     fallbackLng: defaultLanguage,
-    debug: import.meta.env.DEV,
+    debug: false,
 
     detection: {
       order: ["localStorage", "navigator", "htmlTag"],

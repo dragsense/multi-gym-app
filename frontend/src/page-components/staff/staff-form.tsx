@@ -73,8 +73,6 @@ export default function StaffForm({
             gender: EUserGender.MALE,
             level: EUserLevels.STAFF,
             isAdministrative: false,
-            roles: [],
-            permissions: []
         },
         specialization: undefined,
         experience: undefined,

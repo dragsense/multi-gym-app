@@ -62,6 +62,7 @@ export default function CameraForm({
     ipAddress: "",
     port: undefined,
     path: undefined,
+    streamUrl: "",
     location: undefined,
     isActive: true,
   } as TCameraData;

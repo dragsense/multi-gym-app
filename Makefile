@@ -13,9 +13,10 @@ help: ## Show available commands
 
 # --- Setup ---
 setup: clean build dev ## Clean, build, and start all containers
+safe-setup: stop build dev ## Stop, build, and start all containers
 
-setup-prod: clean build-prod prod ## Clean, build production image, and start production containers
-
+setup-prod: clean-prod build-prod prod ## Clean, build production image, and start production containers
+safe-setup-prod: stop-prod build-prod prod ## Stop, build production image, and start production containers
 
 # --- Development ---
 dev: ## Start all dev containers
@@ -33,6 +34,9 @@ dev-frontend: ## Start only frontend dev container
 # --- Stop ---
 stop: ## Stop all containers
 	cd shared && docker-compose down
+
+stop-prod: ## Stop production containers
+	cd shared && docker-compose -f docker-compose.prod.yml down
 
 stop-backend: ## Stop backend container
 	cd shared && docker-compose -f docker-compose.backend.yml down
@@ -70,6 +74,10 @@ logs-frontend: ## Follow logs for frontend
 # --- Clean ---
 clean: ## Remove containers and volumes
 	cd shared && docker-compose down -v
+
+# --- Clean Production ---
+clean-prod: ## Remove containers and volumes
+	cd shared && docker-compose -f docker-compose.prod.yml down -v
 
 # --- Production ---
 prod-backend: ## Start backend in production mode

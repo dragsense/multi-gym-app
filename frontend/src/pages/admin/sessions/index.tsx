@@ -52,18 +52,6 @@ export default function SessionsPage() {
   const SESSIONS_STORE_KEY = "session";
   const location = getSelectedLocation();
 
-  // Fetch current user's member and trainer information
-  const { data: myMember } = useQuery<IMember | null>({
-    queryKey: ["myMember"],
-    queryFn: getMyMember,
-  });
-
-  const { data: currentUserStaff } = useQuery<IStaff | null>({
-    queryKey: ["currentUserStaff"],
-    queryFn: getCurrentUserStaff,
-  });
-
-  const myTrainer = currentUserStaff?.isTrainer ? currentUserStaff : undefined;
 
   return (
     <PageInnerLayout Header={<Header />}>
@@ -76,10 +64,6 @@ export default function SessionsPage() {
         }}
         storeKey={SESSIONS_STORE_KEY}
         SingleComponent={SessionView}
-        singleProps={{
-          member: myMember || undefined,
-          trainer: myTrainer,
-        }}
         actionComponents={[
           {
             action: "createOrUpdate",

@@ -1,0 +1,135 @@
+services:
+  # Full-Stack Service (Backend + Frontend in one container)
+  app:
+    image: vivast-app
+    build:
+      context: ..
+      dockerfile: shared/Dockerfile
+      target: dev
+    container_name: vivast-app
+    ports:
+      - "3000:3000" # Backend port
+      - "5173:5173" # Frontend port
+    env_file:
+      - ./.env
+      - ../backend/.env
+      - ../frontend/.env.dev
+    volumes:
+      - ../frontend:/app/frontend
+      - ../backend:/app/backend
+      - ../shared:/app/shared
+      - /app/frontend/node_modules
+      - /app/backend/node_modules
+      - /app/shared/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      dragonfly:
+        condition: service_started
+      mailpit:
+        condition: service_started
+    # command: ["sh", "-c", "cd /app/backend && npm run dev & cd /app/frontend && npm run dev & wait"]
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - app-network
+
+  # Redis Cache
+  redis:
+    image: redis:latest
+    container_name: vivast-app-redis
+    restart: unless-stopped
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - app-network
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    container_name: vivast-app-dragonfly
+    restart: unless-stopped
+    mem_limit: 6g # optional, matches Docker memory
+    command: >
+      dragonfly
+      --maxmemory=5g # slightly less than container memory
+    ports:
+      - "6380:6379"
+    networks:
+      - app-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: vivast-app-redis-commander
+    environment:
+      - REDIS_HOSTS=local:dragonfly:6379
+    ports:
+      - "8082:8081"
+    depends_on:
+      - dragonfly
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Mailpit for email testing
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: vivast-app-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - app-network
+
+  # PostgreSQL 17 Database
+  postgres:
+    image: postgres:17
+    container_name: vivast-app-postgres
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: vivast_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # SRS - Host network for WebRTC ICE (UDP works); app reaches via host.docker.internal 
+  srs:
+    image: ossrs/srs:latest
+    container_name: vivast-app-srs
+    environment:
+      CANDIDATE: "127.0.0.1"
+      SRS_RTC_SERVER_CANDIDATE: "127.0.0.1"
+      SRS_RTC_SERVER_USE_AUTO_DETECT_NETWORK_IP: "off"
+    volumes:
+      - ./srs_conf:/usr/local/srs/conf
+    command: >
+      ./objs/srs -c conf/srs.conf
+    restart: unless-stopped
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge

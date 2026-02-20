@@ -10,11 +10,13 @@ import { EquipmentTypesController } from './controllers/equipment-types.controll
 import { EquipmentController } from './controllers/equipment.controller';
 import { EquipmentReservationsController } from './controllers/equipment-reservations.controller';
 import { CrudModule } from '@/common/crud/crud.module';
+import { LocationsModule } from '../locations/locations.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([EquipmentType, Equipment, EquipmentReservation]),
     CrudModule,
+    LocationsModule,
   ],
   controllers: [
     EquipmentTypesController,

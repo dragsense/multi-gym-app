@@ -3,13 +3,15 @@ import { Loader2 } from "lucide-react";
 import { type FormInputs, useInput } from "@/hooks/use-input";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
-import { useSearchableEquipmentTypes } from "@/hooks/use-searchable";
+import { useSearchableEquipmentTypes, useSearchableLocations } from "@/hooks/use-searchable";
 import { SearchableInputWrapper } from "@/components/shared-ui/searchable-input-wrapper";
+import { getSelectedLocation } from "@/utils/location-storage";
 
 import type { TFormHandlerStore } from "@/stores";
 import type { TEquipmentData } from "@shared/types/equipment-reservation.type";
 import type { TEquipmentResponse } from "@shared/interfaces/equipment-reservation.interface";
 import type { IEquipmentType } from "@shared/interfaces/equipment-reservation.interface";
+import type { ILocation } from "@shared/interfaces/location.interface";
 
 import { Button } from "@/components/ui/button";
 import { ModalForm } from "@/components/form-ui/modal-form";
@@ -40,6 +42,37 @@ const EquipmentTypeSelect = React.memo((props: TCustomInputWrapper) => {
       getValue={(item) => { return { id: item.id, name: item.name } }}
       shouldFilter={false}
       multiple={false}
+    />
+  );
+});
+
+const LocationSelect = React.memo((props: TCustomInputWrapper) => {
+  const searchableLocations = useSearchableLocations({});
+  const { t } = useI18n();
+  const selectedLocation = getSelectedLocation();
+
+  React.useEffect(() => {
+    if (selectedLocation && !props.value && props.onChange) {
+      props.onChange({
+        id: selectedLocation.id,
+        name: selectedLocation.name,
+      } as ILocation);
+    }
+  }, [selectedLocation, props.value, props.onChange]);
+
+  return (
+    <SearchableInputWrapper<ILocation>
+      {...props}
+      modal={true}
+      useSearchable={() => searchableLocations}
+      getLabel={(item) => {
+        if (!item) return buildSentence(t, 'select', 'location');
+        return `${item.name}${item.address ? ` - ${item.address}` : ''}`;
+      }}
+      getKey={(item) => item.id.toString()}
+      getValue={(item) => ({ id: item.id, name: item.name, address: item.address } as ILocation)}
+      shouldFilter={false}
+      disabled={!!selectedLocation || props.disabled}
     />
   );
 });
@@ -93,6 +126,13 @@ const EquipmentFormModal = React.memo(function EquipmentFormModal({
       label: buildSentence(t, 'status'),
       placeholder: buildSentence(t, 'select', 'status'),
     },
+    location: {
+      ...(storeFields as TFieldConfigObject<TEquipmentData>).location,
+      type: 'custom' as const,
+      Component: LocationSelect,
+      label: buildSentence(t, 'location'),
+      placeholder: buildSentence(t, 'select', 'location'),
+    },
   } as TFieldConfigObject<TEquipmentData>), [storeFields, t]);
 
   const inputs = useInput<TEquipmentData>({
@@ -145,6 +185,7 @@ const EquipmentFormModal = React.memo(function EquipmentFormModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
             {inputs.equipmentType as React.ReactNode}
             {inputs.name}
+            {inputs.location as React.ReactNode}
           </div>
           <div>
             {inputs.description}

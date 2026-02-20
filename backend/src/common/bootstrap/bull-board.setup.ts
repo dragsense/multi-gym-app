@@ -16,8 +16,8 @@ export function setupBullBoard(
   const port = configService.get<number>('app.port', 3000);
 
   // Bull Board authentication credentials from config
-  const bullBoardUsername = 'admin';
-  const bullBoardPassword = 'admin123';
+  const bullBoardUsername = configService.get<string>('app.bullBoard.username', 'admin');
+  const bullBoardPassword = configService.get<string>('app.bullBoard.password', 'admin123');
 
   // Bull Board setup
   const serverAdapter = new ExpressAdapter();
@@ -25,7 +25,7 @@ export function setupBullBoard(
 
   // Get all registered queues dynamically
   const queues: Queue[] = [];
-  const queueNames = ['schedule', 'billing', 'session', 'user', 'task', 'stream-check', 'ffmpeg-stream'];
+  const queueNames = ['schedule', 'billing', 'session', 'user', 'task'];
 
   for (const queueName of queueNames) {
     try {

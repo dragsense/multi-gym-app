@@ -107,8 +107,8 @@ export default function FaqToggleEnabled({ storeKey, store }: IFaqToggleEnabledP
     : buildSentence(t, "enable", "faq");
 
   const description = faq.enabled
-    ? buildSentence(t, "are", "you", "sure", "you", "want", "to", "disable", "this", "faq")
-    : buildSentence(t, "are", "you", "sure", "you", "want", "to", "enable", "this", "faq");
+    ? buildSentence(t, "areyousureyouwanttodisablethisfaq")
+    : buildSentence(t, "areyousureyouwanttoenablethisfaq");
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

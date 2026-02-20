@@ -48,6 +48,14 @@ const FaqFormModal = React.memo(function FaqFormModal({
 
   const fields = useMemo(() => ({
     ...storeFields,
+    question: {
+      ...storeFields.question,
+      placeholder: buildSentence(t, "enter", "question"),
+    },
+    answer: {
+      ...storeFields.answer,
+      placeholder: buildSentence(t, "enter", "answer"),
+    },
   } as TFieldConfigObject<TCreateFaqData>), [storeFields, isEditing]);
 
   const inputs = useInput<TCreateFaqData | TUpdateFaqData>({
@@ -88,7 +96,6 @@ const FaqFormModal = React.memo(function FaqFormModal({
   return (
     <ModalForm<TCreateFaqData, IFaq, IFaqFormModalExtraProps>
       title={buildSentence(t, isEditing ? "edit" : "create", "faq")}
-      description={buildSentence(t, isEditing ? "update" : "create", "a", "new", "faq")}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}

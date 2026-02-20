@@ -45,11 +45,9 @@ export class StaffService extends CrudService<Staff> {
 
   async createStaff(
     createStaffDto: CreateStaffDto,
-  ): Promise<IMessageResponse & { user: User; }> {
-
+  ): Promise<IMessageResponse & { user: User }> {
     const { user, location, ...staffData } = createStaffDto;
 
-    // Validate location if provided
     if (location?.id) {
       const locationEntity = await this.locationsService.getSingle(location.id);
       if (!locationEntity) {
@@ -57,33 +55,33 @@ export class StaffService extends CrudService<Staff> {
       }
     }
 
-    // Ensure level is USER (staff level) - roles and permissions are handled in createUser
     const userData = {
       ...user,
       level: EUserLevels.STAFF,
     };
 
-    // Create staff entity
-    const savedStaff = await this.create({
-      ...staffData,
-      ...(location?.id ? {
-        location: {
-          id: location.id,
-        },
-      } : {}),
-    }, {
-      afterCreate: async (savedEntity, manager) => {
-        const privilegeName = createStaffDto.isTrainer ? 'trainer' : 'staff';
-        const userResult = await this.usersService.createUser(userData as CreateUserDto, privilegeName);
-        await manager.update(Staff, savedEntity.id, {
-          user: userResult.user,
-        });
+    let createdUser: User | null = null;
+
+    await this.create(
+      {
+        ...staffData,
+        ...(location?.id ? { location: { id: location.id } } : {}),
       },
-    });
+      {
+        afterCreate: async (savedEntity, manager) => {
+          const privilegeName = createStaffDto.isTrainer ? 'trainer' : 'staff';
+          const userResult = await this.usersService.createUser(userData as CreateUserDto, privilegeName);
+          createdUser = userResult.user;
+          await manager.update(Staff, savedEntity.id, {
+            user: userResult.user,
+          });
+        },
+      },
+    );
 
     return {
       message: 'Staff member created successfully',
-      user: savedStaff.user,
+      user: createdUser!,
     };
   }
 
@@ -133,7 +131,7 @@ export class StaffService extends CrudService<Staff> {
           if (userUpdate && existingStaff.user)
             await this.usersService.updateUser(existingStaff.user.id, userUpdate);
         } catch (error) {
-          throw error;
+          throw new Error('Failed to update user', { cause: error as Error });
         }
       },
     });
@@ -169,7 +167,11 @@ export class StaffService extends CrudService<Staff> {
     currentUser: User,
     query?: SingleQueryDto,
   ): Promise<Staff | null> {
-    return this.getSingle({ userId: currentUser.id }, query);
+    return this.getSingle({ userId: currentUser.id }, {
+      ...query,
+      _relations: ['user'],
+      _select: ['user.id', 'user.email', 'user.firstName', 'user.lastName'],
+    });
   }
 
 }

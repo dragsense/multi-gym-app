@@ -92,4 +92,3 @@ export class DeviceReadersService extends CrudService<DeviceReader> {
     return { message: 'Device reader status updated successfully' };
   }
 }
-

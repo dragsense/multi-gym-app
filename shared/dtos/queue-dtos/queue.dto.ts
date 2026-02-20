@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { EQueueJobStatus, EQueueStatus } from '../../enums/queue.enum';
 import { FieldOptions, FieldType } from '../../decorators';
@@ -92,12 +92,14 @@ export class JobListDto extends ListQueryDto {
 
 export class QueueJobsPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [QueueJobDto] })
+  @Expose()
   @Type(() => QueueJobDto)
   data: QueueJobDto[];
 }
 
 export class QueueListPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [QueueDto] })
+  @Expose()
   @Type(() => QueueDto)
   data: QueueDto[];
 }
@@ -106,6 +108,7 @@ export class QueueListPaginatedDto extends PaginationMetaDto {
 
 export class JobPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [QueueJobDto] })
+  @Expose()
   @Type(() => QueueJobDto)
   data: QueueJobDto[];
 }

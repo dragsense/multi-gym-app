@@ -2,7 +2,7 @@
 import { useId } from "react";
 
 // Types
-import type { ITrainer } from "@shared/interfaces/trainer.interface";
+import type { IStaff } from "@shared/interfaces/staff.interface";
 
 // Components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,13 +14,13 @@ import {
 } from "lucide-react";
 
 // Page Components
-import { StaffOverviewTab } from "././tabs/staf-overview-tab
+import { StaffOverviewTab } from "././tabs/staf-overview-tab";
 import { StaffBillingsTab } from "./tabs/staff-billings-tab";
 import { TrainerSessionsTab } from "./tabs/trainer-sessions-tab";
 import { StaffCommunicationsTab } from "./tabs/staff-communications-tab";
 
-interface ITrainerDetailTabsProps {
-  trainer: ITrainer;
+interface IStaffDetailTabsProps {
+  staff: IStaff;
   storeKey: string;
 }
 
@@ -53,12 +53,12 @@ export function StaffDetailTabs({ staff, storeKey }: IStaffDetailTabsProps) {
       </TabsContent>
 
       <TabsContent value="billings" className="mt-4">
-        <StaffBillingsTab trainer={staff} storeKey={storeKey} />
+        <StaffBillingsTab staff={staff} storeKey={storeKey} />
       </TabsContent>
 
-      <TabsContent value="sessions" className="mt-4">
-        <TrainerSessionsTab trainer={staff} storeKey={storeKey} />
-      </TabsContent>
+          <TabsContent value="sessions" className="mt-4">
+            <TrainerSessionsTab trainer={staff} storeKey={storeKey} />
+          </TabsContent>
 
       <TabsContent value="communications" className="mt-4">
         <StaffCommunicationsTab staff={staff} />

@@ -30,6 +30,7 @@ export enum ESubscriptionFeatures {
   POS = "pos",
   EQUIPMENT_RESERVATION = "equipment_reservation",
   LOCATIONS = "locations",
+  VIDEO_STREAM = "video_stream",
   FAQS = "faqs",
   PAGES = "pages",
   EMAIL_TEMPLATES = "email_templates",
@@ -40,5 +41,4 @@ export enum ESubscriptionFeatures {
   MEMBERSHIPS = "memberships",
   STAFF = "staff",
   TRAINER_SERVICES = "trainer_services",
-  VIDEO_STREAM = "video_stream",
 }

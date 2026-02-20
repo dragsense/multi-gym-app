@@ -193,7 +193,7 @@ export function AppSelect({
                             return (
                                 <CommandItem
                                     key={toKey(option.value)}
-                                    value={`${option.label} ${toKey(option.value)}`}
+                                    value={`${toKey(option.value)}`}
                                     onSelect={() => toggle(option.value)}
                                     aria-selected={selected}
                                 >

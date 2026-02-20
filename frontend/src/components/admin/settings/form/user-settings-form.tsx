@@ -41,6 +41,13 @@ import { useAuthUser } from "@/hooks/use-auth-user";
 import { EUserLevels } from "@shared/enums/user.enum";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
+import { usePushPermissionOnToggle } from "@/components/shared-ui/push-notification-setup";
+
+// Component that watches push toggle and requests permission
+function PushPermissionWatcher() {
+  usePushPermissionOnToggle();
+  return null;
+}
 
 
 interface IUserSettingsFormProps
@@ -71,7 +78,9 @@ export default function UserSettingsForm({
   const isSubmitting = store((state) => state.isSubmitting);
   const originalFields = store((state) => state.fields);
 
-  // React 19: Memoized fields for better performance
+  const selectPlaceholder = `${t("select")}...`;
+
+  // React 19: Memoized fields for better performance (labels/placeholders use t() for i18n)
   const fields = useMemo(
     () => ({
       ...originalFields,
@@ -80,6 +89,17 @@ export default function UserSettingsForm({
         ? {
           limits: {
             ...originalFields.limits,
+            label: "",
+            subFields: originalFields.limits?.subFields
+              ? {
+                ...originalFields.limits.subFields,
+                maxSessionsPerDay: { ...originalFields.limits.subFields.maxSessionsPerDay, label: buildSentence(t, "maximum", "sessions", "per", "day"), placeholder: buildSentence(t, "enter", "maximum", "sessions") },
+                maxMembersPerSession: { ...originalFields.limits.subFields.maxMembersPerSession, label: buildSentence(t, "maximum", "members", "per", "session"), placeholder: buildSentence(t, "enter", "maximum", "members") },
+                maxMembersPerTrainer: { ...originalFields.limits.subFields.maxMembersPerTrainer, label: buildSentence(t, "maximum", "members", "per", "trainer"), placeholder: buildSentence(t, "enter", "maximum", "members") },
+                maxSessionDuration: { ...originalFields.limits.subFields.maxSessionDuration, label: buildSentence(t, "maximum", "session", "duration"), placeholder: buildSentence(t, "enter", "duration", "minutes") },
+                slotStepMinutes: { ...originalFields.limits.subFields.slotStepMinutes, label: buildSentence(t, "slot", "step", "minutes"), placeholder: buildSentence(t, "enter", "slot", "step") },
+              }
+              : undefined,
             renderItem: (item: LimitSettingsDto) => {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -94,6 +114,17 @@ export default function UserSettingsForm({
           },
           business: {
             ...originalFields.business,
+            label: "",
+            subFields: originalFields.business?.subFields
+              ? {
+                ...originalFields.business.subFields,
+                businessName: { ...originalFields.business.subFields.businessName, label: buildSentence(t, "business", "name"), placeholder: buildSentence(t, "enter", "business", "name") },
+                businessEmail: { ...originalFields.business.subFields.businessEmail, label: buildSentence(t, "business", "email"), placeholder: buildSentence(t, "enter", "email") },
+                businessPhone: { ...originalFields.business.subFields.businessPhone, label: buildSentence(t, "business", "phone"), placeholder: buildSentence(t, "enter", "phone", "number") },
+                businessAddress: { ...originalFields.business.subFields.businessAddress, label: buildSentence(t, "business", "address"), placeholder: buildSentence(t, "enter", "address") },
+                businessLogo: { ...originalFields.business.subFields.businessLogo, label: buildSentence(t, "business", "logo"), placeholder: buildSentence(t, "enter", "logo", "url") },
+              }
+              : undefined,
             renderItem: (item: BusinessSettingsDto) => {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -113,6 +144,15 @@ export default function UserSettingsForm({
         }),
       time: {
         ...originalFields.time,
+        label: "",
+        subFields: originalFields.time?.subFields
+          ? {
+            ...originalFields.time.subFields,
+            dateFormat: { ...originalFields.time.subFields.dateFormat, label: buildSentence(t, "date", "format"), placeholder: selectPlaceholder },
+            timeFormat: { ...originalFields.time.subFields.timeFormat, label: buildSentence(t, "time", "format"), placeholder: selectPlaceholder },
+            timezone: { ...originalFields.time.subFields.timezone, label: t("timezone"), placeholder: selectPlaceholder },
+          }
+          : undefined,
         renderItem: (item: TimeSettingsDto) => {
           return (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -128,6 +168,14 @@ export default function UserSettingsForm({
         ? {
           currency: {
             ...originalFields.currency,
+            label: "",
+            subFields: originalFields.currency?.subFields
+              ? {
+                ...originalFields.currency.subFields,
+                defaultCurrency: { ...originalFields.currency.subFields.defaultCurrency, label: buildSentence(t, "default", "currency"), placeholder: selectPlaceholder },
+                currencySymbol: { ...originalFields.currency.subFields.currencySymbol, label: buildSentence(t, "currency", "symbol"), placeholder: buildSentence(t, "enter", "currency", "symbol") },
+              }
+              : undefined,
             renderItem: (item: CurrencySettingsDto) => {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -139,6 +187,15 @@ export default function UserSettingsForm({
           },
           billing: {
             ...originalFields.billing,
+            label: "",
+            subFields: originalFields.billing?.subFields
+              ? {
+                ...originalFields.billing.subFields,
+                taxRate: { ...originalFields.billing.subFields.taxRate, label: buildSentence(t, "tax", "rate"), placeholder: buildSentence(t, "enter", "tax", "rate") },
+                invoicePrefix: { ...originalFields.billing.subFields.invoicePrefix, label: buildSentence(t, "invoice", "prefix"), placeholder: buildSentence(t, "enter", "invoice", "prefix") },
+                commissionRate: { ...originalFields.billing.subFields.commissionRate, label: buildSentence(t, "commission", "rate"), placeholder: buildSentence(t, "enter", "commission", "rate") },
+              }
+              : undefined,
             renderItem: (item: BillingSettingsDto) => {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -156,6 +213,16 @@ export default function UserSettingsForm({
         }),
       notifications: {
         ...originalFields.notifications,
+        label: "",
+        subFields: originalFields.notifications?.subFields
+          ? {
+            ...originalFields.notifications.subFields,
+            emailEnabled: { ...originalFields.notifications.subFields.emailEnabled, label: buildSentence(t, "email", "enabled") },
+            smsEnabled: { ...originalFields.notifications.subFields.smsEnabled, label: buildSentence(t, "sms", "enabled") },
+            pushEnabled: { ...originalFields.notifications.subFields.pushEnabled, label: buildSentence(t, "push", "enabled") },
+            inAppEnabled: { ...originalFields.notifications.subFields.inAppEnabled, label: buildSentence(t, "in", "app", "enabled") },
+          }
+          : undefined,
         renderItem: (item: NotificationSettingsDto) => {
           return (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -169,6 +236,13 @@ export default function UserSettingsForm({
       },
       theme: {
         ...originalFields.theme,
+        label: "",
+        subFields: originalFields.theme?.subFields
+          ? {
+            ...originalFields.theme.subFields,
+            theme: { ...originalFields.theme.subFields.theme, label: t("theme"), placeholder: buildSentence(t, "select", "theme") },
+          }
+          : undefined,
         renderItem: (item: ThemeSettingsDto) => {
           return (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -178,7 +252,7 @@ export default function UserSettingsForm({
         },
       },
     }),
-    [originalFields, user]
+    [originalFields, user, t]
   );
 
   const inputs = useInput<TUserSettingsData>({
@@ -256,12 +330,12 @@ export default function UserSettingsForm({
       id: "theme",
       label: t("theme"),
       icon: Palette,
-      description: buildSentence(t, "theme", "preferences"),
     },
   ];
 
   return (
     <Form<TUserSettingsData, any> formStore={store}>
+      <PushPermissionWatcher />
       <AppCard
         header={
           <>
@@ -311,14 +385,9 @@ export default function UserSettingsForm({
           </TabsList>
 
           {settingsTabs.map((tab) => {
-            const Icon = tab.icon;
             return (
               <TabsContent key={tab.id} value={tab.id} className="mt-6">
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-6 w-6 text-primary" />
-                  </div>
-
                   {tab.id === "limits" && (inputs.limits as ReactNode)}
 
                   {tab.id === "time" && inputs.time}

@@ -17,15 +17,19 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
     const hlsRef = useRef<Hls | null>(null);
+    const abortRef = useRef<AbortController | null>(null);
 
     const [state, setState] = useState<StreamState>('idle');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const { data, isLoading, refetch, isStarting, start } = useCameraStream(camera.id, true);
+    const { data, isLoading, start, stop } = useCameraStream(camera.id);
 
     // Cleanup function
     const cleanup = useCallback(() => {
         console.log('[Stream] Cleaning up resources...');
+
+        abortRef.current?.abort();
+        abortRef.current = null;
 
         // Cleanup WebRTC
         if (pcRef.current) {
@@ -58,17 +62,10 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
             videoRef.current.load();
         }
 
+        stop();
+
         console.log('[Stream] Cleanup completed');
     }, []);
-
-    // Stop stream
-    const stopStream = useCallback(() => {
-        console.log('[Stream] Stopping stream playback');
-        cleanup();
-        setState('stopped');
-        console.log('[Stream] Stream stopped');
-    }, [cleanup]);
-
 
 
 
@@ -129,6 +126,11 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
                             setState('playing');
                         })
                         .catch((err) => {
+                            // AbortError happens when cleanup() interrupts play() (e.g. connection failed)
+                            if (err?.name === 'AbortError') {
+                                console.log('[WebRTC] Playback aborted (connection closed)');
+                                return;
+                            }
                             console.error('[WebRTC] Playback failed:', err);
                             setErrorMessage('Autoplay blocked. Click to play.');
                             setState('error');
@@ -150,6 +152,7 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
                     setErrorMessage('WebRTC connection failed');
                     setState('error');
                     cleanup();
+                   
                 } else if (state === 'closed') {
                     console.log('[WebRTC] Connection closed');
                 }
@@ -188,9 +191,6 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
 
             await pc.setLocalDescription(offer);
             console.log('[WebRTC] Local description set');
-
-            console.log('[WebRTC] Waiting 5 seconds before sending WHEP request...');
-            await new Promise(resolve => setTimeout(resolve, 5000));
 
             console.log('[WebRTC] Sending WHEP POST request to:', whepUrl);
             let response: Response;
@@ -244,9 +244,13 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
 
             return true;
         } catch (error: any) {
+            if (error?.name === 'AbortError') {
+                console.log('[WebRTC] Connection aborted (cleanup)');
+                return false;
+            }
             console.error('[WebRTC] Connection failed:', {
-                error: error.message,
-                stack: error.stack,
+                error: error?.message,
+                stack: error?.stack,
             });
             cleanup();
             return false;
@@ -393,11 +397,8 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
     }, [cleanup, state]);
 
     // Start stream
-    const startStream = useCallback(async () => {
+    const startStream = async () => {
         console.log('[Stream] Starting stream for camera:', camera.id);
-
-
-        await start();
 
         if (!data || !videoRef.current) {
             console.error('[Stream] Stream data or video element not available:', {
@@ -420,9 +421,9 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
         setErrorMessage(null);
         setState('loading');
 
-        // Wait a moment for stream to start publishing (FFmpeg needs time to connect)
-        console.log('[Stream] Waiting 2 seconds for FFmpeg to publish...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait for FFmpeg to connect and publish (backend waits 8s, add buffer for client)
+        console.log('[Stream] Waiting 4 seconds for FFmpeg to publish...');
+        await new Promise(resolve => setTimeout(resolve, 4000));
 
         // Try WebRTC (WHEP) first - best quality, low latency
         if (data.whepUrl) {
@@ -456,26 +457,24 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
         console.error('[Stream] All playback methods failed');
         setErrorMessage('Failed to start stream. Stream may not be ready yet. Please try again.');
         setState('error');
-    }, [data, cleanup, startWebRTC, startHLS, camera.id, start]);
-  
+    };
 
-    // Auto-start playback when data is ready
+
     useEffect(() => {
-        if (data && (data.whepUrl || data.hlsUrl) && state === 'idle') {
-            console.log('[Stream] Auto-starting playback - data ready and state is idle');
+
+        if (data && (data.whepUrl || data.hlsUrl)) {
             startStream();
-        } else {
-            console.log('[Stream] Not auto-starting playback:', {
-                hasData: !!data,
-                hasWhepUrl: !!data?.whepUrl,
-                hasHlsUrl: !!data?.hlsUrl,
-                state,
-            });
         }
-    }, [data, state, startStream]);
+
+    }, [data])
+
+
 
     // Cleanup on unmount
     useEffect(() => {
+
+        start();
+
         return () => {
             cleanup();
         };
@@ -580,7 +579,7 @@ export function CameraPlayer({ camera, className }: ICameraPlayerProps) {
                 </div>
             )}
 
-            
+
             {/* Loading state from hook */}
             {isLoading && state === 'idle' && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">

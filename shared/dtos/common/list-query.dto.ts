@@ -8,7 +8,7 @@ import {
   Min,
   IsArray,
 } from "class-validator";
-import { Transform, Type } from "class-transformer";
+import { Transform, Type, Expose } from "class-transformer";
 import { FieldType } from "../../decorators/field.decorator";
 import {
   Between,
@@ -39,12 +39,14 @@ export class BaseQueryDto<T = any> {
 
 export class PaginationDto<T> extends BaseQueryDto<T> {
   @IsOptional()
+  @Expose()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number;
 
   @IsOptional()
+  @Expose()
   @Type(() => Number)
   @IsInt()
   @Min(1)
@@ -57,6 +59,7 @@ export class PaginationDto<T> extends BaseQueryDto<T> {
 
   @IsOptional()
   @IsString()
+  @Expose()
   @Transform(({ value }) => value?.toUpperCase())
   @IsIn(["ASC", "DESC"])
   sortOrder?: "ASC" | "DESC";

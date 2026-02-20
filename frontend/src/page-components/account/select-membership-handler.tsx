@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Types
 import type { IMembership } from "@shared/interfaces";
-import type { StripeCardFormData } from "@/@types/payment.types";
+import type { PaymentCardFormData } from "@/@types/payment.types";
 import { EPaymentPreference } from "@shared/enums/membership.enum";
 import type { CreateMemberMembershipPaymentIntentDto } from "@shared/dtos";
 
@@ -17,7 +17,7 @@ import { createMemberMembershipBillingPaymentIntent } from "@/services/membershi
 // Hooks
 import { useI18n } from "@/hooks/use-i18n";
 import { useActiveMemberships } from "@/hooks/use-active-memberships";
-import { useStripePaymentCards } from "@/hooks/use-stripe-payment-cards";
+import { usePaymentCards } from "@/hooks/use-payment-cards";
 import { buildSentence } from "@/locales/translations";
 import { toast } from "sonner";
 
@@ -41,7 +41,7 @@ export function SelectMembershipHandler({
 
   // Data fetching hooks
   const { data: membershipsData, isLoading: isLoadingMemberships } = useActiveMemberships();
-  const { stripeCards, isLoadingPaymentCards } = useStripePaymentCards();
+  const { cards, isLoadingPaymentCards } = usePaymentCards();
 
   const memberships = membershipsData?.data || [];
 
@@ -68,7 +68,7 @@ export function SelectMembershipHandler({
       membership: IMembership,
       paymentPreference: EPaymentPreference,
       paymentMethodId?: string,
-      cardData?: StripeCardFormData
+      cardData?: PaymentCardFormData
     ) => {
       const paymentData: CreateMemberMembershipPaymentIntentDto = {
         membershipId: membership.id,
@@ -89,7 +89,7 @@ export function SelectMembershipHandler({
       onOpenChange={onOpenChange}
       memberships={memberships}
       isLoadingMemberships={isLoadingMemberships}
-      stripeCards={stripeCards}
+      cards={cards}
       isLoadingPaymentCards={isLoadingPaymentCards}
       isProcessingPayment={isProcessingPayment}
       onPayment={handlePayment}

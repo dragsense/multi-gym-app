@@ -11,7 +11,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FieldType } from "../../decorators/field.decorator";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
@@ -108,6 +108,7 @@ export class EquipmentReservationListDto extends ListQueryDto {
 
 export class EquipmentReservationPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [EquipmentReservationDto] })
+  @Expose()
   @Type(() => EquipmentReservationDto)
   data: EquipmentReservationDto[];
 }
@@ -129,6 +130,7 @@ export class EquipmentReservationDto {
   notes?: string;
 
   @ApiPropertyOptional({ type: () => EquipmentDto })
+  @Expose()
   @Type(() => EquipmentDto)
   equipment?: EquipmentDto;
 

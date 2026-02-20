@@ -120,23 +120,21 @@ export function MessageItemView({ message, onDelete, searchQuery = "", isHighlig
               {message.sender?.lastName?.[0] || ""}
             </AvatarFallback>
           </Avatar>
-          <span className="text-xs font-medium">
+          <span className="text-sm font-medium">
             {isOwn
               ? "You"
               : `${message.sender?.firstName || ""} ${message.sender?.lastName || ""}`.trim() ||
               "User"}
           </span>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-xs text-muted-foreground">
             {DateTime.fromISO(message.createdAt).toRelative()}
           </span>
         </div>
         <div className={`flex items-center gap-2 ${!isOwn ? "flex-row-reverse" : "flex-row"}`}>
           <div
-            className={`inline-block px-3 py-2 rounded-lg text-sm ${message.attachment
-                ? "bg-card border border-border rounded-lg"
-                : isOwn
-                  ? "bg-primary text-primary-foreground rounded-br-none"
-                  : "bg-muted rounded-bl-none"
+            className={`inline-block p-3 rounded-lg ${isOwn
+              ? "bg-primary text-primary-foreground rounded-br-none"
+              : "bg-muted rounded-bl-none"
               }`}
           >
 

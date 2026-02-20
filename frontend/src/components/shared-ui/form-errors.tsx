@@ -17,7 +17,7 @@ export function FormErrors() {
             let msgs: string[] = [];
             for (const key in errObj) {
                 if (errObj[key]?.message) {
-                    msgs.push(errObj[key].message);
+                    msgs.push(`${prefix}${key}: ${errObj[key].message}`);
                 } else if (typeof errObj[key] === "object" && errObj[key] !== null) {
                     msgs = msgs.concat(getMessages(errObj[key], `${prefix}${key}.`));
                 }

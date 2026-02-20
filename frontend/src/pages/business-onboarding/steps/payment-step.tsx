@@ -1,32 +1,34 @@
 // React
-import { useTransition, useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 // Types
 import type { ISubscription } from "@shared/interfaces";
-import type { StripeCardFormData } from "@/@types/payment.types";
+import type { PaymentCardFormData } from "@/@types/payment.types";
 import { ESubscriptionFrequency } from "@shared/enums";
 
 // Components
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AppCard } from "@/components/layout-ui/app-card";
-import { StripePaymentModal } from "@/components/shared-ui/stripe-payment-modal";
 import {
   StepNavigationButtons,
   PaymentSuccessDialog,
   PaymentErrorDialog,
   SubscriptionSummary,
 } from "@/components/business-onboarding";
+import {
+  usePaymentProcessor,
+  PaymentModalAdapter,
+} from "@/payment-processors";
 
 // Services
 import { createBusinessSubscriptionBillingPaymentIntent } from "@/services/business/business-subscription-payment.api";
-import type { IMessageResponse } from "@shared/interfaces/api/response.interface";
 import { CreateBusinessSubscriptionPaymentIntentDto } from "@shared/dtos";
 
 // Hooks
 import { useI18n } from "@/hooks/use-i18n";
-import { useStripePaymentCards } from "@/hooks/use-stripe-payment-cards";
+import { usePaymentCards } from "@/hooks/use-payment-cards";
 import { buildSentence } from "@/locales/translations";
 // Calculate normalized price helper
 const normalizeSubscriptionPrice = (
@@ -64,7 +66,13 @@ interface ISelectedSubscription {
 interface IPaymentStepProps {
   onComplete: () => void;
   onBack?: () => void;
-  businessData: { name: string; subdomain: string; businessId: string } | null;
+  businessData: {
+    name: string;
+    subdomain: string;
+    businessId: string;
+    paymentProcessorId?: string | null;
+    paymentProcessorType?: string | null;
+  } | null;
   selectedSubscription: ISelectedSubscription | null;
   onPaymentSuccess: () => void;
   onPaymentFailed: (retry: boolean) => void;
@@ -77,7 +85,6 @@ export function PaymentStep({
   onPaymentSuccess,
   onPaymentFailed,
 }: IPaymentStepProps) {
-  const [, startTransition] = useTransition();
   const { t } = useI18n();
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -85,7 +92,7 @@ export function PaymentStep({
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const { stripeCards, isLoadingPaymentCards } = useStripePaymentCards();
+  const { cards, isLoadingPaymentCards } = usePaymentCards();
 
   const { mutate: processPayment, isPending: isProcessingPayment } = useMutation({
     mutationFn: (data: CreateBusinessSubscriptionPaymentIntentDto) =>
@@ -106,7 +113,7 @@ export function PaymentStep({
   });
 
   const handlePayClick = useCallback(
-    async (paymentMethodId?: string, cardData?: StripeCardFormData) => {
+    async (paymentMethodId?: string, cardData?: PaymentCardFormData) => {
       if (!selectedSubscription || !businessData) {
         setErrorMessage("Please complete previous steps first");
         setShowErrorDialog(true);
@@ -186,7 +193,10 @@ export function PaymentStep({
           onBack={onBack}
           onContinue={handleProceedToPayment}
           continueLabel="Proceed to Payment"
-          continueDisabled={isLoadingPaymentCards || isProcessingPayment}
+          continueDisabled={
+            isLoadingPaymentCards ||
+            isProcessingPayment
+          }
           continueLoading={isProcessingPayment}
           showBack={!!onBack}
         />
@@ -219,10 +229,10 @@ export function PaymentStep({
         </div>
       </AppCard>
 
-      <StripePaymentModal
+      <PaymentModalAdapter
+        cards={cards}
         open={showPaymentModal}
         onOpenChange={setShowPaymentModal}
-        stripeCards={stripeCards}
         onPay={handlePayClick}
         isLoading={isProcessingPayment}
         amount={totalAmount}

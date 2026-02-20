@@ -25,8 +25,8 @@ export class MembersService extends CrudService<Member> {
       restrictedFields: ['user.password'],
       searchableFields: [
         'user.email',
-        'user.profile.firstName',
-        'user.profile.lastName',
+        'user.firstName',
+        'user.lastName',
       ],
     };
     super(memberRepo, moduleRef, crudOptions);
@@ -57,7 +57,7 @@ export class MembersService extends CrudService<Member> {
               this.logger.error(`Failed to delete user ${savedUser?.id}: ${deleteError.message}`);
             });
           }
-          throw error;
+          throw new Error('Failed to create user', { cause: error });
         }
       },
     });
@@ -86,7 +86,7 @@ export class MembersService extends CrudService<Member> {
           if (user && existingMember.user)
             await this.userService.updateUser(existingMember.user.id, user);
         } catch (error) {
-          throw error;
+          throw new Error('Failed to update user', { cause: error });
         }
       },
     });

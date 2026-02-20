@@ -76,7 +76,10 @@ export class ReferralLinksService extends CrudService<ReferralLink> {
         });
       } catch (error: unknown) {
         if (error instanceof NotFoundException) isUnique = true;
-        else throw error;
+        else
+          throw new Error('Failed to generate unique referral code', {
+            cause: error,
+          });
       }
     }
 

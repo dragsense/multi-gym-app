@@ -69,7 +69,7 @@ export class ProfilesService extends CrudService<Profile> {
             manager,
           );
           entity.image = uploaded;
-        } else if (image == null || image === 'null') {
+        } else if (image === null || image === 'null') {
           oldImage = profile.image;
           entity.image = null;
         }

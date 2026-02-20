@@ -7,7 +7,8 @@ import { User } from '@/common/base-user/entities/user.entity';
 import { BaseStripeService } from './base-stripe.service';
 import { LoggerService } from '@/common/logger/logger.service';
 import { EntityRouterService } from '@/common/database/entity-router.service';
-import { EUserLevels } from '@shared/enums';
+import { StripeConnectService } from './stripe-connect.service';
+import { StripeConnectAccount } from '../entities/stripe-connect-account.entity';
 
 @Injectable()
 export class StripeCustomerService {
@@ -15,10 +16,16 @@ export class StripeCustomerService {
   constructor(
     private readonly entityRouterService: EntityRouterService,
     private readonly baseStripeService: BaseStripeService,
+    private readonly stripeConnectService: StripeConnectService,
   ) { }
 
-  async createOrGetStripeCustomer(user: User): Promise<StripeCustomer> {
-    let stripeCustomerRepository = this.entityRouterService.getRepository<StripeCustomer>(StripeCustomer);
+  async createOrGetStripeCustomer(user: User, tenantId?: string): Promise<StripeCustomer> {
+    let stripeCustomerRepository = this.entityRouterService.getRepository<StripeCustomer>(StripeCustomer, tenantId);
+
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+    }
 
     // First, try to find customer by user.id
     let existingCustomer = await stripeCustomerRepository.findOne({
@@ -26,22 +33,14 @@ export class StripeCustomerService {
       relations: ['user'],
     });
 
-    // Only check refUserId if it exists and is not null/undefined
-    // This prevents querying with null which could return incorrect results
-    if (!existingCustomer && user.refUserId) {
-      existingCustomer = await stripeCustomerRepository.findOne({
-        where: { userId: user.refUserId },
-        relations: ['user'],
-      });
-    }
-
     const stripe = this.baseStripeService.getStripe();
 
     if (existingCustomer) {
       try {
         const stripeCustomer = await stripe.customers.retrieve(
           existingCustomer.stripeCustomerId,
-        );
+          connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
+
 
         if (!stripeCustomer.deleted) {
           // Update local record with latest Stripe data
@@ -55,13 +54,25 @@ export class StripeCustomerService {
       }
     }
 
-    const stripeCustomer = await stripe.customers.create({
-      name: `${user.firstName ?? 'User'} ${user.lastName ?? ''}`,
-      email: user.email,
-      metadata: {
-        userId: user.id.toString(),
-      },
-    });
+    let stripeCustomer: Stripe.Customer | null = null;
+
+
+    try {
+      stripeCustomer = await stripe.customers.create({
+        name: `${user.firstName ?? 'User'} ${user.lastName ?? ''}`,
+        email: user.email,
+        metadata: {
+          userId: user.id.toString(),
+        },
+      }, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
+    } catch (error) {
+      this.logger.error(`Failed to create or get Stripe customer: ${error instanceof Error ? error.message : String(error)}`);
+      throw new BadRequestException(`Failed to create or get Stripe customer: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    if (!stripeCustomer) {
+      throw new BadRequestException('Failed to create or get Stripe customer');
+    }
 
     return await stripeCustomerRepository.save({
       stripeCustomerId: stripeCustomer.id,
@@ -75,11 +86,46 @@ export class StripeCustomerService {
     });
   }
 
-  async getCustomerInfo(user: User): Promise<Stripe.Customer> {
-    const customer = await this.createOrGetStripeCustomer(user);
+  async getStripeCustomer(user: User, tenantId?: string): Promise<{ customer: StripeCustomer, stripeCustomer: Stripe.Customer }> {
+
+    let stripeCustomerRepository = this.entityRouterService.getRepository<StripeCustomer>(StripeCustomer, tenantId);
+    let existingCustomer = await stripeCustomerRepository.findOne({
+      where: { userId: user.id },
+      relations: ['user'],
+    });
+
+    if (!existingCustomer) {
+      throw new BadRequestException('Customer not found');
+    }
+
     const stripe = this.baseStripeService.getStripe();
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+    }
+    const customer = await stripe.customers.retrieve(existingCustomer.stripeCustomerId, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
+    if (customer.deleted) {
+      throw new BadRequestException('Customer has been deleted in Stripe');
+    }
+    return {
+      customer: existingCustomer,
+      stripeCustomer: customer,
+    };
+  }
+
+  async getCustomerInfo(user: User, tenantId?: string): Promise<Stripe.Customer> {
+    const { customer } = await this.getStripeCustomer(user, tenantId);
+    const stripe = this.baseStripeService.getStripe();
+
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+    }
+
+
     const stripeCustomer = await stripe.customers.retrieve(
       customer.stripeCustomerId,
+      connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined
     );
     if (stripeCustomer.deleted) {
       throw new BadRequestException('Customer has been deleted in Stripe');
@@ -87,16 +133,19 @@ export class StripeCustomerService {
     return stripeCustomer;
   }
 
-  async getCustomerCards(user: User): Promise<{ paymentMethods: Stripe.PaymentMethod[], defaultPaymentMethodId: string | null }> {
-    const customer = await this.createOrGetStripeCustomer(user);
+  async getCustomerCards(user: User, tenantId?: string): Promise<{ paymentMethods: Stripe.PaymentMethod[], defaultPaymentMethodId: string | null }> {
+    const { customer } = await this.getStripeCustomer(user, tenantId);
     const stripe = this.baseStripeService.getStripe();
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+    }
+
     const paymentMethods = await stripe.paymentMethods.list({
       customer: customer.stripeCustomerId,
       type: 'card',
-    });
-
-    const defaultPaymentMethod = await this.getDefaultPaymentMethod(user);
-
+    }, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
+    const defaultPaymentMethod = await this.getDefaultPaymentMethod(user, tenantId);
     return {
       paymentMethods: paymentMethods.data,
       defaultPaymentMethodId: defaultPaymentMethod?.id || null,
@@ -107,18 +156,23 @@ export class StripeCustomerService {
     customerId: string,
     paymentMethodId: string,
     setAsDefault: boolean = false,
+    tenantId?: string,
   ): Promise<void> {
     const stripe = this.baseStripeService.getStripe();
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+    }
     await stripe.paymentMethods.attach(paymentMethodId, {
       customer: customerId,
-    });
+    }, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
 
     if (setAsDefault) {
       await stripe.customers.update(customerId, {
         invoice_settings: {
           default_payment_method: paymentMethodId,
         },
-      });
+      }, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
     }
   }
 
@@ -126,14 +180,20 @@ export class StripeCustomerService {
     user: User,
     paymentMethodId: string,
     setAsDefault: boolean = false,
+    tenantId?: string,
   ): Promise<Stripe.PaymentMethod> {
-    const customer = await this.createOrGetStripeCustomer(user);
+    const { customer } = await this.getStripeCustomer(user, tenantId);
     const stripe = this.baseStripeService.getStripe();
+
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+    }
 
     // Attach the payment method to the customer
     const paymentMethod = await stripe.paymentMethods.attach(paymentMethodId, {
       customer: customer.stripeCustomerId,
-    });
+    }, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
 
     // Set as default if requested
     if (setAsDefault) {
@@ -141,18 +201,23 @@ export class StripeCustomerService {
         invoice_settings: {
           default_payment_method: paymentMethodId,
         },
-      });
+      }, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
     }
 
     return paymentMethod;
   }
 
-  async setDefaultPaymentMethod(user: User, paymentMethodId: string): Promise<Stripe.Customer> {
-    const customer = await this.createOrGetStripeCustomer(user);
+  async setDefaultPaymentMethod(user: User, paymentMethodId: string, tenantId?: string): Promise<Stripe.Customer> {
+    const { customer } = await this.getStripeCustomer(user, tenantId);
     const stripe = this.baseStripeService.getStripe();
 
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+    }
+
     // Verify the payment method belongs to this customer
-    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
     if (paymentMethod.customer !== customer.stripeCustomerId) {
       throw new BadRequestException('Payment method does not belong to this customer');
     }
@@ -161,7 +226,7 @@ export class StripeCustomerService {
       invoice_settings: {
         default_payment_method: paymentMethodId,
       },
-    });
+    }, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
 
     if (updatedCustomer.deleted) {
       throw new BadRequestException('Customer has been deleted in Stripe');
@@ -170,18 +235,23 @@ export class StripeCustomerService {
     return updatedCustomer;
   }
 
-  async deletePaymentMethod(user: User, paymentMethodId: string): Promise<{ message: string }> {
-    const customer = await this.createOrGetStripeCustomer(user);
+  async deletePaymentMethod(user: User, paymentMethodId: string, tenantId?: string): Promise<{ message: string }> {
+    const { customer } = await this.getStripeCustomer(user, tenantId);
     const stripe = this.baseStripeService.getStripe();
 
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+    }
+
     // Verify the payment method belongs to this customer
-    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
     if (paymentMethod.customer !== customer.stripeCustomerId) {
       throw new BadRequestException('Payment method does not belong to this customer');
     }
 
     // Check if this is the default payment method
-    const stripeCustomer = await stripe.customers.retrieve(customer.stripeCustomerId);
+    const stripeCustomer = await stripe.customers.retrieve(customer.stripeCustomerId, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
     if (!stripeCustomer.deleted) {
       const defaultPaymentMethodId = stripeCustomer.invoice_settings?.default_payment_method;
       if (defaultPaymentMethodId === paymentMethodId) {
@@ -193,18 +263,17 @@ export class StripeCustomerService {
     return { message: 'Payment method deleted successfully' };
   }
 
-  async getDefaultPaymentMethod(user: User): Promise<Stripe.PaymentMethod | null> {
-    const customer = await this.createOrGetStripeCustomer(user);
+  async getDefaultPaymentMethod(user: User, tenantId?: string): Promise<Stripe.PaymentMethod | null> {
+    const { stripeCustomer } = await this.getStripeCustomer(user, tenantId);
     const stripe = this.baseStripeService.getStripe();
-    const stripeCustomer = await stripe.customers.retrieve(customer.stripeCustomerId);
-
-    if (stripeCustomer.deleted) {
-      return null;
+    let connectedAccount: StripeConnectAccount | null = null;
+    if (tenantId) {
+      connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
     }
 
     const defaultPaymentMethod = stripeCustomer.invoice_settings?.default_payment_method;
     if (typeof defaultPaymentMethod === 'string') {
-      return await stripe.paymentMethods.retrieve(defaultPaymentMethod);
+      return await stripe.paymentMethods.retrieve(defaultPaymentMethod, connectedAccount ? { stripeAccount: connectedAccount.stripeAccountId } : undefined);
     }
     return null;
   }
@@ -213,7 +282,7 @@ export class StripeCustomerService {
    * Get card information from a payment method ID
    * Returns card details like brand, last4, expMonth, expYear
    */
-  async getCardInfoFromPaymentMethod(paymentMethodId: string): Promise<{
+  async getCardInfoFromPaymentMethod(paymentMethodId: string, tenantId?: string): Promise<{
     brand: string;
     last4: string;
     expMonth: number;
@@ -221,8 +290,12 @@ export class StripeCustomerService {
   } | null> {
     try {
       const stripe = this.baseStripeService.getStripe();
-      const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
-      
+      let connectedAccount: StripeConnectAccount | null = null;
+      if (tenantId) {
+        connectedAccount = await this.stripeConnectService.findByTenantId(tenantId);
+      }
+      const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId, connectedAccount ? { stripeAccount: connectedAccount?.stripeAccountId } : undefined);
+
       if (paymentMethod.card) {
         return {
           brand: paymentMethod.card.brand,

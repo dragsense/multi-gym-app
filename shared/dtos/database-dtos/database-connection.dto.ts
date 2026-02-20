@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { IsOptional, IsString, IsEnum } from "class-validator";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
@@ -102,6 +102,7 @@ export class DatabaseConnectionDto {
 
 export class DatabaseConnectionPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [DatabaseConnectionDto] })
+  @Expose()
   @Type(() => DatabaseConnectionDto)
   data: DatabaseConnectionDto[];
 }

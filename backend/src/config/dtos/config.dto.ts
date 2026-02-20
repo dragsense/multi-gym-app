@@ -9,6 +9,8 @@ import {
 export enum Environment {
   Development = 'development',
   Production = 'production',
+  Staging = 'staging',
+  Testing = 'testing',
 }
 
 export class EnvironmentVariables {
@@ -290,7 +292,7 @@ export class EnvironmentVariables {
   @IsOptional()
   PLATFORM_OWNER_LAST_NAME: string;
 
-  // Stripe Configuration
+  // Payment Processors (Stripe & Paysafe)
   @IsOptional()
   @IsString()
   STRIPE_SECRET_KEY?: string;
@@ -303,44 +305,60 @@ export class EnvironmentVariables {
   @IsString()
   STRIPE_WEBHOOK_SECRET?: string;
 
-  // SRS (Simple Realtime Server) Configuration
+  @IsOptional()
   @IsString()
-  @IsOptional()
-  SRS_HOST: string;
+  PAYSAFE_API_USERNAME?: string;
 
-  @IsNumber()
   @IsOptional()
-  SRS_RTMP_PORT: number;
-
-  @IsNumber()
-  @IsOptional()
-  SRS_HTTP_PORT: number;
-
-  @IsNumber()
-  @IsOptional()
-  SRS_API_PORT: number;
-
-  @IsNumber()
-  @IsOptional()
-  SRS_RTC_PORT: number;
-
   @IsString()
-  @IsOptional()
-  SRS_APP: string;
+  PAYSAFE_API_PASSWORD?: string;
 
+  @IsOptional()
   @IsString()
-  @IsOptional()
-  SRS_PUBLIC_HOST: string;
+  PAYSAFE_ENVIRONMENT?: string;
 
-  @IsNumber()
   @IsOptional()
-  SRS_PUBLIC_HTTP_PORT: number;
-
-  @IsNumber()
-  @IsOptional()
-  SRS_PUBLIC_API_PORT: number;
-
   @IsString()
+  PAYSAFE_SINGLE_USE_TOKEN?: string;
+
+  // MediaMTX Configuration
   @IsOptional()
-  SRS_CANDIDATE: string;
+  @IsString()
+  MEDIAMTX_HOST?: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIAMTX_PUBLIC_HOST?: string;
+
+  @IsOptional()
+  @IsNumber()
+  MEDIAMTX_API_PORT?: number;
+
+  @IsOptional()
+  @IsString()
+  MEDIAMTX_API_USER?: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIAMTX_API_PASS?: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIAMTX_USER?: string;
+
+  @IsOptional()
+  @IsString()
+  MEDIAMTX_PASS?: string;
+
+  @IsOptional()
+  @IsNumber()
+  MEDIAMTX_RTSP_PORT?: number;
+
+  @IsOptional()
+  @IsNumber()
+  MEDIAMTX_WEBRTC_PORT?: number;
+
+  @IsOptional()
+  @IsNumber()
+  MEDIAMTX_HLS_PORT?: number;
 }

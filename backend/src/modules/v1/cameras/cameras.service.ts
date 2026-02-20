@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
@@ -16,6 +16,8 @@ import { ECameraProtocol } from '@shared/enums';
 
 @Injectable()
 export class CamerasService extends CrudService<Camera> {
+  private readonly cameraLogger = new Logger(CamerasService.name);
+
   constructor(
     @InjectRepository(Camera)
     private readonly cameraRepo: Repository<Camera>,
@@ -45,13 +47,17 @@ export class CamerasService extends CrudService<Camera> {
       }
     }
 
-    // Generate streamUrl from protocol, ip, port, and path
-    const streamUrl = this.generateStreamUrl(
-      createCameraDto.protocol,
-      createCameraDto.ipAddress,
-      createCameraDto.port,
-      createCameraDto.path,
-    );
+    // Use provided streamUrl (if any), otherwise generate from protocol, ip, port, and path
+    const providedStreamUrl = createCameraDto.streamUrl?.trim();
+    const streamUrl =
+      providedStreamUrl && providedStreamUrl.length > 0
+        ? providedStreamUrl
+        : this.generateStreamUrl(
+            createCameraDto.protocol,
+            createCameraDto.ipAddress,
+            createCameraDto.port,
+            createCameraDto.path,
+          );
 
     // Use CRUD service create method
     const camera = await this.create<CreateCameraDto>(
@@ -75,6 +81,7 @@ export class CamerasService extends CrudService<Camera> {
     return { message: 'Camera created successfully.', camera };
   }
 
+
   async updateCamera(
     id: string,
     updateCameraDto: UpdateCameraDto,
@@ -92,15 +99,21 @@ export class CamerasService extends CrudService<Camera> {
       }
     }
 
-    // Generate streamUrl if protocol, ip, port, or path are being updated
-    const needsStreamUrlUpdate =
-      updateCameraDto.protocol !== undefined ||
-      updateCameraDto.ipAddress !== undefined ||
-      updateCameraDto.port !== undefined ||
-      updateCameraDto.path !== undefined;
+    // Stream URL update rules:
+    // - If streamUrl is provided, it takes precedence.
+    // - Otherwise, if protocol/ip/port/path change, regenerate.
+    const providedStreamUrl = updateCameraDto.streamUrl?.trim();
+    const needsGeneratedStreamUrlUpdate =
+      providedStreamUrl === undefined &&
+      (updateCameraDto.protocol !== undefined ||
+        updateCameraDto.ipAddress !== undefined ||
+        updateCameraDto.port !== undefined ||
+        updateCameraDto.path !== undefined);
 
     let streamUrl: string | undefined;
-    if (needsStreamUrlUpdate) {
+    if (providedStreamUrl && providedStreamUrl.length > 0) {
+      streamUrl = providedStreamUrl;
+    } else if (needsGeneratedStreamUrlUpdate) {
       const protocol = updateCameraDto.protocol ?? existingCamera.protocol;
       const ipAddress = updateCameraDto.ipAddress ?? existingCamera.ipAddress;
       const port = updateCameraDto.port ?? existingCamera.port;

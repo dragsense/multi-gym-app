@@ -43,16 +43,17 @@ interface IMemberBillingsTabProps {
 export function MemberBillingsTab({ member, storeKey }: IMemberBillingsTabProps) {
   const componentId = useId();
   const queryClient = useQueryClient();
-  const { defaultCard, isLoading: isLoadingCard } = useDefaultCard();
 
+  const { defaultPaymentMethod, isLoading: isLoadingDefaultPaymentMethod } = useDefaultCard(member.user?.id || "");
+  
   const BILLINGS_STORE_KEY = `${storeKey}-billings`;
 
   return (
     <div data-component-id={componentId} className="space-y-6">
       {/* Default Payment Method Section */}
       <DefaultCardDisplay
-        card={defaultCard}
-        isLoading={isLoadingCard}
+        card={defaultPaymentMethod}
+        isLoading={isLoadingDefaultPaymentMethod}
         title="Default Payment Method"
         emptyMessage="No default payment method"
       />

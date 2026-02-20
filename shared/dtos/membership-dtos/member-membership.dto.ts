@@ -10,7 +10,7 @@ import {
   IsObject,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
 import { EMembershipStatus, EBillingFrequency, EPaymentPreference } from "../../enums/membership.enum";
@@ -57,6 +57,7 @@ export class MemberMembershipDto {
     description: "Associated member",
   })
   @IsOptional()
+  @Expose()
   @Type(() => MemberDto)
   member?: MemberDto;
 
@@ -65,6 +66,7 @@ export class MemberMembershipDto {
     description: "Associated membership",
   })
   @IsOptional()
+  @Expose()
   @Type(() => MembershipDto)
   membership?: MembershipDto;
 
@@ -95,12 +97,14 @@ export class MemberMembershipListDto extends ListQueryDto {
   })
   @IsOptional()
   @IsBoolean()
+  @Expose()
   @Type(() => Boolean)
   isActive?: boolean;
 }
 
 export class MemberMembershipPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [MemberMembershipDto] })
+  @Expose()
   @Type(() => MemberMembershipDto)
   data: MemberMembershipDto[];
 }
@@ -181,6 +185,7 @@ export class MemberMembershipHistoryDto {
     description: "Associated member membership",
   })
   @IsOptional()
+  @Expose()
   @Type(() => MemberMembershipDto)
   memberMembership?: MemberMembershipDto;
 
@@ -210,6 +215,7 @@ export class MemberMembershipHistoryListDto extends ListQueryDto {
 
 export class MemberMembershipHistoryPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [MemberMembershipHistoryDto] })
+  @Expose()
   @Type(() => MemberMembershipHistoryDto)
   data: MemberMembershipHistoryDto[];
 }
@@ -252,6 +258,7 @@ export class MemberMembershipBillingDto {
     description: "Associated member membership",
   })
   @IsOptional()
+  @Expose()
   @Type(() => MemberMembershipDto)
   memberMembership?: MemberMembershipDto;
 
@@ -260,6 +267,7 @@ export class MemberMembershipBillingDto {
     description: "Associated billing record",
   })
   @IsOptional()
+  @Expose()
   @Type(() => BillingDto)
   billing?: BillingDto;
 
@@ -288,6 +296,7 @@ export class MemberMembershipBillingListDto extends ListQueryDto {
 
 export class MemberMembershipBillingPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [MemberMembershipBillingDto] })
+  @Expose()
   @Type(() => MemberMembershipBillingDto)
   data: MemberMembershipBillingDto[];
 }

@@ -14,7 +14,7 @@ import { fetchMember } from "@/services/member.api";
 // Page Components
 import { MemberDetailContent } from "@/page-components/member-detail";
 import { MemberForm } from "@/page-components/member";
-import type { TMemberViewExtraProps } from "@/components/admin/member/view/member-view";
+import type { TMemberViewExtraProps } from "@/components/admin/members/view/member-view";
 
 export default function MemberDetailPage() {
   const componentId = useId();

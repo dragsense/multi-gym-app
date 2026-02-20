@@ -28,13 +28,13 @@ import { type TListHandlerStore, type TSingleHandlerStore } from "@/stores";
 // Config
 import { type TListHandlerComponentProps } from "@/@types/handler-types";
 
-export interface IFaqListExtraProps {}
+export interface IFaqListExtraProps { }
 
 interface IFaqListProps
   extends TListHandlerComponentProps<
     TListHandlerStore<IFaq, any, IFaqListExtraProps>,
     TSingleHandlerStore<IFaq, any>
-  > {}
+  > { }
 
 export default function FaqList({
   storeKey,
@@ -84,10 +84,12 @@ export default function FaqList({
     });
   }, [setAction, startTransition]);
 
+  const isAdmin = user?.level === EUserLevels.PLATFORM_OWNER || user?.level === EUserLevels.ADMIN;
+
   const { listItem } = faqItemViews({
-    handleEdit: user?.level <= EUserLevels.SUPER_ADMIN ? handleEdit : undefined,
-    handleDelete: user?.level <= EUserLevels.SUPER_ADMIN ? handleDelete : undefined,
-    handleToggleEnabled: user?.level <= EUserLevels.SUPER_ADMIN ? handleToggleEnabled : undefined,
+    handleEdit: isAdmin ? handleEdit : undefined,
+    handleDelete: isAdmin ? handleDelete : undefined,
+    handleToggleEnabled: isAdmin ? handleToggleEnabled : undefined,
     componentId,
     t,
   });
@@ -95,7 +97,7 @@ export default function FaqList({
   return (
     <div data-component-id={componentId} className="space-y-4">
       <div className="flex justify-end">
-        {user?.level <= EUserLevels.SUPER_ADMIN && (
+        {isAdmin && (
           <Button
             onClick={handleCreate}
             data-component-id={componentId}
@@ -105,17 +107,19 @@ export default function FaqList({
         )}
       </div>
 
+
       <TList<IFaq>
         listStore={store}
         emptyMessage={buildSentence(t, 'no', 'faqs', 'found')}
         showPagination={true}
         renderItem={(faq) => listItem(
           faq,
-          user?.level <= EUserLevels.SUPER_ADMIN ? handleEdit : undefined,
-          user?.level <= EUserLevels.SUPER_ADMIN ? handleDelete : undefined,
-          user?.level <= EUserLevels.SUPER_ADMIN ? handleToggleEnabled : undefined
+          isAdmin ? handleEdit : undefined,
+          isAdmin ? handleDelete : undefined,
+          isAdmin ? handleToggleEnabled : undefined
         )}
       />
+
     </div>
   );
 }

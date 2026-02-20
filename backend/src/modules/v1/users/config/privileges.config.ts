@@ -19,13 +19,15 @@ export const privilegesConfig: PrivilegesConfigFile = {
       displayName: 'Trainer Privilege',
       description: 'Privilege bundle for trainers with session, billing, service offers, and chat permissions',
       permissions: [
-        `${EResource.SESSIONS}:${EPermissionAction.READ}`,
+        `${EResource.SESSIONS}:${EPermissionAction.MANAGE}`,
         `${EResource.BILLINGS}:${EPermissionAction.READ}`,
         `${EResource.SERVICE_OFFERS}:${EPermissionAction.MANAGE}`,
         `${EResource.CHAT}:${EPermissionAction.CREATE}`,
         `${EResource.CHAT}:${EPermissionAction.READ}`,
         `${EResource.CHECKINS}:${EPermissionAction.READ}`,
         `${EResource.FAQS}:${EPermissionAction.READ}`,
+        `${EResource.MEMBERS}:${EPermissionAction.READ}`,
+        `${EResource.STAFF}:${EPermissionAction.READ}`,
 
       ],
     },
@@ -42,6 +44,8 @@ export const privilegesConfig: PrivilegesConfigFile = {
         `${EResource.CHAT}:${EPermissionAction.READ}`,
         `${EResource.CHECKINS}:${EPermissionAction.READ}`,
         `${EResource.FAQS}:${EPermissionAction.READ}`,
+        `${EResource.MEMBERS}:${EPermissionAction.READ}`,
+        `${EResource.STAFF}:${EPermissionAction.READ}`,
 
       ],
     },

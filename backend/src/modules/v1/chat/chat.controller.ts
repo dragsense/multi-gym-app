@@ -25,7 +25,7 @@ import { EResource } from '@shared/enums';
 @ApiTags('Chat')
 @ApiBearerAuth('access-token')
 @RequireModule(ESubscriptionFeatures.CHAT)
-@MinUserLevel(EUserLevels.STAFF)
+@MinUserLevel(EUserLevels.MEMBER)
 @Resource(EResource.CHAT)
 @Controller('chat')
 export class ChatController {

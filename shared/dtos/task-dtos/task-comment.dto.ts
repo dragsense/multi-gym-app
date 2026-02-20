@@ -6,7 +6,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FieldType } from "../../decorators/field.decorator";
 import { UserDto } from "../user-dtos";
 
@@ -64,6 +64,7 @@ export class TaskCommentDto {
   })
   @IsNotEmpty()
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   createdBy: UserDto;
 

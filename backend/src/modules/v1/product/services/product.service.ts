@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, EntityManager, In, IsNull } from 'typeorm';
+import { Repository, EntityManager, In, IsNull, SelectQueryBuilder } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { Product } from '../entities/product.entity';
 import { ProductVariant } from '../entities/product-variant.entity';
@@ -23,12 +23,12 @@ const PRODUCT_IMAGES_FOLDER = 'products';
 // Helper function to parse variants if they come as JSON string
 function parseVariants(variants: any): CreateProductVariantDto[] | UpdateProductVariantDto[] | undefined {
   if (!variants) return undefined;
-  
+
   // If already an array, return as is
   if (Array.isArray(variants)) {
     return variants;
   }
-  
+
   // If it's a string, try to parse it
   if (typeof variants === 'string') {
     try {
@@ -38,25 +38,30 @@ function parseVariants(variants: any): CreateProductVariantDto[] | UpdateProduct
       return undefined;
     }
   }
-  
+
   return undefined;
 }
 
 // Helper function to parse productType if it comes as JSON string
 function parseProductType(productType: any): { id: string } | null | undefined {
-  if (productType === null || productType === undefined) {
-    return null; // Explicitly set to null if provided as null
+  // Handle null/undefined explicitly
+  if (productType === null || productType === undefined || productType === '') {
+    return null; // Explicitly set to null if provided as null/undefined/empty string
   }
-  
+
   // If already an object with id, return as is
-  if (typeof productType === 'object' && productType !== null && productType.id) {
-    return { id: productType.id };
+  if (typeof productType === 'object' && productType !== null) {
+    if (productType.id) {
+      return { id: productType.id };
+    }
+    // If object but no id, treat as invalid and return null
+    return null;
   }
-  
+
   // If it's a string, try to parse it
   if (typeof productType === 'string') {
-    // Check if it's "null" string
-    if (productType === 'null' || productType === '') {
+    // Check if it's "null" string or empty
+    if (productType === 'null' || productType === '' || productType.trim() === '') {
       return null;
     }
     try {
@@ -66,11 +71,12 @@ function parseProductType(productType: any): { id: string } | null | undefined {
       }
       return null;
     } catch {
+      // If parsing fails, return null (invalid format)
       return null;
     }
   }
-  
-  return undefined; // If not provided, don't set it
+
+  return undefined; // If not provided at all (not in request), don't set it
 }
 
 async function createVariantsForProduct(
@@ -168,19 +174,21 @@ export class ProductService extends CrudService<Product> {
     super(productRepo, moduleRef, crudOptions);
   }
 
+
+
   async createProduct(
     createProductDto: Omit<CreateProductDto, 'defaultImages'>,
     defaultImages?: Express.Multer.File[],
   ) {
 
     const { variants: rawVariants, productType: rawProductType, ...rest } = createProductDto;
-    
+
     // Parse variants if they come as JSON string (multipart/form-data issue)
     const variants = parseVariants(rawVariants) as CreateProductVariantDto[] | undefined;
-    
+
     // Parse productType if it comes as JSON string (multipart/form-data issue)
     const parsedProductType = parseProductType(rawProductType);
-    
+
     const defaultSku = rest.defaultSku?.trim();
     if (defaultSku) {
       const existing = await this.getSingle({
@@ -189,7 +197,7 @@ export class ProductService extends CrudService<Product> {
 
       if (existing) throw new ConflictException(`A product with default SKU "${defaultSku}" already exists. Default SKU must be unique.`);
     }
-    
+
     // Validate variant quantities sum
     if (variants && Array.isArray(variants) && variants.length > 0) {
       const totalVariantQuantity = variants.reduce((sum, v) => sum + (v.quantity || 0), 0);
@@ -199,7 +207,7 @@ export class ProductService extends CrudService<Product> {
         );
       }
     }
-    
+
     const payload = {
       ...rest,
       isActive: rest.isActive ?? true,
@@ -207,6 +215,7 @@ export class ProductService extends CrudService<Product> {
     const product = await this.create(payload as any, {
       beforeCreate: async (processedData, manager) => {
         // Handle productType relation using entity manager
+        // Always set productType (even if null) to ensure it's saved
         if (parsedProductType !== undefined) {
           if (parsedProductType === null) {
             processedData.productType = null;
@@ -242,9 +251,18 @@ export class ProductService extends CrudService<Product> {
             uploadedImages.push({ fileUpload: uploaded, file });
           }
           savedProduct.defaultImages = uploadedImages.map((u) => u.fileUpload);
-          await manager.save(savedProduct);
-          await createVariantsForProduct(manager, savedProduct, variants ?? []);
+        }
 
+        // Always save the product (even if no images) to ensure productType and other relations are persisted
+        await manager.save(savedProduct);
+
+        // Create variants if any
+        if (variants && variants.length > 0) {
+          await createVariantsForProduct(manager, savedProduct, variants);
+        }
+
+        // Save uploaded files if any
+        if (uploadedImages.length > 0) {
           await this.fileUploadService.saveFiles(uploadedImages);
         }
       },
@@ -258,7 +276,7 @@ export class ProductService extends CrudService<Product> {
     defaultImages?: Express.Multer.File[],
   ) {
     const { variants, removedDefaultImageIds, productType: rawProductType, ...rest } = updateProductDto;
-    
+
     // Parse productType if it comes as JSON string (multipart/form-data issue)
     const parsedProductType = parseProductType(rawProductType);
     const defaultSku = rest.defaultSku?.trim();
@@ -272,19 +290,19 @@ export class ProductService extends CrudService<Product> {
         );
       }
     }
-    
+
     // Get current product to check totalQuantity if not provided in update
     const currentProduct = await this.getSingle(id);
     if (!currentProduct) {
       throw new NotFoundException('Product not found');
     }
-    
+
     // Parse variants if they come as JSON string (multipart/form-data issue)
     const parsedVariants = parseVariants(variants) as UpdateProductVariantDto[] | undefined;
-    
+
     // Use updated totalQuantity or fall back to current
     const totalQuantity = rest.totalQuantity !== undefined ? rest.totalQuantity : currentProduct.totalQuantity;
-    
+
     // Validate variant quantities sum if variants are provided
     if (parsedVariants && Array.isArray(parsedVariants) && parsedVariants.length > 0) {
       const totalVariantQuantity = parsedVariants.reduce((sum, v) => sum + (v.quantity || 0), 0);
@@ -300,6 +318,7 @@ export class ProductService extends CrudService<Product> {
     await this.update(id, productData as any, {
       beforeUpdate: async (processedData, existingEntity, manager) => {
         // Handle productType relation using entity manager
+        // Always set productType (even if null) to ensure it's saved
         if (parsedProductType !== undefined) {
           if (parsedProductType === null) {
             processedData.productType = null;
@@ -318,12 +337,26 @@ export class ProductService extends CrudService<Product> {
         return processedData;
       },
       afterUpdate: async (entity, manager) => {
+        // Entity already has productType set from beforeUpdate
+        // Reload product to get current state for image updates
         const productRepo = manager.getRepository(Product);
         const product = await productRepo.findOne({
           where: { id },
-          relations: ['defaultImages'],
+          relations: ['defaultImages', 'productType'],
         });
         if (!product) throw new NotFoundException('Product not found');
+
+        // CRITICAL: Preserve productType from beforeUpdate if it was set
+        // The entity passed here has the productType relation set in beforeUpdate
+        // We need to preserve it when reloading, otherwise it gets overwritten
+        if (entity.productType !== undefined && entity.productType !== null) {
+          // If entity has a ProductType entity, use it
+          product.productType = entity.productType;
+        } else if (entity.productType === null) {
+          // Explicitly set to null if that's what was requested
+          product.productType = null;
+        }
+        // If entity.productType is undefined, keep the existing productType from DB
 
         let imagesToRemove: FileUpload[] = [];
 
@@ -338,7 +371,6 @@ export class ProductService extends CrudService<Product> {
                 (img) => !imagesToRemove.some((r) => r.id === img.id),
               ) ?? [];
           }
-          entity.defaultImages = product.defaultImages;
         }
 
         const uploadedImages: { fileUpload: FileUpload; file: Express.Multer.File }[] = [];
@@ -368,11 +400,10 @@ export class ProductService extends CrudService<Product> {
           if (product.defaultImages.length > 10) {
             product.defaultImages = product.defaultImages.slice(-10);
           }
-          entity.defaultImages = product.defaultImages;
         }
 
-    
-        await manager.save(entity);
+        // Always save the product to ensure productType and images are persisted
+        await manager.save(product);
 
         if (parsedVariants) {
           await syncVariantsForProduct(manager, entity as Product, parsedVariants);
@@ -387,9 +418,50 @@ export class ProductService extends CrudService<Product> {
           });
         }
 
-     
+
       },
     });
     return { message: 'Product updated successfully' };
+  }
+
+  async getRelatedProducts(productId: string, query: any) {
+    // Get the product with productType relation to find its productTypeId
+    const product = await this.getSingle(productId, {
+      _relations: ['productType'],
+    });
+
+    if (!product) {
+      return [];
+    }
+
+    // Get productTypeId from the relation or direct field
+    const productTypeId = product.productType?.id || (product as any).productTypeId;
+
+
+    const relatedProducts = await this.get(
+      {
+        _relations: [
+          'defaultImages',
+          'productType',
+          'variants',
+          'variants.attributeValues',
+          'variants.attributeValues.attribute',
+        ],
+        ...query,
+      },
+      undefined,
+      {
+        beforeQuery: (qb) => {
+          if (productTypeId) {
+            qb.andWhere('entity.productTypeId = :productTypeId', { productTypeId });
+          }
+          qb.andWhere('entity.id != :excludeId', { excludeId: productId });
+          qb.andWhere('entity.isActive = :isActive', { isActive: true });
+          return qb;
+        },
+      },
+    );
+
+    return relatedProducts;
   }
 }

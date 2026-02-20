@@ -27,7 +27,7 @@ export function StepNavigationButtons({
   const componentId = useId();
 
   return (
-    <div className="flex justify-between pt-4" data-component-id={componentId}>
+    <div className="flex justify-between w-full pt-4" data-component-id={componentId}>
       {showBack && onBack && (
         <Button type="button" variant="outline" onClick={onBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />

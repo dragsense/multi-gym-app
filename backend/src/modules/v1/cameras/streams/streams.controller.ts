@@ -1,13 +1,18 @@
-import { Controller, Get, Post, Param, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Logger } from '@nestjs/common';
 import { StreamsService } from './streams.service';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth('access-token')
+@ApiTags('Streams')
 @Controller('streams')
 export class StreamsController {
   private readonly logger = new Logger(StreamsController.name);
 
   constructor(
     private readonly streamService: StreamsService,
-  ) {}
+  ) { }
+
+
 
   /**
    * Get stream URLs (does not start stream)
@@ -25,3 +30,4 @@ export class StreamsController {
     return this.streamService.startStream(cameraId);
   }
 }
+

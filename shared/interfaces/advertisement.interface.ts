@@ -1,5 +1,5 @@
 import { BannerImageDto, AdvertisementDto, CreateBannerImageDto, UpdateBannerImageDto, CreateAdvertisementDto, UpdateAdvertisementDto } from '../dtos/advertisement-dtos';
-import { IMessageResponse } from './api/response.interface';
+import type { IMessageResponse } from './api/response.interface';
 
 export interface IBannerImage extends BannerImageDto {}
 export interface IAdvertisement extends AdvertisementDto {}

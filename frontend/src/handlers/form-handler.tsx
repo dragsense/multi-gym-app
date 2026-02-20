@@ -35,8 +35,8 @@ import {
 import { toast } from "sonner";
 import { type TQueryParams } from "@shared/types/api/param.type";
 import { useShallow } from "zustand/shallow";
-import { getDirtyData, pickKeys } from "@/utils";
-import { classValidatorResolver } from "@/lib/validation";
+import { getDirtyData, pickKeys, isDeepEqual } from "@/utils";
+import { classValidatorResolver } from "@shared/lib/validation";
 import { dtoToFields } from "@/lib/fields/dto-to-feilds";
 import { type ClassConstructor } from "class-transformer";
 import { type TFieldConfigObject } from "@/@types/form/field-config.type";
@@ -158,7 +158,7 @@ export function FormHandler<
               response: null,
             });
 
-            toast.error(error.message || "Failed to submit form");
+            toast.error(`Failed to submit form: ${error.message}`);
             onError?.(error);
 
             resolve({ success: false, data: null, error: error.message });
@@ -215,7 +215,7 @@ export function FormHandler<
             response: null,
           });
 
-          toast.error(error.message || "Failed to submit form");
+          toast.error(`Failed to submit form: ${error.message}`);
           onError?.(error);
         }
       });
@@ -232,6 +232,27 @@ export function FormHandler<
     ]
   );
 
+  // Reset form when initialValues change (e.g., after successful save)
+  // Use a ref to track previous initialValues to avoid resetting on mount
+  const prevInitialValuesRef = React.useRef<TFormData | undefined>(undefined);
+  const isFirstMount = React.useRef(true);
+  
+  useEffect(() => {
+    // Skip reset on initial mount
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      prevInitialValuesRef.current = initialValues;
+      return;
+    }
+    
+    // Only reset if initialValues actually changed (deep comparison)
+    if (!isDeepEqual(prevInitialValuesRef.current, initialValues)) {
+      // Reset form with new initialValues and keep defaultValues in sync
+      form.reset(initialValues, { keepDefaultValues: false });
+      prevInitialValuesRef.current = initialValues;
+    }
+  }, [form, initialValues]);
+
   useEffect(() => {
     registerStore(formStoreKey, store);
     store.getState().setOnSubmit(form.handleSubmit(handleSubmit));
@@ -239,7 +260,7 @@ export function FormHandler<
       deregisterStore(formStoreKey);
       store.getState().reset();
     };
-  }, [formStoreKey]);
+  }, [formStoreKey, form, handleSubmit, store]);
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>

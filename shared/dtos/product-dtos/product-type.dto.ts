@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty, MaxLength, IsOptional } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PartialType } from '../../lib/dto-type-adapter';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { FieldType } from '../../decorators/field.decorator';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { ListQueryDto } from '../common/list-query.dto';
@@ -21,6 +21,7 @@ export class ProductTypeListDto extends ListQueryDto<ProductTypeDto> {}
 
 export class ProductTypePaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [ProductTypeDto] })
+  @Expose()
   @Type(() => ProductTypeDto)
   data: ProductTypeDto[];
 }

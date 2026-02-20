@@ -1,5 +1,4 @@
-
-// Stripe payment method card type
+/** Raw payment method card from API (Stripe/Paysafe adapter) */
 export interface IStripeCard {
   id: string;
   card?: {
@@ -15,3 +14,25 @@ export interface IStripeCard {
   };
   created: number;
 }
+
+/** Card display shape for payment modals (mapped from API) */
+export interface PaymentCard {
+  id: string;
+  last4: string;
+  brand: string;
+  expiryMonth: number;
+  expiryYear: number;
+  cardholderName: string;
+  isDefault?: boolean;
+}
+
+/** Form data when paying with new card (save options) */
+export interface PaymentCardFormData {
+  saveForFutureUse?: boolean;
+  saveAsDefault?: boolean;
+}
+
+/** @deprecated Use PaymentCard */
+export type StripePaymentCard = PaymentCard;
+/** @deprecated Use PaymentCardFormData */
+export type StripeCardFormData = PaymentCardFormData;

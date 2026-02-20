@@ -12,7 +12,7 @@ import {
   ValidateIf,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
@@ -73,8 +73,9 @@ export class CreateChatDto {
     example: ["550e8400-e29b-41d4-a716-446655440001", "550e8400-e29b-41d4-a716-446655440002"],
     description: "Participant IDs",
   })
-  @IsNotEmpty({ message: "Please select at least one user to start a chat." })
+  @IsNotEmpty()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => UserDto)
   @FieldType("custom", true)
   participantIds: UserDto[] | UserDto;
@@ -333,6 +334,7 @@ export class ChatListDto extends ListQueryDto<ChatDto> {
   })
   @IsOptional()
   @IsEnum(EUserLevels)
+  @Expose()
   @Type(() => Number)
   @IsInt()
   @FieldType("select", false)
@@ -344,9 +346,9 @@ export class ChatListDto extends ListQueryDto<ChatDto> {
 
 }
 
-export class ChatSingleDto extends SingleQueryDto<ChatDto> { }
+export class ChatSingleDto extends SingleQueryDto<ChatDto> {}
 
-export class ChatMessageListDto extends ListQueryDto<ChatMessageDto> { }
+export class ChatMessageListDto extends ListQueryDto<ChatMessageDto> {}
 
 export class ChatPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: [ChatDto] })

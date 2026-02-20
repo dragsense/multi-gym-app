@@ -19,4 +19,3 @@ import { LocationsModule } from '../locations/locations.module';
   exports: [DeviceReadersService],
 })
 export class DeviceReadersModule {}
-

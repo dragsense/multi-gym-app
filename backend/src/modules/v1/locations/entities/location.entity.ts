@@ -98,4 +98,3 @@ export class Location extends GeneralBaseEntity {
   @OneToMany(() => DeviceReader, (deviceReader) => deviceReader.location)
   deviceReaders: DeviceReader[];
 }
-

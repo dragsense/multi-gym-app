@@ -14,7 +14,7 @@ import {
   MaxLength,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PartialType } from "../../../lib/dto-type-adapter";
 import { PaginationMetaDto } from "../../common/pagination.dto";
 import { ListQueryDto } from "../../common/list-query.dto";
@@ -63,6 +63,7 @@ export class CreateSubscriptionDto {
   })
   @IsNumber()
   @IsNotEmpty()
+  @Expose()
   @Type(() => Number)
   @FieldType("number", false)
   @Min(0)
@@ -86,6 +87,7 @@ export class CreateSubscriptionDto {
   })
   @IsNumber()
   @IsNotEmpty()
+  @Expose()
   @Type(() => Number)
   @FieldType("number", true)
   @Min(0.50, { message: "Price must be greater than 0.50" })
@@ -98,6 +100,7 @@ export class CreateSubscriptionDto {
   @IsNumber()
   @IsNotEmpty()
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   @Min(0)
   @Max(100)
@@ -155,6 +158,7 @@ export class CreateSubscriptionDto {
   @IsNumber()
   @IsNotEmpty()
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   @Min(0)
   trialPeriod: number;
@@ -201,6 +205,7 @@ export class SubscriptionDto {
   })
   @IsOptional()
   @IsNumber()
+  @Expose()
   @Type(() => Number)
   sortOrder?: number;
 
@@ -217,6 +222,7 @@ export class SubscriptionDto {
     description: "Price of the subscription",
   })
   @IsNumber()
+  @Expose()
   @Type(() => Number)
   price: number;
 
@@ -226,6 +232,7 @@ export class SubscriptionDto {
   })
   @IsOptional()
   @IsNumber()
+  @Expose()
   @Type(() => Number)
   discountPercentage?: number;
 
@@ -259,6 +266,7 @@ export class SubscriptionDto {
   @ApiPropertyOptional({ example: 10, description: "Trial period in days" })
   @IsNumber()
   @IsOptional()
+  @Expose()
   @Type(() => Number)
   trialPeriod?: number;
 

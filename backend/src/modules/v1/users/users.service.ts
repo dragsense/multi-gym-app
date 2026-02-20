@@ -111,7 +111,11 @@ export class UsersService {
           currentUserId: currentUser.id,
         });
 
-        if (currentUser.level !== (EUserLevels.SUPER_ADMIN as number)) {
+        // SUPER_ADMIN, ADMIN and PLATFORM_OWNER can see all users in their business
+        // STAFF and below can only see users they created
+        if (currentUser.level !== (EUserLevels.PLATFORM_OWNER as number) &&
+          currentUser.level !== (EUserLevels.SUPER_ADMIN as number) &&
+          currentUser.level !== (EUserLevels.ADMIN as number)) {
           query.andWhere('entity.createdByUserId = :createdByUserId', {
             createdByUserId: currentUser.id,
           });
@@ -155,7 +159,7 @@ export class UsersService {
         });
 
         if (existingUser) {
-          throw new ConflictException('This user already exists. Please try adding a different user.');
+          throw new ConflictException('Email already exists');
         }
         return {
           ...processedData,
@@ -168,6 +172,7 @@ export class UsersService {
           const profileRepo = manager.getRepository(Profile);
           await profileRepo.save({
             user: savedUser,
+            userId: savedUser.id,
             ...profile,
           });
         }
@@ -350,7 +355,6 @@ export class UsersService {
         return {
           ...processedData,
           password: undefined,
-          isActive: undefined,
           isVerified: undefined,
           level: undefined,
         };

@@ -135,7 +135,7 @@ export function Chats({ storeKey, store }: IChatsPageProps) {
 
   return (
     <div data-component-id={componentId} className="flex w-full overflow-hidden">
-      <div className="border-r bg-card border rounded-xl shadow-sm border-border pr-1 max-w-[400px]">
+      <div className="border-r border-border pr-1 max-w-[400px]">
         <ChatListComponent
           storeKey={storeKey}
           store={store}

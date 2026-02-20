@@ -11,7 +11,7 @@ import {
   IsBoolean,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldOptions, FieldType } from "../../decorators/field.decorator";
@@ -118,6 +118,7 @@ export class NotificationDto {
 
 export class NotificationPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [NotificationDto] })
+  @Expose()
   @Type(() => NotificationDto)
   data: NotificationDto[];
 }

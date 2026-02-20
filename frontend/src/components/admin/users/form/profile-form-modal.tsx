@@ -1,7 +1,7 @@
-
 // External Libraries
-import React, { useId, useMemo, useTransition } from "react";
+import React, { useId, useMemo, useTransition, useState, useCallback, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { useFormContext } from "react-hook-form";
 
 // Custom Hooks
 import { type FormInputs, useInput } from "@/hooks/use-input";
@@ -22,6 +22,58 @@ import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 import { FormErrors } from "@/components/shared-ui/form-errors";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
+
+/** Tracks removed document IDs and syncs to form; splits value into new vs uploaded so removing one doc only removes that one and state persists on save. */
+const MultiFileUploadWithRemove = ({
+  value,
+  onChange,
+}: {
+  value: File[] | IFileUpload[] | undefined;
+  onChange: (file: File[] | null) => void;
+}) => {
+  const [uploadedFiles, setUploadedFiles] = useState<IFileUpload[]>([]);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [removedDocumentIds, setRemovedDocumentIds] = useState<string[]>([]);
+  const { setValue } = useFormContext();
+
+  useEffect(() => {
+    if (!value) return;
+    const files = value as File[] | IFileUpload[];
+    const _newFiles = files.filter((file) => file instanceof File);
+    const _uploadedFiles = files.filter(
+      (file) =>
+        typeof file === "object" && "id" in file && typeof file.id === "string"
+    );
+    setNewFiles(_newFiles as File[]);
+    if (_uploadedFiles.length > 0) {
+      setUploadedFiles(_uploadedFiles as IFileUpload[]);
+    }
+    // Reset removals when opening a different profile (new value)
+    setRemovedDocumentIds([]);
+  }, [value]);
+
+  useEffect(() => {
+    setValue("removedDocumentIds", removedDocumentIds);
+  }, [removedDocumentIds, setValue]);
+
+  const handleRemove = useCallback((file: IFileUpload) => {
+    if (file && "id" in file && typeof file.id === "string") {
+      setRemovedDocumentIds((prev) =>
+        prev.includes(file.id) ? prev : [...prev, file.id]
+      );
+    }
+  }, []);
+
+  return (
+    <MultiFileUpload
+      value={newFiles}
+      removedDocumentIds={removedDocumentIds}
+      uploadedFiles={uploadedFiles}
+      onChange={onChange}
+      onRemove={handleRemove}
+    />
+  );
+};
 
 
 
@@ -54,63 +106,63 @@ const ProfileFormModal = React.memo(function ProfileFormModal({
 
   const storeFields = store((state) => state.fields)
 
-  // React 19: Memoized fields for better performance
+  // React 19: Memoized fields for better performance (labels/placeholders aligned with account profile tab)
   const fields = useMemo(() => ({
     ...storeFields,
     phoneNumber: {
       ...storeFields.phoneNumber,
       label: t('phoneNumber'),
-      placeholder: t('phoneNumber'),
+      placeholder: t('enterPhoneNumber'),
     },
     address: {
       ...storeFields.address,
       label: t('address'),
-      placeholder: t('address'),
+      placeholder: t('enterAddress'),
     },
     rfid: {
       ...storeFields.rfid,
       label: t('rfid'),
-      placeholder: t('rfid'),
+      placeholder: t('enterRfid'),
     },
     state: {
       ...storeFields.state,
       label: t('state'),
-      placeholder: t('state'),
+      placeholder: t('enterState'),
     },
     city: {
       ...storeFields.city,
       label: t('city'),
-      placeholder: t('city'),
+      placeholder: t('enterCity'),
     },
     zipCode: {
       ...storeFields.zipCode,
       label: t('zipCode'),
-      placeholder: t('zipCode'),
+      placeholder: t('enterZipCode'),
     },
     country: {
       ...storeFields.country,
       label: t('country'),
-      placeholder: t('country'),
+      placeholder: t('enterCountry'),
     },
     emergencyContactName: {
       ...storeFields.emergencyContactName,
       label: t('emergencyContactName'),
-      placeholder: t('emergencyContactName'),
+      placeholder: t('enterEmergencyContactName'),
     },
     emergencyContactNumber: {
       ...storeFields.emergencyContactNumber,
       label: t('emergencyContactNumber'),
-      placeholder: t('emergencyContactNumber'),
+      placeholder: t('enterEmergencyContactNumber'),
     },
     emergencyContactRelationship: {
       ...storeFields.emergencyContactRelationship,
       label: t('emergencyContactRelationship'),
-      placeholder: t('emergencyContactRelationship'),
+      placeholder: t('enterEmergencyContactRelationship'),
     },
     alternativeEmergencyContactNumber: {
       ...storeFields.alternativeEmergencyContactNumber,
       label: t('alternativeEmergencyContactNumber'),
-      placeholder: t('alternativeEmergencyContactNumber'),
+      placeholder: t('enterAlternativeEmergencyContactNumber'),
     },
     image: {
       ...storeFields.image,
@@ -120,8 +172,10 @@ const ProfileFormModal = React.memo(function ProfileFormModal({
     documents: {
       ...storeFields.documents,
       type: 'custom' as const,
-      Component: ({ value, onChange }: { value: File[] | IFileUpload[] | undefined, onChange: (file: File[] | null) => void }) => <MultiFileUpload value={value} onChange={onChange} />
-    }
+      Component: ({ value, onChange }: { value: File[] | IFileUpload[] | undefined; onChange: (file: File[] | null) => void }) => (
+        <MultiFileUploadWithRemove value={value} onChange={onChange} />
+      ),
+    },
   } as TFieldConfigObject<TUpdateProfileData>), [storeFields]);
 
   const inputs = useInput<TUpdateProfileData>({

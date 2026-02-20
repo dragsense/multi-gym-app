@@ -5,6 +5,9 @@ import { Repository } from 'typeorm';
 import { Business } from '@/modules/v1/business/entities/business.entity';
 import { RequestContext } from '../context/request-context';
 
+/** Subdomains reserved for env (staging, testing). Stripped so tenant is resolved from business subdomain only. */
+const RESERVED_SUBDOMAINS = ['staging', 'testing', 'dev'];
+
 /**
  * Middleware to extract subdomain from request and set tenant context
  * This enables automatic database routing based on subdomain
@@ -22,13 +25,16 @@ export class SubdomainTenantMiddleware implements NestMiddleware {
     try {
 
       // Extract hostname from request
-      const hostname = req.hostname;
+      let hostname = req.hostname;
 
       if (!hostname) {
         return next();
       }
 
-      // Extract subdomain
+      // Strip reserved segments (e.g. business.staging.vivast.io → business.vivast.io) so tenant = business
+      hostname = this.normalizeHostnameForTenant(hostname);
+
+      // Extract subdomain from normalized hostname
       const subdomain = this.extractSubdomain(hostname);
 
 
@@ -73,6 +79,19 @@ export class SubdomainTenantMiddleware implements NestMiddleware {
       // Continue without tenant context on error
       next();
     }
+  }
+
+  /**
+   * Remove reserved subdomain segments so tenant is resolved by business subdomain only.
+   * e.g. business.staging.vivast.io → business.vivast.io, business.testing.vivast.io → business.vivast.io
+   */
+  private normalizeHostnameForTenant(hostname: string): string {
+    const lower = hostname.toLowerCase();
+    const parts = lower.split('.');
+    const filtered = parts.filter(
+      (part) => !RESERVED_SUBDOMAINS.includes(part),
+    );
+    return filtered.join('.');
   }
 
   /**

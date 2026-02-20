@@ -17,7 +17,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OmitType, PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -68,6 +68,7 @@ export class CreateMembershipDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   sortOrder?: number;
 
@@ -89,6 +90,7 @@ export class CreateMembershipDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", true)
+  @Expose()
   @Type(() => Number)
   price: number;
 
@@ -101,6 +103,7 @@ export class CreateMembershipDto {
   @Min(1)
   @Max(12)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   pricePeriod?: number;
 
@@ -112,6 +115,7 @@ export class CreateMembershipDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   signupFee?: number;
 
@@ -123,6 +127,7 @@ export class CreateMembershipDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   annualFee?: number;
 
@@ -134,6 +139,7 @@ export class CreateMembershipDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   cancellationFee?: number;
 
@@ -146,6 +152,7 @@ export class CreateMembershipDto {
   @Min(0)
   @Max(100)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   discountPercentage?: number;
 
@@ -210,6 +217,7 @@ export class CreateMembershipDto {
   @Min(1)
   @Max(31)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   billingStartDay?: number;
 
@@ -240,6 +248,7 @@ export class CreateMembershipDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => MembershipSettingsDto)
   @FieldType("nested", false, MembershipSettingsDto)
   settings?: MembershipSettingsDto;
@@ -251,6 +260,7 @@ export class CreateMembershipDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => AccessHourDto)
   @FieldType("nestedArray", false, AccessHourDto)
   accessHours?: AccessHourDto[];
@@ -263,6 +273,7 @@ export class CreateMembershipDto {
   @IsArray({ message: "Access Features must be an array" })
   @ArrayNotEmpty({ message: "At least one access feature is required" })
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => AccessFeatureDto)
   @FieldType("nestedArray", true, AccessFeatureDto)
   accessFeatures: AccessFeatureDto[];
@@ -283,6 +294,7 @@ export class CreateMembershipDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => DoorDto)
   @FieldType("nestedArray", false, DoorDto)
   doors?: DoorDto[];
@@ -324,6 +336,7 @@ export class MembershipListDto extends ListQueryDto {
 
 export class MembershipPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [MembershipDto] })
+  @Expose()
   @Type(() => MembershipDto)
   data: MembershipDto[];
 }

@@ -9,7 +9,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
@@ -18,10 +18,22 @@ import {
   RelationFilter,
 } from "../../decorators/crud.dto.decorators";
 import { EquipmentTypeDto } from "./equipment-type.dto";
+import { LocationDto } from "../location-dtos/location.dto";
 import { EEquipmentStatus } from "../../enums/equipment.enum";
+import { ValidateNested } from "class-validator";
 
 export class CreateEquipmentDto {
 
+  @ApiPropertyOptional({
+    type: LocationDto,
+    description: "Location that this equipment belongs to",
+  })
+  @IsOptional()
+  @ValidateNested()
+  @Expose()
+  @Type(() => LocationDto)
+  @FieldType("custom", false, LocationDto)
+  location?: LocationDto;
 
   @ApiProperty({ example: "Treadmill #1", description: "Equipment name/identifier" })
   @IsString()
@@ -77,7 +89,14 @@ export class CreateEquipmentDto {
 export class UpdateEquipmentDto extends PartialType(CreateEquipmentDto) {}
 
 export class EquipmentListDto extends ListQueryDto {
- 
+  @ApiPropertyOptional({
+    description: "Filter by location ID",
+  })
+  @IsOptional()
+  @IsString()
+  @Equals()
+  locationId?: string;
+
   @ApiPropertyOptional({
     example: EEquipmentStatus.AVAILABLE,
     description: "Filter by equipment status",
@@ -97,6 +116,7 @@ export class EquipmentListDto extends ListQueryDto {
 
 export class EquipmentPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [EquipmentDto] })
+  @Expose()
   @Type(() => EquipmentDto)
   data: EquipmentDto[];
 }
@@ -107,6 +127,15 @@ export class EquipmentDto {
 
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
   equipmentTypeId: string;
+
+  @ApiPropertyOptional({ example: "550e8400-e29b-41d4-a716-446655440000" })
+  locationId?: string;
+
+  @ApiPropertyOptional({ type: () => LocationDto })
+  @IsOptional()
+  @Expose()
+  @Type(() => LocationDto)
+  location?: LocationDto;
 
   @ApiProperty({ example: "Treadmill #1" })
   name: string;
@@ -124,6 +153,7 @@ export class EquipmentDto {
   status?: EEquipmentStatus;
 
   @ApiPropertyOptional({ type: () => EquipmentTypeDto })
+  @Expose()
   @Type(() => EquipmentTypeDto)
   equipmentType?: EquipmentTypeDto;
 

@@ -38,7 +38,7 @@ import { NotFoundException } from '@nestjs/common';
 
 @ApiBearerAuth('access-token')
 @ApiTags('Products')
-@MinUserLevel(EUserLevels.ADMIN)
+@MinUserLevel(EUserLevels.MEMBER)
 @Controller('products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}

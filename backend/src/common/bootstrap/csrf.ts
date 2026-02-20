@@ -2,8 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 
 export function csrf() {
   return (req: Request, res: Response, next: NextFunction) => {
-    // Skip CSRF check for Bull Board API routes
-    if (req.path.startsWith('/bull-board')) {
+
+    const isMobileApp = req.headers['x-sender'] === 'mobile';
+    if (isMobileApp) {
       return next();
     }
 

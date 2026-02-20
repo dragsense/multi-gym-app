@@ -9,7 +9,6 @@ import {
   useElements,
   Elements,
 } from "@stripe/react-stripe-js";
-import { getStripe } from "@/lib/stripe";
 
 // Components
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -17,11 +16,12 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { AppDialog } from "@/components/layout-ui/app-dialog";
-import { CreditCard, Loader2 } from "lucide-react";
+import { CreditCard, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
 // Hooks
 import { useI18n } from "@/hooks/use-i18n";
+import { useStripeConnect } from "@/hooks/use-stripe-connect";
 
 interface AddCardFormData {
   setAsDefault: boolean;
@@ -202,7 +202,14 @@ export function AddCardModal({
   onAddCard,
   isLoading = false,
 }: AddCardModalProps) {
-  const stripePromise = getStripe();
+  const { t } = useI18n();
+
+  // Fetch connected account and get proper Stripe instance
+  const {
+    stripePromise,
+    isLoading: isLoadingConnect,
+    stripeAccountId,
+  } = useStripeConnect();
 
   const handleAddCard = (paymentMethodId: string, setAsDefault: boolean) => {
     onAddCard(paymentMethodId, setAsDefault);
@@ -212,20 +219,26 @@ export function AddCardModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <Elements
-          stripe={stripePromise}
-          options={{
-            appearance: {
-              theme: "stripe",
-            },
-          }}
-        >
-          <AddCardModalContent
-            onAddCard={handleAddCard}
-            isLoading={isLoading}
-            onOpenChange={onOpenChange}
-          />
-        </Elements>
+        {isLoadingConnect ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : stripePromise ? (
+          <Elements
+            stripe={stripePromise}
+            options={{
+              appearance: {
+                theme: "stripe",
+              },
+            }}
+          >
+            <AddCardModalContent
+              onAddCard={handleAddCard}
+              isLoading={isLoading}
+              onOpenChange={onOpenChange}
+            />
+          </Elements>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

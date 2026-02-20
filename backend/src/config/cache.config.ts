@@ -11,6 +11,9 @@ export default registerAs('cache', () => ({
   maxItems: parseInt(process.env.CACHE_MAX_ITEMS || '1000', 10),
   prefix: process.env.CACHE_PREFIX || 'app',
   enabled: process.env.CACHE_ENABLED === 'true',
+  /** Cart TTL in seconds (default 7 days). Used for Dragonfly cart storage. */
+  cartTtl: parseInt(process.env.CACHE_CART_TTL || String(7 * 24 * 3600), 10),
+  cartPrefix: process.env.CACHE_CART_PREFIX || 'cart',
 }));
 
 export const getCacheConfig = async (configService: ConfigService) => {

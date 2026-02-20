@@ -10,6 +10,7 @@ import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
 import { IMessageResponse } from '@shared/interfaces';
 import { EquipmentTypesService } from './equipment-types.service';
 import { EquipmentType } from '../entities/equipment-type.entity';
+import { LocationsService } from '../../locations/services/locations.service';
 
 @Injectable()
 export class EquipmentService extends CrudService<Equipment> {
@@ -17,6 +18,7 @@ export class EquipmentService extends CrudService<Equipment> {
     @InjectRepository(Equipment)
     private readonly equipmentRepo: Repository<Equipment>,
     private readonly equipmentTypesService: EquipmentTypesService,
+    private readonly locationsService: LocationsService,
     moduleRef: ModuleRef,
   ) {
     const crudOptions: CrudOptions = {
@@ -51,9 +53,7 @@ export class EquipmentService extends CrudService<Equipment> {
     id: string,
     updateEquipmentDto: UpdateEquipmentDto,
   ): Promise<IMessageResponse & { equipment: Equipment }> {
-
     let equipmentType: EquipmentType | undefined = undefined;
-    // Validate equipment type if provided
     if (updateEquipmentDto.equipmentType?.id) {
       equipmentType = await this.equipmentTypesService.getSingle(
         updateEquipmentDto.equipmentType.id,
@@ -63,9 +63,21 @@ export class EquipmentService extends CrudService<Equipment> {
       }
     }
 
+    if (updateEquipmentDto.location?.id) {
+      const location = await this.locationsService.getSingle(updateEquipmentDto.location.id);
+      if (!location) {
+        throw new NotFoundException('Location not found');
+      }
+    }
+
     const equipment = await this.update(id, {
       ...updateEquipmentDto,
       equipmentTypeId: equipmentType?.id !== undefined ? equipmentType.id : undefined,
+      ...(updateEquipmentDto.location?.id
+        ? { locationId: updateEquipmentDto.location.id }
+        : updateEquipmentDto.location === null
+          ? { locationId: null }
+          : {}),
     });
     return {
       message: 'Equipment updated successfully',

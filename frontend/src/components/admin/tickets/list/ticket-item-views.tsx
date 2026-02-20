@@ -2,7 +2,14 @@
 import { useId } from "react";
 
 // External libraries
-import { MoreHorizontal, Edit, Trash2, Eye, MessageSquare, CheckCircle2 } from "lucide-react";
+import {
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  MessageSquare,
+  CheckCircle2,
+} from "lucide-react";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -17,7 +24,11 @@ import { AppCard } from "@/components/layout-ui/app-card";
 
 // Types
 import type { ITicket } from "@shared/interfaces/ticket.interface";
-import { ETicketStatus, ETicketPriority, ETicketCategory } from "@shared/enums/ticket.enum";
+import {
+  ETicketStatus,
+  ETicketPriority,
+  ETicketCategory,
+} from "@shared/enums/ticket.enum";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { IUserSettings } from "@shared/interfaces/settings.interface";
 
@@ -48,7 +59,6 @@ export function ticketItemViews({
   settings,
   componentId = "ticket-item-views",
 }: ITicketItemViewsProps) {
-
   const { user } = useAuthUser();
 
   const columns: ColumnDef<ITicket>[] = [
@@ -69,11 +79,7 @@ export function ticketItemViews({
       header: "Category",
       cell: ({ row }) => {
         const category = row.original.category;
-        return (
-          <Badge variant="outline">
-            {category.replace('_', ' ')}
-          </Badge>
-        );
+        return <Badge variant="outline">{category.replace("_", " ")}</Badge>;
       },
     },
     {
@@ -83,7 +89,7 @@ export function ticketItemViews({
         const status = row.original.status;
         return (
           <Badge className={statusColors[status]}>
-            {status.replace('_', ' ')}
+            {status.replace("_", " ")}
           </Badge>
         );
       },
@@ -93,11 +99,7 @@ export function ticketItemViews({
       header: "Priority",
       cell: ({ row }) => {
         const priority = row.original.priority;
-        return (
-          <Badge className={priorityColors[priority]}>
-            {priority}
-          </Badge>
-        );
+        return <Badge className={priorityColors[priority]}>{priority}</Badge>;
       },
     },
     {
@@ -106,20 +108,22 @@ export function ticketItemViews({
       cell: ({ row }) => {
         const createdBy = row.original.createdBy;
         return createdBy
-          ? `${createdBy.firstName || ''} ${createdBy.lastName || ''}`.trim() || createdBy.email || "Unknown"
+          ? `${createdBy.firstName || ""} ${createdBy.lastName || ""}`.trim() ||
+              createdBy.email ||
+              "Unknown"
           : "Unknown";
       },
     },
-    {
-      accessorKey: "assignedTo",
-      header: "Assigned To",
-      cell: ({ row }) => {
-        const assignedTo = row.original.assignedTo;
-        return assignedTo
-          ? `${assignedTo.firstName || ''} ${assignedTo.lastName || ''}`.trim() || assignedTo.email || "Unassigned"
-          : "Unassigned";
-      },
-    },
+    // {
+    //   accessorKey: "assignedTo",
+    //   header: "Assigned To",
+    //   cell: ({ row }) => {
+    //     const assignedTo = row.original.assignedTo;
+    //     return assignedTo
+    //       ? `${assignedTo.firstName || ''} ${assignedTo.lastName || ''}`.trim() || assignedTo.email || "Unassigned"
+    //       : "Unassigned";
+    //   },
+    // },
     {
       accessorKey: "createdAt",
       header: "Created",
@@ -146,23 +150,30 @@ export function ticketItemViews({
                 <Eye className="mr-2 h-4 w-4" />
                 View
               </DropdownMenuItem>
-              {handleUpdateStatus && user?.level === EUserLevels.PLATFORM_OWNER && (
-                <DropdownMenuItem onClick={(e) => handleUpdateStatus(ticket, e)}>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Update Status
+              {handleUpdateStatus &&
+                user?.level === EUserLevels.PLATFORM_OWNER && (
+                  <DropdownMenuItem
+                    onClick={(e) => handleUpdateStatus(ticket, e)}
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Update Status
+                  </DropdownMenuItem>
+                )}
+              {user?.level === EUserLevels.PLATFORM_OWNER && (
+                <DropdownMenuItem onClick={(e) => handleEdit(ticket, e)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
                 </DropdownMenuItem>
               )}
-              {user?.level === EUserLevels.PLATFORM_OWNER && <DropdownMenuItem onClick={(e) => handleEdit(ticket, e)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>}
-              {user?.level === EUserLevels.PLATFORM_OWNER && <DropdownMenuItem
-                onClick={(e) => handleDelete(ticket.id, e)}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>}
+              {user?.level === EUserLevels.PLATFORM_OWNER && (
+                <DropdownMenuItem
+                  onClick={(e) => handleDelete(ticket.id, e)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -203,13 +214,13 @@ export function ticketItemViews({
               <h3 className="font-semibold text-lg truncate">{item.title}</h3>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <Badge className={statusColors[item.status]}>
-                  {item.status.replace('_', ' ')}
+                  {item.status.replace("_", " ")}
                 </Badge>
                 <Badge className={priorityColors[item.priority]}>
                   {item.priority}
                 </Badge>
                 <Badge variant="outline">
-                  {item.category.replace('_', ' ')}
+                  {item.category.replace("_", " ")}
                 </Badge>
               </div>
             </div>

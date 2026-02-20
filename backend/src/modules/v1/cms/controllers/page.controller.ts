@@ -36,7 +36,7 @@ import { EResource } from '@shared/enums';
 @ApiTags('CMS - Pages')
 @Resource(EResource.PAGES)
 @Controller('cms/pages')
-@MinUserLevel(EUserLevels.SUPER_ADMIN)
+@MinUserLevel(EUserLevels.ADMIN)
 export class PageController {
   constructor(private readonly pageService: PageService) {}
 

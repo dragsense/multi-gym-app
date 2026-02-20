@@ -2,7 +2,7 @@ import {
   Controller,
   Get,
   Post,
-  Put,
+  Patch,
   Delete,
   Body,
   Query,
@@ -90,7 +90,7 @@ export class RolesController {
     return await this.rolesService.createRole(createRoleDto);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiOperation({ summary: 'Update role by ID' })
   @ApiParam({ name: 'id', description: 'Role ID' })
   @ApiResponse({
@@ -178,7 +178,7 @@ export class RolesController {
     return await this.permissionService.create(createPermissionDto);
   }
 
-  @Put('permissions/:id')
+  @Patch('permissions/:id')
   @ApiOperation({ summary: 'Update permission by ID' })
   @ApiParam({ name: 'id', description: 'Permission ID' })
   @ApiResponse({
@@ -230,7 +230,7 @@ export class RolesController {
     return await this.resourceService.getSingle(id);
   }
 
-  @Put('system/resources/:id')
+  @Patch('system/resources/:id')
   @ApiOperation({ summary: 'Update resource by ID' })
   @ApiParam({ name: 'id', description: 'Resource ID' })
   @ApiResponse({

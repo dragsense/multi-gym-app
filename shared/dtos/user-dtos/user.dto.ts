@@ -21,10 +21,10 @@ import {
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
 import { CreateProfileDto, ProfileDto, UpdateProfileDto } from "./profile.dto";
-import { Type, Transform } from "class-transformer";
+import { Type, Transform, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
-import { IUser } from "../../interfaces/user.interface";
+import type { IUser } from "../../interfaces/user.interface";
 import { FieldOptions, FieldType } from "../../decorators/field.decorator";
 import { OmitType } from "../../lib/dto-type-adapter";
 import {
@@ -50,31 +50,31 @@ export class CreateUserDto {
   @ApiProperty({ example: "email@example.com", description: "User email" })
   @IsString()
   @IsNotEmpty()
-  @IsEmail()
+  @IsEmail({}, { message: "Please enter a valid email address" })
   @FieldType("email", true)
   email: string;
 
   @ApiProperty({ example: "John" })
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: "First name must be a valid text" })
+  @IsNotEmpty({ message: "First name is required" })
   @FieldType("text", true)
   firstName: string;
 
   @ApiProperty({ example: "Doe" })
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: "Last name must be a valid text" })
+  @IsNotEmpty({ message: "Last name is required" })
   @FieldType("text", true)
   lastName: string;
 
   @ApiProperty({ example: "1990-01-01" })
   @IsOptional()
-  @IsDateString()
+  @IsDateString({}, { message: "Please enter a valid date of birth" })
   @FieldType("date")
   dateOfBirth?: string;
 
   @ApiProperty({ enum: EUserGender, example: EUserGender.MALE })
   @IsOptional()
-  @IsEnum(EUserGender)
+  @IsEnum(EUserGender, { message: "Please select a valid gender" })
   @FieldType("select")
   @FieldOptions(
     [
@@ -96,8 +96,8 @@ export class CreateUserDto {
   })
   @IsString()
   @IsOptional()
-  @Length(6, 100)
-  @MinLength(6)
+  @Length(6, 100, { message: "Password must be between 6 and 100 characters" })
+  @MinLength(6, { message: "Password must be at least 6 characters" })
   password?: string;
 
   @ApiProperty({
@@ -120,6 +120,7 @@ export class CreateUserDto {
   @ApiPropertyOptional({ type: CreateProfileDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => CreateProfileDto)
   @FieldType("nested", false, CreateProfileDto)
   profile?: CreateProfileDto;
@@ -130,6 +131,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => RoleDto)
   @FieldType("custom", false, RoleDto)
   roles?: RoleDto[];
@@ -140,6 +142,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => PermissionDto)
   @FieldType("custom", false, PermissionDto)
   permissions?: PermissionDto[];
@@ -157,11 +160,12 @@ export class CreateUserDto {
 }
 
 export class UpdateUserDto extends PartialType(
-  OmitType(CreateUserDto, ["isActive", "level", "password"] as const)
+  OmitType(CreateUserDto, ["level", "password"] as const)
 ) {
   @ApiPropertyOptional({ type: UpdateProfileDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => UpdateProfileDto)
   @FieldType("nested", false, UpdateProfileDto)
   profile?: UpdateProfileDto;
@@ -203,6 +207,7 @@ export class UserWithProfileSafeDto extends UserSafeDto {
 
 export class UserPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [UserSafeDto] })
+  @Expose()
   @Type(() => UserSafeDto)
   data: UserSafeDto[];
 }
@@ -212,6 +217,7 @@ export class UserListDto extends ListQueryDto<IUser> {
   @IsOptional()
   @IsNumber()
   @Equals()
+  @Expose()
   @Type(() => Number)
   level?: number;
 }
@@ -312,4 +318,12 @@ export class UserDto {
   @IsOptional()
   @IsArray()
   subscriptionFeatures?: string[];
+
+  @ApiPropertyOptional({ type: () => ProfileDto })
+  @IsOptional()
+  @ValidateNested()
+  @Expose()
+  @Type(() => ProfileDto)
+  @FieldType("nested", false, ProfileDto)
+  profile?: ProfileDto;
 }

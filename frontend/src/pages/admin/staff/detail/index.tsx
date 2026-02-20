@@ -9,12 +9,11 @@ import { SingleHandler } from "@/handlers";
 import type { IStaff } from "@shared/interfaces/staff.interface";
 
 // Services
-import { fetchStaff } from "@/services/staff.api";
+import { fetchStaffMember } from "@/services/staff.api";
 
 // Page Components
-import { StaffDetailContent } from "@/page-components/staff-detail";
+import { StaffDetailContent } from "@/page-components/staff/staff-detail";
 import { StaffForm } from "@/page-components/staff";
-import type { TStaffViewExtraProps } from "@/components/admin/staff/view/staff-view";
 
 export default function StaffDetailPage() {
   const componentId = useId();
@@ -24,8 +23,8 @@ export default function StaffDetailPage() {
 
   return (
     <div data-component-id={componentId}>
-      <SingleHandler<IStaff, TStaffViewExtraProps>
-        queryFn={(_, params) => fetchStaff(id!, params)}
+      <SingleHandler<IStaff, any>
+        queryFn={(_, params) => fetchStaffMember(id!, params)}
         initialParams={{
           _relations: "user",
         }}

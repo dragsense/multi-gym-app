@@ -11,12 +11,12 @@ import {
   EquipmentListDto,
   EquipmentTypeListDto,
 } from "../dtos/equipment-reservation-dtos";
-import {
+import type {
   IEquipmentType,
   IEquipment,
   IEquipmentReservation,
 } from "../interfaces/equipment-reservation.interface";
-import { IPaginatedResponse } from "../interfaces/api/response.interface";
+import type { IPaginatedResponse } from "../interfaces/api/response.interface";
 
 export type TEquipmentTypeData = CreateEquipmentTypeDto | UpdateEquipmentTypeDto;
 export type TEquipmentTypeListData = EquipmentTypeListDto;

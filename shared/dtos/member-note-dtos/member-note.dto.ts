@@ -7,11 +7,11 @@ import {
   ValidateNested,
   IsNotEmpty
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { PartialType } from '../../lib/dto-type-adapter';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { ListQueryDto } from '../common/list-query.dto';
-import { IMemberNote } from '../../interfaces/member-note.interface';
+import type { IMemberNote } from '../../interfaces/member-note.interface';
 import { FieldType } from '../../decorators/field.decorator';
 import {
   Equals,
@@ -95,6 +95,7 @@ export class MemberNoteListDto extends ListQueryDto<IMemberNote> {
 
 export class MemberNotePaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [MemberNoteDto] })
+  @Expose()
   @Type(() => MemberNoteDto)
   data: MemberNoteDto[];
 }

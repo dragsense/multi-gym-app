@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { StreamsService } from './streams.service';
@@ -11,7 +11,7 @@ import { StreamCheckProcessor } from './stream-check.processor';
 @Module({
   imports: [
     ConfigModule,
-    CamerasModule,
+    forwardRef(() => CamerasModule),
     BullModule.registerQueue({ name: 'stream-check' }),
     BullModule.registerQueue({ name: 'ffmpeg-stream' }),
   ],

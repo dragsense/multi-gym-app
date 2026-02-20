@@ -17,6 +17,7 @@ import {
   Home,
   User,
   Box,
+  Bot,
   CardSim,
   ClipboardList,
   CreditCard,
@@ -34,8 +35,9 @@ import {
   Bell,
   Mail,
   LayoutGrid,
-  Package,
   Video,
+  Package,
+  ShoppingCart,
 } from "lucide-react";
 import {
   ADMIN_ROUTES,
@@ -119,12 +121,7 @@ const baseNavItems: NavItemGroup[] = [
         requiredAction: 'read',
         requiredFeature: ESubscriptionFeatures.TASKS,
       },
-      {
-        title: "tickets",
-        url: ADMIN_ROUTES.TICKETS,
-        icon: MessageCircle,
-        roles: [EUserLevels.SUPER_ADMIN, EUserLevels.PLATFORM_OWNER],
-      },
+     
       {
         title: "checkins",
         url: ADMIN_ROUTES.CHECKINS,
@@ -133,6 +130,17 @@ const baseNavItems: NavItemGroup[] = [
         requiredResource: EResource.CHECKINS,
         requiredAction: 'read',
         requiredFeature: ESubscriptionFeatures.CHECKINS,
+      },
+    ],
+  },
+  {
+    groupTitle: "Support",
+    items: [
+     {
+        title: "tickets",
+        url: ADMIN_ROUTES.TICKETS,
+        icon: MessageCircle,
+        roles: [EUserLevels.SUPER_ADMIN, EUserLevels.PLATFORM_OWNER],
       },
     ],
   },
@@ -146,6 +154,12 @@ const baseNavItems: NavItemGroup[] = [
         requiredResource: EResource.BILLINGS,
         requiredAction: 'read',
       },
+
+    ],
+  },
+  {
+    groupTitle: "Subscription & Business",
+    items: [
       {
         title: "subscription",
         url: ADMIN_ROUTES.SUBSCRIPTION,
@@ -188,6 +202,41 @@ const baseNavItems: NavItemGroup[] = [
         url: ADMIN_ROUTES.NOTIFICATIONS,
         icon: Bell, // Assuming Bell icon is imported
       },
+      {
+        title: "automation",
+        url: ADMIN_ROUTES.AUTOMATION,
+        icon: Bot,
+        roles: [EUserLevels.ADMIN],
+      },
+    ],
+  },
+  {
+    groupTitle: "Store",
+    items: [
+      {
+        title: "store",
+        url: ADMIN_ROUTES.STORE,
+        icon: Package,
+        roles: [EUserLevels.STAFF, EUserLevels.MEMBER],
+      },
+      {
+        title: "cart",
+        url: ADMIN_ROUTES.CART,
+        icon: ShoppingCart,
+        roles: [EUserLevels.STAFF, EUserLevels.MEMBER],
+      },
+      {
+        title: "myOrders",
+        url: ADMIN_ROUTES.ORDERS,
+        icon: Receipt,
+        roles: [EUserLevels.STAFF, EUserLevels.MEMBER],
+      },
+      {
+        title: "orders",
+        url: ADMIN_ROUTES.ORDERS,
+        icon: Receipt,
+        roles: [EUserLevels.ADMIN],
+      },
     ],
   },
   {
@@ -197,14 +246,14 @@ const baseNavItems: NavItemGroup[] = [
         title: "emailTemplates",
         url: ADMIN_ROUTES.CMS.EMAIL_TEMPLATES,
         icon: Mail,
-        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.SUPER_ADMIN, EUserLevels.ADMIN,],
+        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.ADMIN,],
         requiredFeature: ESubscriptionFeatures.EMAIL_TEMPLATES,
       },
       {
         title: "pages",
         url: ADMIN_ROUTES.CMS.PAGES,
         icon: LayoutGrid,
-        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.SUPER_ADMIN, EUserLevels.ADMIN,],
+        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.ADMIN],
         requiredFeature: ESubscriptionFeatures.PAGES,
       },
       {
@@ -233,7 +282,12 @@ const baseNavItems: NavItemGroup[] = [
         title: "settings",
         url: ADMIN_ROUTES.SETTINGS,
         icon: Settings,
-
+      },
+      {
+        title: "paymentProcessor",
+        url: ADMIN_ROUTES.PAYMENT_PROCESSOR,
+        icon: CreditCard,
+        roles: [EUserLevels.SUPER_ADMIN],
       },
     ],
   },
@@ -412,9 +466,7 @@ const baseNavItems: NavItemGroup[] = [
         title: "cameras",
         url: ADMIN_ROUTES.CAMERAS,
         icon: Video,
-        roles: [EUserLevels.ADMIN, EUserLevels.STAFF],
-        requiredResource: EResource.VIDEO_STREAM,
-        requiredAction: 'read',
+        roles: [EUserLevels.ADMIN],
         requiredFeature: ESubscriptionFeatures.VIDEO_STREAM,
       },
     ],

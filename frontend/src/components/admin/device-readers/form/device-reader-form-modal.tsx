@@ -21,21 +21,21 @@ import { Button } from "@/components/ui/button";
 import { ModalForm } from "@/components/form-ui/modal-form";
 import { FormErrors } from "@/components/shared-ui/form-errors";
 import { SearchableInputWrapper } from "@/components/shared-ui/searchable-input-wrapper";
-import type { TCustomInputWrapper } from "@/@types/form/field-config.type";
 import type { ILocation } from "@shared/interfaces/location.interface";
+import type { TCustomInputWrapper } from "@/@types/form/field-config.type";
 
 export interface IDeviceReaderFormModalExtraProps {
   open: boolean;
   onClose: () => void;
 }
 
-// Custom components
+interface IDeviceReaderFormModalProps extends THandlerComponentProps<TFormHandlerStore<TCreateDeviceReaderData | TUpdateDeviceReaderData, IMessageResponse, IDeviceReaderFormModalExtraProps>> { }
+
 const LocationSelect = React.memo((props: TCustomInputWrapper) => {
   const searchableLocations = useSearchableLocations({});
   const { t } = useI18n();
   const selectedLocation = getSelectedLocation();
-  
-  // Set default value if location is selected in localStorage
+
   React.useEffect(() => {
     if (selectedLocation && !props.value && props.onChange) {
       props.onChange({
@@ -55,20 +55,12 @@ const LocationSelect = React.memo((props: TCustomInputWrapper) => {
         return `${item.name}${item.address ? ` - ${item.address}` : ''}`;
       }}
       getKey={(item) => item.id.toString()}
-      getValue={(item) => {
-        return {
-          id: item.id,
-          name: item.name,
-          address: item.address,
-        } as ILocation;
-      }}
+      getValue={(item) => ({ id: item.id, name: item.name, address: item.address } as ILocation)}
       shouldFilter={false}
       disabled={!!selectedLocation || props.disabled}
     />
   );
 });
-
-interface IDeviceReaderFormModalProps extends THandlerComponentProps<TFormHandlerStore<TCreateDeviceReaderData | TUpdateDeviceReaderData, IMessageResponse, IDeviceReaderFormModalExtraProps>> { }
 
 const DeviceReaderFormModal = React.memo(function DeviceReaderFormModal({
   storeKey,
@@ -88,22 +80,19 @@ const DeviceReaderFormModal = React.memo(function DeviceReaderFormModal({
   const isSubmitting = store((state) => state.isSubmitting);
   const isEditing = store((state) => state.isEditing);
 
-  const memoizedFields = useMemo(() => {
-    const storeFields = fields as TFieldConfigObject<TCreateDeviceReaderData>;
-    return {
-      ...storeFields,
-      location: {
-        ...storeFields.location,
-        type: "custom" as const,
-        Component: LocationSelect,
-        label: buildSentence(t, 'location'),
-        disabled: !!getSelectedLocation(),
-      },
-    } as TFieldConfigObject<TCreateDeviceReaderData>;
-  }, [fields, t]);
+  const memoizedFields = useMemo(() => ({
+    ...fields,
+    location: {
+      ...fields.location,
+      type: 'custom' as const,
+      Component: LocationSelect,
+      label: buildSentence(t, 'location'),
+      placeholder: buildSentence(t, 'select', 'location'),
+    },
+  }), [fields, t]);
 
   const inputs = useInput<TCreateDeviceReaderData>({
-    fields: memoizedFields,
+    fields: memoizedFields as Parameters<typeof useInput<TCreateDeviceReaderData>>[0]['fields'],
     showRequiredAsterisk: true,
   }) as FormInputs<TCreateDeviceReaderData>;
 
@@ -147,17 +136,11 @@ const DeviceReaderFormModal = React.memo(function DeviceReaderFormModal({
         {/* Basic Info */}
         <div>
           <h3 className="text-sm font-semibold mb-3">{t('deviceReaderDetails')}</h3>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {inputs.deviceName}
             {inputs.macAddress}
             {inputs.status}
-          </div>
-        </div>
-        {/* Location */}
-        <div>
-          <h3 className="text-sm font-semibold mb-3">{buildSentence(t, 'location')}</h3>
-          <div className="grid grid-cols-1 gap-4">
-            {inputs.location}
+            {inputs.location as React.ReactNode}
           </div>
         </div>
       </div>

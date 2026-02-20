@@ -32,7 +32,7 @@ export const FormFieldWrapper = React.memo(function FormFieldWrapper({
     layout = "vertical",
     children,
     hideLabel = false
-}: BaseFieldProps & { 
+}: BaseFieldProps & {
     children: (props: { field: any, isDisabled: boolean }) => React.ReactNode;
     hideLabel?: boolean;
 }) {
@@ -98,13 +98,13 @@ export const TextField = React.memo(function TextField({
 }: BaseFieldProps) {
     const onChangeHandler = (value: any) => {
 
-    //Added this check in case if user input some value and then remove so it will handle that case
-    if (value === "") {
-         value = field.required ? null : undefined;
+        //Added this check in case if user input some value and then remove so it will handle that case
+        if (value === "") {
+            value = field.required ? null : undefined;
         }
 
-    field?.onChange?.(value);
-    return value;
+        field?.onChange?.(value);
+        return value;
     };
 
     const commonClass = cn(
@@ -626,7 +626,7 @@ export const TagsField = React.memo(function TagsField({
 
                 const handleAddTag = useCallback(() => {
                     const trimmedValue = inputValue.trim();
-                    if(!trimmedValue) return;
+                    if (!trimmedValue) return;
                     if (!tags.includes(trimmedValue)) {
                         const newTags = [...tags, trimmedValue];
                         controllerField.onChange(onChangeHandler(newTags));

@@ -19,15 +19,17 @@ import { deleteDeviceReader, fetchDeviceReader, fetchDeviceReaders } from "@/ser
 // Layouts
 import { PageInnerLayout } from "@/layouts";
 import { DeviceReaderListDto } from "@shared/dtos";
+import { getSelectedLocation } from "@/utils/location-storage";
 
 export default function DeviceReadersPage() {
   // React 19: Essential IDs and transitions
   const componentId = useId();
   const [, startTransition] = useTransition();
-  
+
   const queryClient = useQueryClient();
 
   const STORE_KEY = "device-reader";
+  const location = getSelectedLocation();
 
   return (
     <PageInnerLayout Header={<Header />}>
@@ -53,7 +55,7 @@ export default function DeviceReadersPage() {
         />
 
         <ListHandler<IDeviceReader, any, any, IDeviceReader, any>
-          queryFn={fetchDeviceReaders}
+          queryFn={(params) => fetchDeviceReaders(params, location?.id)}
           ListComponent={DeviceReaderList}
           deleteFn={deleteDeviceReader}
           onDeleteSuccess={() => {

@@ -25,13 +25,14 @@ export interface MiniCalendarProps {
 }
 
 const dayNames = [
+  
+  "saturday",
   "sunday",
   "monday",
   "tuesday",
   "wednesday",
   "thursday",
   "friday",
-  "saturday",
 ] as const;
 
 export function MiniCalendar({

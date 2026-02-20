@@ -103,57 +103,57 @@ export default function ProfileForm({ storeKey, store }: IProfileFormProps) {
       phoneNumber: {
         ...storeFields.phoneNumber,
         label: t('phoneNumber'),
-        placeholder: t('phoneNumber'),
+        placeholder: t('enterPhoneNumber'),
       },
       address: {
         ...storeFields.address,
         label: t('address'),
-        placeholder: t('address'),
+        placeholder: t('enterAddress'),
       },
       rfid: {
         ...storeFields.rfid,
         label: t('rfid'),
-        placeholder: t('rfid'),
+        placeholder: t('enterRfid'),
       },
       state: {
         ...storeFields.state,
         label: t('state'),
-        placeholder: t('state'),
+        placeholder: t('enterState'),
       },
       city: {
         ...storeFields.city,
         label: t('city'),
-        placeholder: t('city'),
+        placeholder: t('enterCity'),
       },
       zipCode: {
         ...storeFields.zipCode,
         label: t('zipCode'),
-        placeholder: t('zipCode'),
+        placeholder: t('enterZipCode'),
       },
       country: {
         ...storeFields.country,
         label: t('country'),
-        placeholder: t('country'),
+        placeholder: t('enterCountry'),
       },
       emergencyContactName: {
         ...storeFields.emergencyContactName,
         label: t('emergencyContactName'),
-        placeholder: t('emergencyContactName'),
+        placeholder: t('enterEmergencyContactName'),
       },
       emergencyContactNumber: {
         ...storeFields.emergencyContactNumber,
         label: t('emergencyContactNumber'),
-        placeholder: t('emergencyContactNumber'),
+        placeholder: t('enterEmergencyContactNumber'),
       },
       emergencyContactRelationship: {
         ...storeFields.emergencyContactRelationship,
         label: t('emergencyContactRelationship'),
-        placeholder: t('emergencyContactRelationship'),
+        placeholder: t('enterEmergencyContactRelationship'),
       },
       alternativeEmergencyContactNumber: {
         ...storeFields.alternativeEmergencyContactNumber,
         label: t('alternativeEmergencyContactNumber'),
-        placeholder: t('alternativeEmergencyContactNumber'),
+        placeholder: t('enterAlternativeEmergencyContactNumber'),
       },
       image: {
         ...storeFields.image,

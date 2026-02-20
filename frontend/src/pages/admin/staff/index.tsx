@@ -23,11 +23,12 @@ import type { IStaffListExtraProps } from "@/components/admin/staff/list/staff-l
 import type { TStaffListData } from "@shared/types/staff.type";
 import { StaffListDto } from "@shared/dtos";
 import type { IStaff } from "@shared/interfaces/staff.interface";
-
+import { getSelectedLocation } from "@/utils/location-storage";
 export default function StaffPage() {
     const queryClient = useQueryClient();
 
     const STAFF_STORE_KEY = 'staff';
+    const location = getSelectedLocation();
 
     return (
         <PageInnerLayout Header={<Header />}>
@@ -48,7 +49,7 @@ export default function StaffPage() {
             />
 
             <ListHandler<IStaff, TStaffListData, IStaffListExtraProps>
-                queryFn={fetchStaff}
+                queryFn={(params) => fetchStaff(params, location?.id)}
                 initialParams={{
                     _relations: "user.roles.role",
                     _select: "user.roles.role.name",

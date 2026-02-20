@@ -1,5 +1,5 @@
 // React
-import { useTransition, useMemo } from "react";
+import { useTransition, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 // Types
@@ -22,20 +22,33 @@ import { useQueryClient } from "@tanstack/react-query";
 import { strictDeepMerge } from "@/utils";
 
 interface IBusinessSetupStepProps {
-  onComplete: (data: { name: string; subdomain: string; businessId: string }) => void;
+  onComplete: (data: {
+    name: string;
+    subdomain: string;
+    businessId: string;
+    paymentProcessorId?: string | null;
+    paymentProcessorType?: string | null;
+  }) => void;
   onBack?: () => void;
-  businessData?: { businessId: string } | null;
+  businessData?: { businessId: string; paymentProcessorId?: string | null } | null;
   existingBusiness?: IBusiness | null;
 }
 
-export function BusinessSetupStep({ onComplete, onBack, businessData, existingBusiness }: IBusinessSetupStepProps) {
+export function BusinessSetupStep({
+  onComplete,
+  onBack,
+  businessData,
+  existingBusiness,
+}: IBusinessSetupStepProps) {
   const [, startTransition] = useTransition();
   const { t } = useI18n();
   const queryClient = useQueryClient();
+  const hasChangesRef = useRef(false);
 
   const INITIAL_VALUES: CreateBusinessDto = {
     name: "",
     subdomain: "",
+    paymentProcessorId: undefined,
   };
 
   const businessInitialValues = useMemo(() => {
@@ -43,16 +56,53 @@ export function BusinessSetupStep({ onComplete, onBack, businessData, existingBu
       return strictDeepMerge<CreateBusinessDto>(INITIAL_VALUES, {
         name: existingBusiness.name || "",
         subdomain: existingBusiness.subdomain || "",
+        paymentProcessorId: existingBusiness.paymentProcessorId ?? undefined,
       });
     }
     return INITIAL_VALUES;
   }, [existingBusiness]);
 
-  const isEditing = !!existingBusiness && !!existingBusiness.id;
+  const isEditing = !!existingBusiness?.id;
 
-  const mutationFn = isEditing && existingBusiness
-    ? (data: CreateBusinessDto) => updateBusiness(existingBusiness.id)(data)
-    : createBusiness;
+  const mutationFn =
+    isEditing && existingBusiness
+      ? (data: CreateBusinessDto) => {
+        if (Object.keys(data).length === 0) {
+          hasChangesRef.current = false;
+          return Promise.resolve(existingBusiness);
+        }
+        hasChangesRef.current = true;
+        return updateBusiness(existingBusiness.id)(data);
+      }
+      : createBusiness;
+
+  const handleSuccess = (res: IBusiness) => {
+    if (!res?.id) {
+      toast.error("Failed to save business: Invalid response");
+      return;
+    }
+
+    if (!isEditing || hasChangesRef.current) {
+      toast.success(
+        isEditing
+          ? "Information updated successfully"
+          : "Business setup completed successfully"
+      );
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["business-onboarding-setup", businessData?.businessId] });
+    queryClient.invalidateQueries({ queryKey: ["my-business"] });
+
+    startTransition(() => {
+      onComplete({
+        name: res.name ?? "",
+        subdomain: res.subdomain ?? "",
+        businessId: res.id,
+        paymentProcessorId: res.paymentProcessorId ?? undefined,
+        paymentProcessorType: undefined,
+      });
+    });
+  };
 
   return (
     <FormHandler<CreateBusinessDto, IBusiness>
@@ -63,37 +113,11 @@ export function BusinessSetupStep({ onComplete, onBack, businessData, existingBu
       validationMode={EVALIDATION_MODES.OnChange}
       dto={isEditing ? UpdateBusinessDto : CreateBusinessDto}
       isEditing={isEditing}
-      onSuccess={(res) => {
-
-        const business = res as IBusiness;
-
-        if (!business || !business.id) {
-          toast.error("Failed to save business: Invalid response");
-          return;
-        }
-
-        const message = isEditing 
-          ? "Business updated successfully" 
-          : "Business setup completed successfully";
-        toast.success(message);
-        
-        queryClient.invalidateQueries({ queryKey: ["business-onboarding-setup", businessData?.businessId] });
-        queryClient.invalidateQueries({ queryKey: ["my-business"] });
-        
-        startTransition(() => {
-          onComplete({
-            name: business.name || businessInitialValues.name,
-            subdomain: business.subdomain || businessInitialValues.subdomain,
-            businessId: business.id,
-          });
-        });
-      }}
+      onSuccess={(res) => handleSuccess(res as IBusiness)}
       onError={(error) => {
-        toast.error(`Failed to ${isEditing ? 'update' : 'setup'} business: ` + error?.message);
+        toast.error(`Failed to ${isEditing ? "update" : "setup"} business: ` + error?.message);
       }}
-      formProps={{
-        onBack: onBack,
-      }}
+      formProps={{ onBack }}
     />
   );
 }

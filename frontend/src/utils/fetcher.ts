@@ -221,49 +221,31 @@ const fetcher = async <T>(fetchConfig: AxiosRequestConfig): Promise<T> => {
     }
 
     // Extract error message
-    let message =
+    const message =
       axiosError.response?.data?.message ||
       axiosError.response?.data?.error?.message ||
       axiosError.message ||
       "Something went wrong";
 
-    // Handle array of messages (common in validation errors)
-    if (Array.isArray(message)) {
-      message = message.join(", ");
-    }
-
-    // Strip redundant backend prefixes if they exist
-    if (typeof message === "string") {
-      message = message.replace(/^Failed to create entity: /i, "");
-      message = message.replace(/^Failed to update entity: /i, "");
-
-      // Map common technical database errors to user-friendly messages
-      if (message.includes("duplicate key value violates unique constraint")) {
-        message = "A record with this information already exists.";
-      } else if (message.includes("violates foreign key constraint")) {
-        message = "This record cannot be deleted or modified because it is linked to other data.";
-      } else if (message.includes("violates not-null constraint")) {
-        const fieldMatch = message.match(/column "([^"]+)"/);
-        message = fieldMatch
-          ? `The field "${fieldMatch[1]}" is required.`
-          : "Required information is missing.";
-      }
-    }
-
-    const statusCode = axiosError.response?.status;
-    const stack = axiosError.response?.data?.stack;
-    const exceptionType = axiosError.response?.data?.exceptionType;
-
-    // In development, we want to keep technical details available but separate from the primary message
+    // In development, show detailed error with status code and stack
     if (isDevelopment) {
-      const detailedError = new Error(message);
+      const statusCode = axiosError.response?.status;
+      const stack = axiosError.response?.data?.stack;
+      const exceptionType = axiosError.response?.data?.exceptionType;
 
-      // Attach technical details as properties for potential debugging/UI consumption
-      (detailedError as any).statusCode = statusCode;
-      (detailedError as any).exceptionType = exceptionType;
-      (detailedError as any).serverStack = stack;
+      let errorMessage = message;
 
-      // Attach stack trace if available to the error object's stack property
+      if (statusCode) {
+        errorMessage += ` (Status: ${statusCode})`;
+      }
+
+      if (exceptionType) {
+        errorMessage += ` [${exceptionType}]`;
+      }
+
+      const detailedError = new Error(errorMessage);
+
+      // Attach stack trace if available
       if (stack) {
         detailedError.stack = `${detailedError.stack}\n\nServer Stack:\n${stack}`;
       }

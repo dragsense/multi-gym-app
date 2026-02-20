@@ -5,7 +5,10 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+  ],
   define: {
     global: "globalThis",
   },
@@ -24,19 +27,8 @@ export default defineConfig({
     allowedHosts: [
       "localhost",
       "app.local",
+      "staging.vivast.io",
     ],
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false,
-        ws: true,
-      },
-      '/uploads': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
+    
   },
 });

@@ -11,7 +11,7 @@ export { ActivityLogsModule } from './activity-logs/activity-logs.module';
 export { WorkerModule } from './worker/worker.module';
 export { HealthModule } from './health/health.module';
 export { SettingsModule } from './settings/settings.module';
-export { PaymentMethodsModule } from './payment-methods/payment-methods.module';
+export { PaymentProcessorsModule } from './payment-processors/payment-processors.module';
 export { RolesModule } from './roles/roles.module';
 export { CacheModule } from './cache/cache.module';
 export { ScheduleModule } from './schedule/schedule.module';

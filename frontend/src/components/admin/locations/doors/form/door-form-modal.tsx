@@ -32,57 +32,53 @@ export interface IDoorFormModalExtraProps {
 
 interface IDoorFormModalProps extends THandlerComponentProps<TFormHandlerStore<TDoorData, TDoorResponse, IDoorFormModalExtraProps>> { }
 
-// Custom component for device reader select
+// Custom component for device reader select (filtered by location)
 const DeviceReaderSelect = React.memo(
-  (props: TCustomInputWrapper) => {
+  ({ locationId, ...props }: TCustomInputWrapper & { locationId?: string }) => {
     const { t } = useI18n();
-    
+    const searchable = useSearchableDeviceReaders({ locationId, initialParams: { limit: 100 } });
+
     return (
       <SearchableInputWrapper<IDeviceReader>
         {...props}
         modal={true}
-        useSearchable={() => useSearchableDeviceReaders({ initialParams: { limit: 100 } })}
+        useSearchable={() => searchable}
         getLabel={(item) => {
           if (!item) return buildSentence(t, 'select', 'device', 'reader');
           return `${item.deviceName} (${item.macAddress})`;
         }}
         getKey={(item) => item.id.toString()}
-        getValue={(item) => {
-          return {
-            id: item.id,
-            deviceName: item.deviceName,
-            macAddress: item.macAddress,
-          } as IDeviceReader;
-        }}
+        getValue={(item) => ({
+          id: item.id,
+          deviceName: item.deviceName,
+          macAddress: item.macAddress,
+        } as IDeviceReader)}
         shouldFilter={false}
       />
     );
   }
 );
 
-// Custom component for camera select
+// Custom component for camera select (filtered by location)
 const CameraSelect = React.memo(
-  (props: TCustomInputWrapper & { locationId?: string }) => {
+  ({ locationId, ...props }: TCustomInputWrapper & { locationId?: string }) => {
     const { t } = useI18n();
-    const { locationId } = props;
-    
+    const searchable = useSearchableCameras({ locationId, initialParams: { limit: 100 } });
+
     return (
       <SearchableInputWrapper<ICamera>
         {...props}
         modal={true}
-        useSearchable={() => useSearchableCameras({ locationId, initialParams: { limit: 100 } })}
+        useSearchable={() => searchable}
         getLabel={(item) => {
           if (!item) return buildSentence(t, 'select', 'camera');
-          return item.name || item.id;
+          return item.name || '';
         }}
         getKey={(item) => item.id.toString()}
-        getValue={(item) => {
-          return {
-            id: item.id,
-            name: item.name,
-            description: item.description,
-          } as ICamera;
-        }}
+        getValue={(item) => ({
+          id: item.id,
+          name: item.name,
+        } as ICamera)}
         shouldFilter={false}
       />
     );
@@ -130,14 +126,14 @@ const DoorFormModal = React.memo(function DoorFormModal({
       deviceReader: {
         ...(fields as TFieldConfigObject<TDoorData>).deviceReader,
         type: 'custom' as const,
-        Component: DeviceReaderSelect,
+        Component: (p: TCustomInputWrapper) => <DeviceReaderSelect {...p} locationId={locationId} />,
         label: buildSentence(t, 'device', 'reader'),
         placeholder: buildSentence(t, 'select', 'device', 'reader'),
       },
       camera: {
         ...(fields as TFieldConfigObject<TDoorData>).camera,
         type: 'custom' as const,
-        Component: (props: TCustomInputWrapper) => <CameraSelect {...props} locationId={locationId} />,
+        Component: (p: TCustomInputWrapper) => <CameraSelect {...p} locationId={locationId} />,
         label: buildSentence(t, 'camera'),
         placeholder: buildSentence(t, 'select', 'camera'),
       },
@@ -188,10 +184,8 @@ const DoorFormModal = React.memo(function DoorFormModal({
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           {inputs.name}
-          {inputs.deviceReader}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-          {inputs.camera}
+          {inputs.deviceReader as React.ReactNode}
+          {inputs.camera as React.ReactNode}
         </div>
         <div>
           {inputs.description}

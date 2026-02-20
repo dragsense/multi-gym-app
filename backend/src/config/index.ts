@@ -9,6 +9,7 @@ export { default as activityLogsConfig } from './activity-logs.config';
 export { default as cacheConfig, getCacheConfig } from './cache.config';
 export { default as scalarConfig } from './scalar.config';
 export { default as platformOwnerConfig } from './platform-owner-user.config';
-export { default as stripeConfig } from './stripe.config';
+export { default as paymentProcessorsConfig } from './payment-processors.config';
 export { default as healthConfig } from './health.config';
+export { default as twilioConfig } from './twilio.config';
 export { default as srsConfig } from './srs.config';

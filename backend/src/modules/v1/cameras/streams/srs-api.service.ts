@@ -9,6 +9,7 @@ export class SrsApiService {
 
   constructor(private configService: ConfigService) {
     const srsConfig = this.configService.get('srs');
+
     this.apiUrl = `http://${srsConfig.host}:${srsConfig.apiPort}`;
     this.logger.log(`SRS API Service initialized with base URL: ${this.apiUrl}`);
   }

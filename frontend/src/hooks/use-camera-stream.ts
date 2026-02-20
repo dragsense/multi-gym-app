@@ -1,12 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCameraStream, startCameraStream } from "@/services/stream.api";
 import type { IStreamResponse } from "@shared/interfaces/stream.interface";
+import { useState } from "react";
 
 /**
  * Hook to get camera stream URLs (does not start stream)
  */
-export function useCameraStream(cameraId: string | null, autoStart = true) {
+export function useCameraStream(cameraId: string) {
   const queryClient = useQueryClient();
+  const [isStarted, setIsStarted] = useState(false);
 
   // Get stream URLs
   const query = useQuery<IStreamResponse>({
@@ -15,7 +17,7 @@ export function useCameraStream(cameraId: string | null, autoStart = true) {
       if (!cameraId) throw new Error("Camera ID is required");
       return getCameraStream(cameraId);
     },
-    enabled: !!cameraId && autoStart,
+    enabled: isStarted,
   });
 
   // Start stream mutation
@@ -24,15 +26,16 @@ export function useCameraStream(cameraId: string | null, autoStart = true) {
       if (!cameraId) throw new Error("Camera ID is required");
       return startCameraStream(cameraId);
     },
-    onSuccess: (data) => {
-      // Update query data with stream URLs from start response
-      queryClient.setQueryData(["camera-stream", cameraId], data);
+    onSuccess: () => {
+      setIsStarted(true);
     },
   });
 
   return {
     ...query,
-    start: () => startMutation.mutate(),
+    // Return the promise so caller can await and get fresh data
+    start: () => startMutation.mutateAsync(),
     isStarting: startMutation.isPending,
+    stop: () => setIsStarted(false),
   };
 }

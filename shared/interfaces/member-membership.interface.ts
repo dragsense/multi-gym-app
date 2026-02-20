@@ -1,4 +1,4 @@
-import { IMessageResponse } from './api/response.interface';
+import type { IMessageResponse } from './api/response.interface';
 import {
   MemberMembershipDto,
   MemberMembershipHistoryDto,
@@ -6,9 +6,9 @@ import {
   MemberMembershipStatusDto,
   CurrentMembershipSummaryDto,
 } from '../dtos/membership-dtos';
-import { IMembership } from './membership.interface';
-import { IMember } from './member.interface';
-import { IBilling } from './billing.interface';
+import type { IMembership } from './membership.interface';
+import type { IMember } from './member.interface';
+import type { IBilling } from './billing.interface';
 
 export interface IMemberMembership extends MemberMembershipDto {
   member?: IMember;

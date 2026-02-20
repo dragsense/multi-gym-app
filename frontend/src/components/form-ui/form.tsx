@@ -20,6 +20,8 @@ interface IFormProps<
   className?: string;
   children: ReactNode;
   formStore: TFormHandlerStore<TFormData, TResponse, TExtraProps>;
+  /** Optional id for the underlying form element (e.g. for external submit buttons) */
+  formId?: string;
 }
 
 export function Form<
@@ -30,6 +32,7 @@ export function Form<
   className,
   children,
   formStore,
+  formId,
 }: IFormProps<TFormData, TResponse, TExtraProps>) {
   // React 19: Essential IDs and transitions
   const componentId = useId();
@@ -57,11 +60,7 @@ export function Form<
   const memoizedErrorMessage = useMemo(() => {
     if (!error) return null;
     return (
-      <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md border border-destructive/20 my-4 flex items-start gap-2 animate-in fade-in slide-in-from-top-1 duration-300">
-        <p className="text-sm font-semibold flex-1 leading-relaxed">
-          {error.message}
-        </p>
-      </div>
+      <p className="text-sm font-medium text-red-500 my-2">{error.message}</p>
     );
   }, [error]);
 
@@ -73,7 +72,11 @@ export function Form<
   };
 
   return (
-    <form onSubmit={handleSubmit} data-component-id={componentId}>
+    <form
+      id={formId}
+      onSubmit={handleSubmit}
+      data-component-id={componentId}
+    >
       <div className={cn("relative", className)}>
         {isSubmitting && memoizedLoadingState}
         {children}

@@ -21,10 +21,12 @@ import { PageInnerLayout } from "@/layouts";
 import type { TEquipmentListData } from "@shared/types/equipment-reservation.type";
 import type { IEquipmentListExtraProps } from "@/components/admin/equipment";
 import { EquipmentListDto } from "@shared/dtos";
+import { getSelectedLocation } from "@/utils/location-storage";
 
 export default function EquipmentPage() {
     const queryClient = useQueryClient();
     const EQUIPMENT_STORE_KEY = 'equipment';
+    const location = getSelectedLocation();
 
     return (
         <PageInnerLayout Header={<Header />}>
@@ -44,7 +46,7 @@ export default function EquipmentPage() {
             />
 
             <ListHandler<IEquipment, TEquipmentListData, IEquipmentListExtraProps, IEquipment, any>
-                queryFn={fetchEquipment}
+                queryFn={(params) => fetchEquipment(params, location?.id)}
                 initialParams={{
                     _relations: 'equipmentType',
                     sortBy: 'createdAt',

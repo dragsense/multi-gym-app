@@ -19,9 +19,10 @@ import {
   platformOwnerConfig,
   clusterConfig,
   activityLogsConfig,
-  stripeConfig,
+  paymentProcessorsConfig,
   getJwtConfig,
   bullQueueConfig,
+  twilioConfig,
   srsConfig,
 } from './config';
 
@@ -43,6 +44,7 @@ import {
   UserSettingsModule,
   UserAvailabilityModule,
   StripeModule,
+  PaysafeModule,
   DashboardModule,
   BusinessModule,
   MembershipsModule,
@@ -63,6 +65,10 @@ import {
   ProductModule,
   CamerasModule,
   StreamsModule,
+  AutomationModule,
+  CartModule,
+  StoreModule,
+  OrdersModule,
 } from './modules';
 import { SeedsModule } from './seeds/seeds.module';
 
@@ -76,7 +82,7 @@ import {
   DatabaseModule,
   ServerGatewayModule,
   SettingsModule,
-  PaymentMethodsModule,
+  PaymentProcessorsModule,
   ActionModule,
   CacheModule,
   RolesModule,
@@ -112,13 +118,19 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
         clusterConfig,
         platformOwnerConfig,
         activityLogsConfig,
-        stripeConfig,
+        paymentProcessorsConfig,
         cacheConfig,
         healthConfig,
         bullQueueConfig,
+        twilioConfig,
         srsConfig,
       ],
       isGlobal: true,
+    }),
+
+    // Serve frontend static files, excluding API and uploads
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client', 'dist'),
     }),
 
     // Serve public directory (includes uploads) at root path
@@ -148,13 +160,7 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
       },
     }),
 
-    // Serve frontend static files, excluding API and uploads
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client', 'dist'),
-      serveRoot: '/',
-      exclude: ['/api*', '/uploads*'],
 
-    }),
 
     // Database - Unified System
     DatabaseModule.forRoot(),
@@ -211,8 +217,8 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
     UserSettingsModule,
     SettingsModule,
     UserAvailabilityModule,
-    PaymentMethodsModule,
     StripeModule,
+    PaysafeModule,
     SeedsModule,
     UsersModule,
     AuthModule,
@@ -239,6 +245,10 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
     ProductModule,
     CamerasModule,
     StreamsModule,
+    AutomationModule,
+    CartModule,
+    StoreModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [

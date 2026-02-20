@@ -18,8 +18,8 @@ const staffService = new BaseService<
 >(STAFF_API_PATH);
 
 // Re-export common CRUD operations
-export const fetchStaff = (params: IListQueryParams) =>
-  staffService.get(params);
+export const fetchStaff = (params: IListQueryParams, locationId?: string) =>
+  staffService.get({ ...params, filters: { ...(params.filters || {}), locationId } });
 export const fetchStaffMember = (id: string, params?: Record<string, any>) =>
   staffService.getSingle(id, params);
 export const createStaff = (data: TStaffData) =>

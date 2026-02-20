@@ -20,6 +20,8 @@ import { AppCard } from "@/components/layout-ui/app-card";
 import { Receipt, CreditCard } from "lucide-react";
 import { BillingList, BillingView } from "@/components/admin/billings";
 import { BillingListDto } from "@shared/dtos";
+import { useDefaultCard } from "@/hooks/use-payment-cards";
+import { DefaultCardDisplay } from "@/components/shared-ui/default-card-display";
 
 // Page Components
 import {
@@ -39,25 +41,19 @@ interface IStaffBillingsTabProps {
 export function StaffBillingsTab({ staff, storeKey }: IStaffBillingsTabProps) {
   const componentId = useId();
   const queryClient = useQueryClient();
-
+  const { defaultPaymentMethod, isLoading: isLoadingDefaultPaymentMethod } = useDefaultCard(staff.user?.id || "");
   const BILLINGS_STORE_KEY = `${storeKey}-billings`;
 
   return (
     <div data-component-id={componentId} className="space-y-6">
-      {/* Saved Cards Section */}
-      <AppCard
-        header={
-          <div className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            <h3 className="text-lg font-semibold">Saved Payment Methods</h3>
-          </div>
-        }
-      >
-        <div className="text-center py-8 text-muted-foreground">
-          <p>No saved payment methods</p>
-          <p className="text-xs mt-2">Payment methods will appear here once saved</p>
-        </div>
-      </AppCard>
+      {/* Default Payment Method Section */}
+      <DefaultCardDisplay
+        card={defaultPaymentMethod}
+        isLoading={isLoadingDefaultPaymentMethod}
+        title="Default Payment Method"
+        emptyMessage="No default payment method"
+      />
+
 
       {/* Billings Section */}
       {staff.user && (

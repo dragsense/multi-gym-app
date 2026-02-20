@@ -119,7 +119,6 @@ export class CrudService<T extends ObjectLiteral>
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.logger.error(`Error creating entity: ${error.message}`, error.stack);
-      if (error.name === 'HttpException' || error.status) throw error;
       throw new BadRequestException(
         `Failed to create entity: ${error.message}`,
       );
@@ -197,7 +196,7 @@ export class CrudService<T extends ObjectLiteral>
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.logger.error(`Error updating entity: ${error.message}`, error.stack);
-      if (error.name === 'HttpException' || error.status) throw error;
+      if (error instanceof NotFoundException) throw error;
       throw new BadRequestException(
         `Failed to update entity: ${error.message}`,
       );
@@ -492,7 +491,7 @@ export class CrudService<T extends ObjectLiteral>
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.logger.error(`Error deleting entity: ${error.message}`, error.stack);
-      if (error.name === 'HttpException' || error.status) throw error;
+      if (error instanceof NotFoundException) throw error;
       throw new BadRequestException(
         `Failed to delete entity: ${error.message}`,
       );
@@ -659,7 +658,7 @@ export class CrudService<T extends ObjectLiteral>
       const source = this.getRepository().metadata.name.toLowerCase();
       // Get tenantId from RequestContext (set by middleware during HTTP requests)
       const tenantId = RequestContext.get<string>('tenantId');
-
+      
       const payload: EventPayload = {
         entity: entity as T,
         entityId: entity ? (entity as any).id : undefined,

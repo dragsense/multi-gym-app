@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString,  IsEnum, Length, } from 'class-validator';
 import { FieldOptions, FieldType } from '../../decorators/field.decorator';
-import { IMessageResponse } from '../../interfaces/api/response.interface';
+import type { IMessageResponse } from '../../interfaces/api/response.interface';
 
 export class CreateStripeConnectDto {
 

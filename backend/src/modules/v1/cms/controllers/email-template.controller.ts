@@ -33,7 +33,7 @@ import { EResource } from '@shared/enums';
 
 @ApiBearerAuth('access-token')
 @ApiTags('CMS - Email Templates')
-@MinUserLevel(EUserLevels.SUPER_ADMIN)
+@MinUserLevel(EUserLevels.ADMIN)
 @Resource(EResource.EMAIL_TEMPLATES)
 @Controller('cms/email-templates')
 export class EmailTemplateController {

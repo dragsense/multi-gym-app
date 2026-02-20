@@ -18,6 +18,7 @@ import { type TSingleHandlerStore } from "@/stores";
 
 // Components
 import { LocationFormModal, type ILocationFormModalExtraProps } from "@/components/admin";
+import { LOCATION_SELECTION_STORE_KEY } from "@/page-components/location/location-selection";
 
 // Services
 import { createLocation, updateLocation } from "@/services/location.api";
@@ -29,7 +30,7 @@ import { buildSentence } from "@/locales/translations";
 
 export type TLocationExtraProps = {};
 
-interface ILocationFormProps extends THandlerComponentProps<TSingleHandlerStore<ILocation, TLocationExtraProps>> {}
+interface ILocationFormProps extends THandlerComponentProps<TSingleHandlerStore<ILocation, TLocationExtraProps>> { }
 
 export default function LocationForm({
     storeKey,
@@ -93,6 +94,7 @@ export default function LocationForm({
                 onSuccess={() => {
                     startTransition(() => {
                         queryClient.invalidateQueries({ queryKey: [storeKey + "-list"] });
+                        queryClient.invalidateQueries({ queryKey: [LOCATION_SELECTION_STORE_KEY + "-list"] });
                         handleClose();
                     });
                 }}

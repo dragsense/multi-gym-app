@@ -39,7 +39,7 @@ import { EResource } from '@shared/enums';
 @Resource(EResource.STAFF)
 @Controller('staff')
 export class StaffController {
-  constructor(private readonly staffService: StaffService) {}
+  constructor(private readonly staffService: StaffService) { }
 
   @ApiOperation({ summary: 'Get all staff members with pagination and filters' })
   @ApiResponse({ status: 200, type: StaffPaginatedDto })
@@ -55,7 +55,8 @@ export class StaffController {
     type: StaffDto,
   })
   @Get('me')
-    getCurrentUserStaff(
+  @Resource(EResource.STAFF)
+  getCurrentUserStaff(
     @Query() query: SingleQueryDto,
     @AuthUser() currentUser: User,
   ) {

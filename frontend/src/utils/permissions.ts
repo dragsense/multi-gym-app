@@ -41,12 +41,12 @@ export function getUserPermissionNames(user: IUser | null | undefined): string[]
 export function hasPermission(
   user: IUser | null | undefined,
   resource: EResource,
-  action: EPermissionAction
+  action: EPermissionAction[]
 ): boolean {
   if (!user) return false;
 
   const permissionNames = getUserPermissionNames(user);
-  const requiredPermission = `${resource}:${action}`;
+  const requiredPermission = action.map(action => `${resource}:${action}`).join(',');
 
   // Check for exact permission
   if (permissionNames.includes(requiredPermission)) {
@@ -56,7 +56,7 @@ export function hasPermission(
   // Check for wildcard permissions
   if (
     permissionNames.includes(`${resource}:*`) ||
-    permissionNames.includes(`*:${action}`) ||
+    permissionNames.includes(`*:${action.join(',')}`) ||
     permissionNames.includes('*:*')
   ) {
     return true;
@@ -91,5 +91,5 @@ export function canReadResource(
   user: IUser | null | undefined,
   resource: EResource
 ): boolean {
-  return hasPermission(user, resource, EPermissionAction.READ);
+  return hasPermission(user, resource, [EPermissionAction.READ, EPermissionAction.MANAGE]);
 }

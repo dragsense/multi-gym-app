@@ -56,4 +56,3 @@ export class DeviceReader extends GeneralBaseEntity {
   status: EDeviceReaderStatus;
   
 }
-

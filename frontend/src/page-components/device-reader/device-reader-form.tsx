@@ -26,6 +26,7 @@ import { CreateDeviceReaderDto, UpdateDeviceReaderDto } from "@shared/dtos";
 import type { TCreateDeviceReaderData, TUpdateDeviceReaderData } from '@shared/types/device-reader.type';
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
+import { getSelectedLocation } from "@/utils/location-storage";
 
 export type TDeviceReaderExtraProps = {};
 
@@ -53,15 +54,16 @@ export default function DeviceReaderForm({
         reset: state.reset
     })));
 
+    const location = getSelectedLocation();
     const initialValues = useMemo(() => {
         const INITIAL_VALUES: TCreateDeviceReaderData = {
             deviceName: "",
             macAddress: "",
             status: undefined,
-            location: undefined,
+            ...(location && { location: { id: location.id, name: location.name } }),
         };
         return strictDeepMerge<TCreateDeviceReaderData>(INITIAL_VALUES, response ?? {});
-    }, [response]);
+    }, [response, location]);
 
     const handleClose = useCallback(() => {
         startTransition(() => {

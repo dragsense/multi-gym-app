@@ -7,7 +7,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import {
@@ -54,6 +54,7 @@ export class TicketReplyDto {
     type: () => UserDto,
     description: 'User who created this reply',
   })
+  @Expose()
   @Type(() => UserDto)
   @IsOptional()
   createdBy?: UserDto;
@@ -123,6 +124,7 @@ export class TicketReplyListDto extends ListQueryDto<TicketReplyDto> {
 
 export class TicketReplyPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [TicketReplyDto] })
+  @Expose()
   @Type(() => TicketReplyDto)
   data: TicketReplyDto[];
 }

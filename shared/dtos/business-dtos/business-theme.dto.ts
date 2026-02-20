@@ -7,7 +7,7 @@ import {
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
 import { FieldType } from "../../decorators/field.decorator";
-import { IFileUpload } from "../../interfaces/file-upload.interface";
+import type { IFileUpload } from "../../interfaces/file-upload.interface";
 
 export class CreateBusinessThemeDto {
   @ApiProperty({

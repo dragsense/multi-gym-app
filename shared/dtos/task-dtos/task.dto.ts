@@ -22,7 +22,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -246,6 +246,7 @@ export class CreateTaskDto {
   })
   @IsNotEmpty()
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   @FieldType("nested", true, UserDto)
   assignedTo: UserDto;
@@ -287,6 +288,7 @@ export class CreateTaskDto {
   @IsNotEmpty()
   @IsObject({ message: "Recurrence configuration is required" })
   @ValidateNested()
+  @Expose()
   @Type(() => RecurrenceConfigDto)
   @FieldType("nested", true, RecurrenceConfigDto)
   @ValidateIf((o) => o.enableRecurrence === true)
@@ -309,6 +311,7 @@ export class CreateTaskDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @FieldType("nested", false, LocationDto)
   location?: LocationDto;
@@ -319,6 +322,7 @@ export class CreateTaskDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => DoorDto)
   @FieldType("nested", false, DoorDto)
   door?: DoorDto;
@@ -389,6 +393,7 @@ export class TaskListDto extends ListQueryDto {
 
 export class TaskPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [TaskDto] })
+  @Expose()
   @Type(() => TaskDto)
   data: TaskDto[];
 }
@@ -455,6 +460,7 @@ export class TaskDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   assignedTo?: UserDto;
 
@@ -464,6 +470,7 @@ export class TaskDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   createdBy?: UserDto;
 
@@ -513,6 +520,7 @@ export class TaskDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => RecurrenceConfigDto)
   recurrenceConfig?: RecurrenceConfigDto;
 

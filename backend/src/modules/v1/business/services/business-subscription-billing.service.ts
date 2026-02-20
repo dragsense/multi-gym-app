@@ -11,8 +11,6 @@ import { User } from '@/common/base-user/entities/user.entity';
 import { BusinessService } from '../business.service';
 import { LoggerService } from '@/common/logger/logger.service';
 import { IMessageResponse } from '@shared/interfaces';
-import { StripeBillingService } from '@/modules/v1/stripe/services/stripe-billing.service';
-import { StripeCustomerService } from '@/modules/v1/stripe/services/stripe-customer.service';
 import { BusinessSubscriptionPaymentIntentDto, CreateBusinessSubscriptionDto, CreateBusinessSubscriptionPaymentIntentDto } from '@shared/dtos/business-dtos';
 import { BillingsService } from '../../billings/billings.service';
 import { CrudService } from '@/common/crud/crud.service';
@@ -47,8 +45,6 @@ export class BusinessSubscriptionBillingService extends CrudService<BusinessSubs
     private readonly businessSubscriptionService: BusinessSubscriptionService,
     private readonly businessSubscriptionHistoryService: BusinessSubscriptionHistoryService,
     private readonly billingsService: BillingsService,
-    private readonly stripeBillingService: StripeBillingService,
-    private readonly stripeCustomerService: StripeCustomerService,
     private readonly billingHistoryService: BillingHistoryService,
     protected readonly entityRouterService: EntityRouterService,
     moduleRef: ModuleRef,

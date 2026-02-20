@@ -85,6 +85,8 @@ export class BaseService<
       url += `?${params.toString()}`;
     }
 
+    console.log(url);
+
     return apiRequest<TResponse>(url, "GET");
   }
 

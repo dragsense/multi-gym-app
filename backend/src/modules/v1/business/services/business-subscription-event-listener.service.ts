@@ -15,7 +15,7 @@ import { BusinessSubscription } from '../entities/business-subscription.entity';
 import { ActionRegistryService } from '@/common/helper/services/action-registry.service';
 import { DateTime } from 'luxon';
 import { BillingsService } from '@/modules/v1/billings/billings.service';
-import { StripeCustomerService } from '@/modules/v1/stripe/services/stripe-customer.service';
+import { PaymentAdapterCardsService } from '@/modules/v1/payment-adapter/services/payment-adapter-cards.service';
 import { ESubscriptionFrequency } from '@shared/enums/business/subscription.enum';
 import { BusinessSubscriptionBillingService } from './business-subscription-billing.service';
 import { EBillingType } from '@shared/enums/billing.enum';
@@ -30,7 +30,7 @@ export class BusinessSubscriptionEventListenerService implements OnModuleInit {
     private readonly scheduleService: ScheduleService,
     private readonly actionRegistryService: ActionRegistryService,
     private readonly billingsService: BillingsService,
-    private readonly stripeCustomerService: StripeCustomerService,
+    private readonly paymentAdapterCardsService: PaymentAdapterCardsService,
   ) { }
 
   onModuleInit() {
@@ -333,23 +333,31 @@ export class BusinessSubscriptionEventListenerService implements OnModuleInit {
         return;
       }
 
-      // Get default payment method from Stripe customer
-      const defaultPaymentMethod = await this.stripeCustomerService.getDefaultPaymentMethod(
+      // Get default payment method via payment adapter (context already has tenantId)
+      const tenantId = business.tenantId;
+      if (!tenantId) {
+        this.logger.warn(
+          `Business ${businessId} has no tenantId, skipping billing`,
+        );
+        return;
+      }
+
+      const defaultPaymentMethod = await this.paymentAdapterCardsService.getDefaultPaymentMethod(
         business.user,
       );
-      if (!defaultPaymentMethod) {
+
+      if (!defaultPaymentMethod?.id) {
         this.logger.warn(
           `No default payment method found for business ${businessId}, skipping billing`,
         );
         return;
       }
 
-
       // Create payment intent with default payment method
       this.billingsService.createBillingPaymentIntent(
         {
           billingId: newBilling.id,
-          paymentMethodId: defaultPaymentMethod.id,
+          paymentMethodId: defaultPaymentMethod.id as string,
           saveForFutureUse: false,
           setAsDefault: false,
         },
@@ -359,6 +367,7 @@ export class BusinessSubscriptionEventListenerService implements OnModuleInit {
           businessSubscriptionId,
           businessId,
         },
+        tenantId,
       ).then(() => {
         this.logger.log(
           `Successfully processed recurring billing for business subscription ${businessSubscriptionId}`,

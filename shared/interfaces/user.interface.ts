@@ -1,4 +1,4 @@
-import { IMessageResponse } from './api/response.interface';
+import type { IMessageResponse } from './api/response.interface';
 import { ProfileDto, UserDto } from '../dtos/user-dtos';
 
 

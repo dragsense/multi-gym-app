@@ -111,7 +111,7 @@ export function List<TData, TListData = any, TExtra extends Record<string, unkno
                 
               </div>
             ))
-          ) : (<div className="text-sm text-muted-foreground text-center py-8">
+          ) : (<div className="w-full text-sm text-muted-foreground text-center py-8">
             {emptyMessage}
           </div>)}
         </div>

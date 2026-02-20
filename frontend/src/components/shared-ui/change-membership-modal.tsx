@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect } from "react";
 
 // Types
 import type { IMembership } from "@shared/interfaces";
-import type { StripePaymentCard, StripeCardFormData } from "@/@types/payment.types";
+import type { PaymentCard, PaymentCardFormData } from "@/@types/payment.types";
 import { EPaymentPreference } from "@shared/enums/membership.enum";
 
 // Components
@@ -12,7 +12,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppDialog } from "@/components/layout-ui/app-dialog";
 import { MembershipCard } from "@/components/shared-ui/membership-card";
 import { MembershipSummary } from "@/components/member-onboarding/membership-summary";
-import { StripePaymentModal } from "@/components/shared-ui/stripe-payment-modal";
+import { PaymentModalAdapter } from "@/payment-processors";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
@@ -28,14 +28,14 @@ export interface IChangeMembershipModalProps {
   onOpenChange: (open: boolean) => void;
   memberships: IMembership[];
   isLoadingMemberships?: boolean;
-  stripeCards: StripePaymentCard[];
+  cards: PaymentCard[];
   isLoadingPaymentCards?: boolean;
   isProcessingPayment?: boolean;
   onPayment: (
     membership: IMembership,
     paymentPreference: EPaymentPreference,
     paymentMethodId?: string,
-    cardData?: StripeCardFormData
+    cardData?: PaymentCardFormData
   ) => void;
 }
 
@@ -48,7 +48,7 @@ export function ChangeMembershipModal({
   onOpenChange,
   memberships,
   isLoadingMemberships = false,
-  stripeCards,
+  cards,
   isLoadingPaymentCards = false,
   isProcessingPayment = false,
   onPayment,
@@ -95,7 +95,7 @@ export function ChangeMembershipModal({
 
   // Handle payment
   const handlePayClick = useCallback(
-    (paymentMethodId?: string, cardData?: StripeCardFormData) => {
+    (paymentMethodId?: string, cardData?: PaymentCardFormData) => {
       if (!selectedMembership) return;
       onPayment(selectedMembership, paymentPreference, paymentMethodId, cardData);
     },
@@ -256,11 +256,11 @@ export function ChangeMembershipModal({
         </DialogContent>
       </Dialog>
 
-      {/* Stripe Payment Modal */}
-      <StripePaymentModal
+      {/* Payment Modal (Stripe or Paysafe per business) */}
+      <PaymentModalAdapter
         open={showPaymentModal}
         onOpenChange={setShowPaymentModal}
-        stripeCards={stripeCards}
+        cards={cards}
         onPay={handlePayClick}
         isLoading={isProcessingPayment}
         amount={totalAmount}

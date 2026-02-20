@@ -1,8 +1,8 @@
 module.exports = {
   apps: [
     {
-      name: "trainer-prod",
-      script: "dist/src/main.js",
+      name: "vivast-prod",
+      script: "dist/backend/src/main.js",
       cwd: "/app/backend",
       env: {
         NODE_ENV: "production",
@@ -17,11 +17,11 @@ module.exports = {
       restart_delay: 4000,
     },
     {
-      name: "trainer-dev",
-      script: "dist/src/main.js",
+      name: "vivast-staging",
+      script: "dist/backend/src/main.js",
       cwd: "/app/backend",
       env: {
-        NODE_ENV: "development",
+        NODE_ENV: "staging",
       },
       error_file: "/app/backend/logs/pm2-error.log",
       out_file: "/app/backend/logs/pm2-out.log",
@@ -35,23 +35,24 @@ module.exports = {
   ],
   deploy: {
     prod: {
-      user: "root",
-      host: "66.103.211.113",
+      user: "ubuntu",
+      host: "35.84.225.108",
       ref: "origin/main",
-      repo: "git@github.com:dragsense/trainer-app.git",
-      path: "/var/www/trainer_usr/data/www/trainer.digital.st/prod",
-      key: "C:/Users/ranaa/.ssh/trainer-server",
-      "post-setup": "touch ../shared/.env ../shared/.env ../shared/.env.prod",
+      repo: "git@octa_github.com:Octathorn/vivast.git",
+      path: "/var/www/vivast_io_usr/data/www/vivast.io",
+      // Use WSL path (no spaces) or copy key to ~/.ssh/vivast-dev.pem
+      key: process.env.HOME + "/.ssh/vivast-dev.pem",
+      "post-setup": "touch ../shared/.env ../shared/.env.prod ../shared/.env.dev ../shared/.env.shared",
       "post-deploy": "sh ./deploy.sh",
     },
-    dev: {
-      user: "root",
-      host: "66.103.211.113",
-      ref: "origin/dev",
-      repo: "git@github.com:dragsense/trainer-app.git",
-      path: "/var/www/trainer_usr/data/www/trainer.digital.st/dev",
-      key: "C:/Users/ranaa/.ssh/trainer-server",
-      "post-setup": "touch ../shared/.env ../shared/.env ../shared/.env.prod",
+    staging: {
+      user: "ubuntu",
+      host: "35.84.225.108",
+      ref: "origin/testing",
+      repo: "git@octa_github.com:Octathorn/vivast.git",
+      path: "/var/www/vivast_io_usr/data/www/vivast.io/staging",
+      key: process.env.HOME + "/.ssh/vivast-dev.pem",
+      "post-setup": "touch ../shared/.env ../shared/.env.prod ../shared/.env.dev ../shared/.env.shared",
       "post-deploy": "sh ./deploy.sh",
     },
   },

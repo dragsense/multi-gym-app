@@ -29,6 +29,9 @@ import { type TListHandlerStore, type TSingleHandlerStore } from "@/stores";
 import { type TListHandlerComponentProps } from "@/@types/handler-types";
 import type { TStaffListData } from "@shared/types/staff.type";
 import type { IStaff } from "@shared/interfaces/staff.interface";
+import { ADMIN_ROUTES, SEGMENTS } from "@/config/routes.config";
+import { useAuthUser } from "@/hooks/use-auth-user";
+import { useNavigate } from "react-router-dom";
 
 interface IStaffListProps extends TListHandlerComponentProps<TListHandlerStore<IStaff, TStaffListData, any>,
   TSingleHandlerStore<IStaff, any>> {
@@ -45,6 +48,8 @@ export default function StaffList({
   const componentId = useId();
   const [, startTransition] = useTransition();
   const { t } = useI18n();
+  const { user } = useAuthUser();
+  const navigate = useNavigate(); 
 
   if (!store) {
     return (`${buildSentence(t, 'list', 'store')} "${storeKey}" ${buildSentence(t, 'not', 'found')}. ${buildSentence(t, 'did', 'you', 'forget', 'to', 'register', 'it')}?`);
@@ -90,6 +95,15 @@ export default function StaffList({
     });
   }
 
+  const handleDetailView = (staffId: string | number) => {
+    if (!user) return;
+    const segment = SEGMENTS[user.level];
+    const detailPath = `${segment}/${ADMIN_ROUTES.STAFF_DETAIL.replace(':id', String(staffId))}`;
+    startTransition(() => {
+      navigate(detailPath);
+    });
+  }
+
   const { columns, listItem } = itemViews({
     handleEdit,
     handleDelete,
@@ -116,6 +130,8 @@ export default function StaffList({
           columns={columns}
           emptyMessage={buildSentence(t, 'no', 'staff', 'members', 'found')}
           showPagination={true}
+          onRowClick={(row) => handleDetailView(row.id)}
+          rowClassName={() => "cursor-pointer hover:bg-muted/50 transition-colors"}
         />
       </TabsContent>
 

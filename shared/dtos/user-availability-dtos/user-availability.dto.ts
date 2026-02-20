@@ -13,7 +13,7 @@ import {
   Min,
   ValidateIf,
 } from "class-validator";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType, createPartialType } from "../../lib/type-utils";
 import { FieldType } from "../../decorators/field.decorator";
@@ -61,6 +61,7 @@ export class DayScheduleDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => TimeSlotDto)
   @ArrayMaxSize(5)
   @FieldType("nestedArray", true, TimeSlotDto)
@@ -94,6 +95,7 @@ export class WeeklyScheduleDto {
     description: "Monday schedule",
   })
   @ValidateNested()
+  @Expose()
   @Type(() => DayScheduleDto)
   @FieldType("nested", true, DayScheduleDto)
   @IsOptional()
@@ -104,6 +106,7 @@ export class WeeklyScheduleDto {
     description: "Tuesday schedule",
   })
   @ValidateNested()
+  @Expose()
   @Type(() => DayScheduleDto)
   @FieldType("nested", true, DayScheduleDto)
   @IsOptional()
@@ -114,6 +117,7 @@ export class WeeklyScheduleDto {
     description: "Wednesday schedule",
   })
   @ValidateNested()
+  @Expose()
   @Type(() => DayScheduleDto)
   @FieldType("nested", true, DayScheduleDto)
   @IsOptional()
@@ -124,6 +128,7 @@ export class WeeklyScheduleDto {
     description: "Thursday schedule",
   })
   @ValidateNested()
+  @Expose()
   @Type(() => DayScheduleDto)
   @FieldType("nested", true, DayScheduleDto)
   @IsOptional()
@@ -134,6 +139,7 @@ export class WeeklyScheduleDto {
     description: "Friday schedule",
   })
   @ValidateNested()
+  @Expose()
   @Type(() => DayScheduleDto)
   @FieldType("nested", true, DayScheduleDto)
   @IsOptional()
@@ -144,6 +150,7 @@ export class WeeklyScheduleDto {
     description: "Saturday schedule",
   })
   @ValidateNested()
+  @Expose()
   @Type(() => DayScheduleDto)
   @FieldType("nested", true, DayScheduleDto)
   @IsOptional()
@@ -154,6 +161,7 @@ export class WeeklyScheduleDto {
     description: "Sunday schedule",
   })
   @ValidateNested()
+  @Expose()
   @Type(() => DayScheduleDto)
   @FieldType("nested", true, DayScheduleDto)
   @IsOptional()
@@ -185,6 +193,7 @@ export class UserAvailabilityDto {
   })
   @IsObject()
   @ValidateNested()
+  @Expose()
   @Type(() => WeeklyScheduleDto)
   @FieldType("nested", true, WeeklyScheduleDto)
   weeklySchedule!: WeeklyScheduleDto;
@@ -195,6 +204,7 @@ export class UserAvailabilityDto {
   })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => UnavailablePeriodDto)
   @FieldType("nested", true, UnavailablePeriodDto)
   unavailablePeriods!: UnavailablePeriodDto[];
@@ -218,6 +228,7 @@ export class CreateUserAvailabilityDto {
     type: WeeklyScheduleDto,
   })
   @ValidateNested()
+  @Expose()
   @Type(() => WeeklyScheduleDto)
   @FieldType("nested", true, WeeklyScheduleDto)
   @IsOptional()
@@ -237,6 +248,7 @@ export class CreateUserAvailabilityDto {
   })
   @IsOptional()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => UnavailablePeriodDto)
   @ArrayMaxSize(10)
   @FieldType("nestedArray", true, UnavailablePeriodDto)
@@ -264,6 +276,7 @@ export class CheckUserAvailabilityRequestDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @Expose()
   @Type(() => Number)
   duration?: number;
 

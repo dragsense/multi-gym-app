@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { PaymentMethodsSeed } from '../common/payment-methods/seeder/payment-methods.seed';
+import { PaymentProcessorsSeed } from '../common/payment-processors/seeder/payment-processors.seed';
 import { UserSeed } from '../common/base-user/seeder/user.seed';
 import { ResourceSeed } from '../common/roles/seeder/resource.seed';
 import { PageSeed } from '../modules/v1/cms/seeder/page.seed';
@@ -11,7 +11,7 @@ import { PermissionSeed } from '@/common/roles/seeder/permission.seed';
 export class SeedRunnerService implements OnModuleInit {
   private readonly logger = new LoggerService(SeedRunnerService.name);
   constructor(
-    private paymentMethdSeed: PaymentMethodsSeed,
+    private paymentProcessorsSeed: PaymentProcessorsSeed,
     private userSeed: UserSeed,
     private resourceSeed: ResourceSeed,
     private pageSeed: PageSeed,
@@ -34,7 +34,7 @@ export class SeedRunnerService implements OnModuleInit {
         // Tenant seeding (DataSource-aware seeds only)
         await this.resourceSeed.run(dataSource);
         await this.permissionSeed.run(dataSource);
-        await this.paymentMethdSeed.run(dataSource);
+        await this.paymentProcessorsSeed.run(dataSource);
         await this.pageSeed.run(dataSource);
  
         await this.userSeed.run();

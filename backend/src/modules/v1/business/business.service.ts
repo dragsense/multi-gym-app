@@ -7,8 +7,9 @@ import { CrudService } from '@/common/crud/crud.service';
 import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
 import { Business } from './entities/business.entity';
 
-import { CreateBusinessDto, CreateBusinessWithUserDto, UpdateBusinessWithUserDto, BusinessImpersonateResponseDto } from '@shared/dtos';
+import { CreateBusinessDto, CreateBusinessWithUserDto, UpdateBusinessDto, UpdateBusinessWithUserDto, BusinessImpersonateResponseDto } from '@shared/dtos';
 import { User } from '@/common/base-user/entities/user.entity';
+import { PaymentProcessorsService } from '@/common/payment-processors/payment-processors.service';
 import { EBusinessStatus } from '@shared/enums/business/business.enum';
 import { EUserLevels } from '@shared/enums';
 import { DatabaseManager } from '@/common/database/database-manager.service';
@@ -27,19 +28,23 @@ export class BusinessService extends CrudService<Business> {
         private readonly tokenService: TokenService,
         private readonly configService: ConfigService,
         private readonly usersService: UsersService,
+        private readonly paymentProcessorsService: PaymentProcessorsService,
     ) {
         const crudOptions: CrudOptions = {
             restrictedFields: [],
-            searchableFields: ['businessName'],
+            searchableFields: ['name', 'subdomain'],
         };
         super(businessRepo, moduleRef, crudOptions);
     }
 
     getRepository(): Repository<Business> {
         return this.businessRepo;
-      }
+    }
 
     async createBusiness(createDto: CreateBusinessDto, currentUser: User): Promise<Business> {
+        if (createDto.paymentProcessorId) {
+            await this.validatePaymentProcessorId(createDto.paymentProcessorId);
+        }
         return this.create(createDto, {
             beforeCreate: async (dto, manager) => {
                 const business = await manager.findOne(Business, {
@@ -160,6 +165,19 @@ export class BusinessService extends CrudService<Business> {
     }
 
     /**
+     * Validate that paymentProcessorId exists and is enabled when provided.
+     */
+    private async validatePaymentProcessorId(paymentProcessorId: string): Promise<void> {
+        const processor = await this.paymentProcessorsService.getSingle(paymentProcessorId);
+        if (!processor) {
+            throw new BadRequestException('Payment processor not found');
+        }
+        if (!processor.enabled) {
+            throw new BadRequestException('Selected payment processor is not enabled');
+        }
+    }
+
+    /**
      * Find business by subdomain
      * @param subdomain - The subdomain to search for (e.g., 'mygym' from 'mygym.example.com')
      * @returns Business entity if found, null otherwise
@@ -211,22 +229,22 @@ export class BusinessService extends CrudService<Business> {
         );
 
         // Find user in tenant DB where refUserId matches business owner and level is SUPER_ADMIN
-        const tenantSuperAdmin = await tenantUserRepo.findOne({
+        const tenantAdmin = await tenantUserRepo.findOne({
             where: {
                 refUserId: businessUser.id,
-                level: EUserLevels.SUPER_ADMIN,
+                level: EUserLevels.ADMIN
             },
         });
 
-        if (!tenantSuperAdmin) {
-            throw new NotFoundException('Super admin user not found in tenant database');
+        if (!tenantAdmin) {
+            throw new NotFoundException('admin user not found in tenant database');
         }
 
         // 4. Generate short-lived impersonation token (60 seconds)
         const impersonationToken = this.tokenService.generateImpersonationToken({
             userId: adminUser.id,
             tenantId: business.tenantId,
-            targetUserId: tenantSuperAdmin.id,
+            targetUserId: tenantAdmin.id,
             subdomain: business.subdomain,
             purpose: 'impersonation',
         }, '60s');
@@ -296,9 +314,9 @@ export class BusinessService extends CrudService<Business> {
 
         // 4. Build redirect URL
         const host = this.configService.get('app.host') || 'localhost';
-        const port = process.env.SUBDOMAIN_PORT || '5173';
-        const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-        const redirectUrl = `${protocol}://${business.subdomain}.${host}:${port}/auth/impersonate?token=${loginToken}`;
+        const port = process.env.NODE_ENV === 'development' ? (process.env.SUBDOMAIN_PORT || '5173') : '';
+        const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+        const redirectUrl = `${protocol}://${business.subdomain}.${host}${port ? `:${port}` : ''}/auth/impersonate?token=${loginToken}`;
 
         return {
             redirectUrl,
@@ -308,17 +326,95 @@ export class BusinessService extends CrudService<Business> {
     }
 
     async getMyBusiness(currentUser: User): Promise<Business> {
-        let business = await this.getSingle({ userId: currentUser.id });
+        const relations = { _relations: ['paymentProcessor'] };
+        let business = await this.getSingle({ userId: currentUser.id }, relations);
 
         if (!business) {
-            if(currentUser.refUserId) 
-            business = await this.getSingle({ userId: currentUser.refUserId }, { _relations: ['user'] });
-
+            if (currentUser.refUserId) {
+                business = await this.getSingle(
+                    { userId: currentUser.refUserId },
+                    { _relations: ['user', 'paymentProcessor'] },
+                );
+            }
             if (!business) {
                 throw new NotFoundException('Business not found for current user');
             }
         }
 
         return business;
+    }
+
+    /**
+     * Returns current user's business payment processor type for payment UI (Stripe vs Paysafe).
+     * Skips business lookup when user level is MEMBER (members have no business).
+     */
+    async getMyBusinessPaymentProcessorType(currentUser: User): Promise<{ type: string | null; paymentProcessorId: string | null }> {
+
+        try {
+            const business = await this.getMyBusiness(currentUser);
+            const type = business.paymentProcessor?.type ?? null;
+            return { type, paymentProcessorId: business.paymentProcessorId ?? null };
+        } catch {
+            return { type: null, paymentProcessorId: null };
+        }
+    }
+
+
+    /**
+   * Returns current user's business payment processor type for payment UI (Stripe vs Paysafe).
+   * Skips business lookup when user level is MEMBER (members have no business).
+   */
+    async getCurrentBusinessPaymentProcessorType(tenantId: string): Promise<{ type: string | null; paymentProcessorId: string | null }> {
+
+        const business = await this.getSingle({ tenantId }, { _relations: ['paymentProcessor'] });
+
+        if (!business) {
+            throw new NotFoundException('Business not found for tenant');
+        }
+
+        const type = business.paymentProcessor?.type ?? null;
+        return { type, paymentProcessorId: business.paymentProcessorId ?? null };
+    }
+
+    /**
+     * Update the current user's own business (e.g. payment processor during onboarding).
+     * Only allows updating safe fields like paymentProcessorId.
+     */
+    async updateMyBusiness(
+        currentUser: User,
+        updateDto: UpdateBusinessDto,
+    ): Promise<Business> {
+        const business = await this.getMyBusiness(currentUser);
+        const allowedData: Partial<UpdateBusinessDto> = {};
+        if (updateDto.paymentProcessorId !== undefined) {
+            allowedData.paymentProcessorId = updateDto.paymentProcessorId;
+        }
+        if (Object.keys(allowedData).length === 0) {
+            return business;
+        }
+        if (allowedData.paymentProcessorId) {
+            await this.validatePaymentProcessorId(allowedData.paymentProcessorId);
+        }
+        await this.update(business.id, allowedData);
+        return this.getSingle(business.id) as Promise<Business>;
+    }
+
+    /**
+     * Override update to validate paymentProcessorId when present.
+     */
+    async update<TUpdateDto>(
+        key: string | number | Record<string, any>,
+        updateDto: TUpdateDto,
+        callbacks?: {
+            beforeUpdate?: (processedData: TUpdateDto, existingEntity: Business, manager: any) => any | Promise<any>;
+            afterUpdate?: (updatedEntity: Business, manager: any) => any | Promise<any>;
+        },
+        deleted?: boolean,
+    ): Promise<Business> {
+        const dto = updateDto as Record<string, unknown>;
+        if (dto?.paymentProcessorId && typeof dto.paymentProcessorId === 'string') {
+            await this.validatePaymentProcessorId(dto.paymentProcessorId);
+        }
+        return super.update(key, updateDto, callbacks, deleted);
     }
 }

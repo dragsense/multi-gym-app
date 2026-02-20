@@ -61,6 +61,9 @@ export class PushNotificationService {
     deviceId?: string,
   ): Promise<PushSubscription> {
     const pushSubscriptionRepo = this.entityRouterService.getRepository<PushSubscription>(PushSubscription);
+
+    this.logger.log(`📱 Saving push subscription for user ${userId}`);
+
     // Check if subscription with same endpoint already exists
     const existing = await pushSubscriptionRepo.findOne({
       where: { userId, endpoint: subscription.endpoint },
@@ -68,6 +71,7 @@ export class PushNotificationService {
 
     if (existing) {
       // Update existing subscription
+      this.logger.log(`📱 Updating existing push subscription ${existing.id} for user ${userId}`);
       existing.keys = subscription.keys;
       existing.userAgent = userAgent;
       existing.deviceId = deviceId;
@@ -83,7 +87,9 @@ export class PushNotificationService {
       deviceId,
     });
 
-    return await pushSubscriptionRepo.save(pushSubscription);
+    const saved = await pushSubscriptionRepo.save(pushSubscription);
+    this.logger.log(`✅ Created new push subscription ${saved.id} for user ${userId}`);
+    return saved;
   }
 
   /**
@@ -114,9 +120,13 @@ export class PushNotificationService {
    */
   async getUserSubscriptions(userId: string): Promise<PushSubscription[]> {
     const pushSubscriptionRepo = this.entityRouterService.getRepository<PushSubscription>(PushSubscription);
-    return await pushSubscriptionRepo.find({
+    const subscriptions = await pushSubscriptionRepo.find({
       where: { userId },
     });
+
+    this.logger.log(`📱 Found ${subscriptions.length} push subscription(s) for user ${userId}`);
+
+    return subscriptions;
   }
 
   /**

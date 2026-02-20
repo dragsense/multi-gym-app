@@ -1,6 +1,6 @@
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { ConfigService } from '@nestjs/config';
@@ -18,6 +18,7 @@ export class FfmpegProcessor {
 
   constructor(
     private configService: ConfigService,
+    @Inject(forwardRef(() => CamerasService))
     private camerasService: CamerasService,
     @InjectQueue('ffmpeg-stream') private ffmpegQueue: Queue,
   ) { }
@@ -108,7 +109,7 @@ export class FfmpegProcessor {
     const { cameraId, tenantId } = job.data;
     if (!cameraId) return;
 
-   
+
 
     if (!this.processes.has(cameraId)) {
 
@@ -129,6 +130,7 @@ export class FfmpegProcessor {
 
           const streamKey = getStreamKey(cameraId);
           const srsConfig = this.configService.get('srs');
+  
           const rtmpUrl = srsConfig.getRtmpUrl(streamKey);
 
           // Get protocol from camera or detect from URL
@@ -180,10 +182,10 @@ export class FfmpegProcessor {
         }
 
       });
-    } 
-      // Process already running, remove the job
-      await job.remove();
-    
+    }
+    // Process already running, remove the job
+    await job.remove();
+
   }
 
   @Process('stop')

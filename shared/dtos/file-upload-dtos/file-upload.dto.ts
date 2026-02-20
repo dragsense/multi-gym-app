@@ -7,11 +7,11 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { EFileType } from "../../enums/file-upload.enum";
 import { ListQueryDto } from "../common/list-query.dto";
 import { PaginationMetaDto } from "../common/pagination.dto";
-import { IFileUpload } from "../../interfaces";
+import type { IFileUpload } from "../../interfaces";
 import { FieldOptions, FieldType } from "../../decorators/field.decorator";
 
 export class CreateFileUploadDto {
@@ -70,6 +70,7 @@ export class UpdateFileUploadDto extends PartialType(CreateFileUploadDto) {}
 
 export class FilePaginationDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [FileUploadDto] })
+  @Expose()
   @Type(() => FileUploadDto)
   data: FileUploadDto[];
 }

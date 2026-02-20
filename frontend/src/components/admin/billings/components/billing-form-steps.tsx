@@ -8,12 +8,14 @@ interface BillingFormStepsProps {
   currentStep: number;
   inputs: FormInputs<TBillingData>;
   isEditing: boolean;
+  isPaidBilling?: boolean;
 }
 
 export const BillingFormSteps = React.memo(function BillingFormSteps({
   currentStep,
   inputs,
   isEditing,
+  isPaidBilling = false,
 }: BillingFormStepsProps) {
   const { t } = useI18n();
 
@@ -43,6 +45,11 @@ export const BillingFormSteps = React.memo(function BillingFormSteps({
           <h3 className="text-sm font-semibold mb-3">
             {buildSentence(t, "line", "items")}
           </h3>
+          {isPaidBilling && (
+            <p className="text-sm text-muted-foreground mb-3 rounded-md bg-muted/50 p-3">
+              {buildSentence(t, "PaidBillingAmountIsReadOnly")}
+            </p>
+          )}
           <div className="space-y-4">{inputs.lineItems as ReactNode}</div>
         </div>
       )}

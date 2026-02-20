@@ -4,20 +4,30 @@ import { loadStripe } from "@stripe/stripe-js";
 // Infer the Stripe type from loadStripe return type
 type StripeInstance = Awaited<ReturnType<typeof loadStripe>>;
 
-let stripePromise: Promise<StripeInstance> | null = null;
-
-// Initialize Stripe at module load
 const publishableKey = config.stripePublishableKey;
 
-if (publishableKey) {
-  stripePromise = loadStripe(publishableKey);
-} else {
-  console.warn(
-    "Stripe publishable key is not set. Please set VITE_STRIPE_PUBLISHABLE_KEY in your .env file."
-  );
-  stripePromise = Promise.resolve(null as StripeInstance);
-}
+// Cache: platform instance + per-connected-account instances
+let stripePromise: Promise<StripeInstance> | null = null;
 
-export const getStripe = (): Promise<StripeInstance> => {
-  return stripePromise!;
+
+/**
+ * Get Stripe instance for a connected account.
+ * Pass the connected account's stripeAccountId so Elements/tokenization
+ * targets the connected account (required for destination charges where
+ * customers/PMs live on the connected account).
+ */
+export const getStripeForConnect = (
+  stripeAccountId: string
+): Promise<StripeInstance> => {
+  if (!publishableKey) {
+    console.warn(
+      "Stripe publishable key is not set. Please set VITE_STRIPE_PUBLISHABLE_KEY in your .env file."
+    );
+    return Promise.resolve(null as StripeInstance);
+  }
+
+  if (!stripePromise) {
+    stripePromise = loadStripe(publishableKey, { ...(stripeAccountId ? { stripeAccount: stripeAccountId } : {}) });
+  }
+  return stripePromise;
 };

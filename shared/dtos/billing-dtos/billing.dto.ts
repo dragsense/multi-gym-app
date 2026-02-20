@@ -15,12 +15,12 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OmitType, PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
 import { EBillingStatus, EBillingType } from "../../enums/billing.enum";
-import { IBilling } from "../../interfaces/billing.interface";
+import type { IBilling } from "../../interfaces/billing.interface";
 import { UserDto } from "../user-dtos/user.dto";
 
 import { ReminderDto } from "../reminder-dtos";
@@ -71,6 +71,7 @@ export class CreateBillingDto {
   @ApiProperty({ type: () => UserDto })
   @IsNotEmpty({ message: "Recipient user is required" })
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   @FieldType("nested", true, UserDto)
   recipientUser: UserDto;
@@ -103,6 +104,7 @@ export class CreateBillingDto {
   @ApiPropertyOptional({ type: ReminderDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => ReminderDto)
   @FieldType("nested", false, ReminderDto)
   @ValidateIf((o) => o.enableReminder === true)
@@ -125,6 +127,7 @@ export class CreateBillingDto {
   @IsArray()
   @ArrayMinSize(1, { message: "Line items are required" })
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => CreateBillingLineItemDto)
   @FieldType("nestedArray", true, CreateBillingLineItemDto)
   lineItems: CreateBillingLineItemDto[];
@@ -223,12 +226,14 @@ export class BillingDto {
 
   @ApiProperty({ type: () => UserDto })
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   recipientUser: UserDto;
 
   @ApiProperty({ example: 1, description: "Number of clients" })
   @IsOptional()
   @IsNumber()
+  @Expose()
   @Type(() => Number)
   @FieldType("number", true)
   @Min(0)
@@ -245,6 +250,7 @@ export class BillingDto {
   @ApiPropertyOptional({ type: ReminderDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => ReminderDto)
   @FieldType("nested", false, ReminderDto)
   @ValidateIf((o) => o.enableReminder === true)
@@ -257,8 +263,21 @@ export class BillingDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => BillingLineItemDto)
   lineItems?: BillingLineItemDto[];
+
+  @ApiPropertyOptional({
+    example: 100,
+    description: "Total amount of the billing",
+  })
+  @IsOptional()
+  @IsNumber()
+  @Expose()
+  @Type(() => Number)
+  @FieldType("number", false)
+  @Min(0)
+  totalAmount?: number;
 
   @ApiPropertyOptional({
     example: false,

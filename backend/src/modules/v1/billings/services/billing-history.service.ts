@@ -27,8 +27,8 @@ export class BillingHistoryService extends CrudService<BillingHistory> {
   }
 
 
-  getLatestBillingHistoryQuery() {
-    const repository = this.getRepository();
+  getLatestBillingHistoryQuery(tenantId?: string) {
+    const repository = this.getRepository(tenantId);
     return repository
       .createQueryBuilder('bh')
       .innerJoinAndSelect('bh.billing', 'billing')

@@ -15,7 +15,7 @@ import {
   IsString,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type, Transform } from "class-transformer";
+import { Type, Transform, Expose } from "class-transformer";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
 import { EScheduleFrequency, EDayOfWeek } from "../../enums/schedule.enum";
 
@@ -80,6 +80,7 @@ export class RecurrenceConfigDto {
   })
   @IsArray()
   @IsEnum(EDayOfWeek, { each: true })
+  @Expose()
   @Type(() => Number)
   @ValidateIf((o) => o.frequency === EScheduleFrequency.WEEKLY)
   @Validate(WeekDaysRequiredForWeeklyConstraint)
@@ -104,6 +105,7 @@ export class RecurrenceConfigDto {
   @IsInt({ each: true })
   @Min(1, { each: true })
   @Max(31, { each: true })
+  @Expose()
   @Type(() => Number)
   @ValidateIf((o) => o.frequency === EScheduleFrequency.MONTHLY)
   @Validate(MonthDaysRequiredForMonthlyConstraint)

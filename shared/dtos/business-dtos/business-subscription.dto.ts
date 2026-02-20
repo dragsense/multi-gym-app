@@ -10,7 +10,7 @@ import {
   IsObject,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
 import { ESubscriptionStatus, ESubscriptionFrequency } from "../../enums/business/subscription.enum";
@@ -49,6 +49,7 @@ export class BusinessSubscriptionDto {
     description: "Associated business",
   })
   @IsOptional()
+  @Expose()
   @Type(() => BusinessDto)
   business?: BusinessDto;
 
@@ -57,6 +58,7 @@ export class BusinessSubscriptionDto {
     description: "Associated subscription",
   })
   @IsOptional()
+  @Expose()
   @Type(() => SubscriptionDto)
   subscription?: SubscriptionDto;
 
@@ -73,12 +75,14 @@ export class BusinessSubscriptionListDto extends ListQueryDto {
   })
   @IsOptional()
   @IsBoolean()
+  @Expose()
   @Type(() => Boolean)
   isActive?: boolean;
 }
 
 export class BusinessSubscriptionPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [BusinessSubscriptionDto] })
+  @Expose()
   @Type(() => BusinessSubscriptionDto)
   data: BusinessSubscriptionDto[];
 }
@@ -159,6 +163,7 @@ export class BusinessSubscriptionHistoryDto {
     description: "Associated business subscription",
   })
   @IsOptional()
+  @Expose()
   @Type(() => BusinessSubscriptionDto)
   businessSubscription?: BusinessSubscriptionDto;
 
@@ -181,6 +186,7 @@ export class BusinessSubscriptionHistoryListDto extends ListQueryDto {
 
 export class BusinessSubscriptionHistoryPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [BusinessSubscriptionHistoryDto] })
+  @Expose()
   @Type(() => BusinessSubscriptionHistoryDto)
   data: BusinessSubscriptionHistoryDto[];
 }
@@ -232,6 +238,7 @@ export class BusinessSubscriptionBillingDto {
     description: "Associated business",
   })
   @IsOptional()
+  @Expose()
   @Type(() => BusinessSubscriptionDto)
   businessSubscription?: BusinessSubscriptionDto;
 
@@ -240,6 +247,7 @@ export class BusinessSubscriptionBillingDto {
     description: "Associated billing record",
   })
   @IsOptional()
+  @Expose()
   @Type(() => BillingDto)
   billing?: BillingDto;
 
@@ -255,6 +263,7 @@ export class BusinessSubscriptionBillingListDto extends ListQueryDto {
 
 export class BusinessSubscriptionBillingPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [BusinessSubscriptionBillingDto] })
+  @Expose()
   @Type(() => BusinessSubscriptionBillingDto)
   data: BusinessSubscriptionBillingDto[];
 }

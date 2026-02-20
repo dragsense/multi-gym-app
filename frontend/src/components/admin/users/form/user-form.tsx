@@ -3,6 +3,8 @@ import React, { useMemo, useId, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 // Custom Hooks
 import { type FormInputs, useInput } from "@/hooks/use-input";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 
 // Types
 import type { TFormHandlerStore } from "@/stores";
@@ -31,26 +33,48 @@ const UserForm = React.memo(function UserForm({
 }: IUserFormProps) {
   // React 19: Essential IDs and transitions
   const componentId = useId();
+  const { t } = useI18n();
 
   if (!store) {
-    return `Form store "${storeKey}" not found. Did you forget to register it?`;
+    return `${buildSentence(t, "form", "store")} "${storeKey}" ${buildSentence(t, "not", "found")}. ${buildSentence(t, "did", "you", "forget", "to", "register", "it")}?`;
   }
 
   const isSubmitting = store((state) => state.isSubmitting);
   // React 19: Memoized fields for better performance
   const storeFields = store((state) => state.fields);
 
-  // React 19: Memoized fields for better performance
+  // React 19: Memoized fields with translated labels and placeholders for account/settings
   const fields = useMemo(
     () =>
       ({
         ...storeFields,
         email: {
           ...storeFields.email,
+          label: t("email"),
           disabled: true,
         },
+        firstName: {
+          ...storeFields.firstName,
+          label: t("FirstName"),
+          placeholder: buildSentence(t, "enter", "first", "name"),
+        },
+        lastName: {
+          ...storeFields.lastName,
+          label: t("LastName"),
+          placeholder: buildSentence(t, "enter", "last", "name"),
+        },
+        dateOfBirth: {
+          ...storeFields.dateOfBirth,
+          label: t("dateOfBirth"),
+          placeholder: t("selectDate"),
+        },
+        gender: {
+          ...storeFields.gender,
+          label: t("gender"),
+          placeholder: t("selectGender"),
+        },
       } as TFieldConfigObject<TUserData>),
-    [storeFields]
+    [storeFields, t]
   );
 
   const inputs = useInput<TUserData | TUpdateUserData>({
@@ -64,9 +88,9 @@ const UserForm = React.memo(function UserForm({
         <AppCard
           header={
             <>
-              <h2 className="text-md font-semibold">User Information</h2>
+              <h2 className="text-md font-semibold">{t("userInformation")}</h2>
               <p className="text-sm text-muted-foreground">
-                Update your user information
+                {t("updateYourUserInformation")}
               </p>
             </>
           }
@@ -76,7 +100,7 @@ const UserForm = React.memo(function UserForm({
                 {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Update User
+                {t("updateUser")}
               </Button>
             </div>
           }

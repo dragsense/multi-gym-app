@@ -1,6 +1,6 @@
 import { GeneralBaseEntity } from '@/common/entities';
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
-import { User } from '@/common/base-user/entities/user.entity';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Business } from '@/modules/v1/business/entities/business.entity';
 
 @Entity('stripe_connect_accounts')
 export class StripeConnectAccount extends GeneralBaseEntity {
@@ -25,12 +25,12 @@ export class StripeConnectAccount extends GeneralBaseEntity {
   @Column({ type: 'boolean', default: false })
   payoutsEnabled: boolean;
 
-  @OneToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn()
-  user: User;
+  @ManyToOne(() => Business, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'businessId' })
+  business: Business;
 
-  @Column()
-  userId: string;
+  @Column({ type: 'uuid' })
+  businessId: string;
 
   get isComplete(): boolean {
     return this.detailsSubmitted && this.chargesEnabled;

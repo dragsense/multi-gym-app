@@ -1,6 +1,9 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { MIN_USER_LEVEL_METADATA } from '../decorators/level.decorator';
+import {
+  MIN_USER_LEVEL_METADATA,
+  REQUIRED_USER_LEVELS_METADATA,
+} from '../decorators/level.decorator';
 import { IS_PUBLIC_KEY } from '@/decorators/access.decorator';
 
 @Injectable()
@@ -8,7 +11,6 @@ export class UserLevelGuard implements CanActivate {
   constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
-
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -18,17 +20,22 @@ export class UserLevelGuard implements CanActivate {
       return true;
     }
 
-    const minLevel = this.reflector.getAllAndOverride<boolean>(
+    const minLevel = this.reflector.getAllAndOverride<number>(
       MIN_USER_LEVEL_METADATA,
       [context.getHandler(), context.getClass()],
     );
 
-    if (minLevel === undefined) {
+    const requiredLevels = this.reflector.getAllAndOverride<number[]>(
+      REQUIRED_USER_LEVELS_METADATA,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (minLevel === undefined && requiredLevels === undefined) {
       return true;
     }
 
     const { user } = context.switchToHttp().getRequest();
 
-    return user?.level <= minLevel;
+    return user?.level <= (minLevel ?? 0) || requiredLevels?.includes(user?.level);
   }
 }

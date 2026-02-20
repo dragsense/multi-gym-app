@@ -7,7 +7,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType } from "../../decorators/field.decorator";
@@ -47,6 +47,7 @@ export class CreateDoorDto {
     description: "Device Reader",
   })
   @IsOptional()
+  @Expose()
   @Type(() => DeviceReaderDto)
   @ValidateNested()
   @FieldType("custom", false, DeviceReaderDto)
@@ -57,6 +58,7 @@ export class CreateDoorDto {
     description: "Camera",
   })
   @IsOptional()
+  @Expose()
   @Type(() => CameraDto)
   @ValidateNested()
   @FieldType("custom", false, CameraDto)
@@ -79,6 +81,7 @@ export class DoorListDto extends ListQueryDto {
 
 export class DoorPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [DoorDto] })
+  @Expose()
   @Type(() => DoorDto)
   data: DoorDto[];
 }
@@ -119,6 +122,7 @@ export class DoorDto {
     description: "Device Reader",
   })
   @IsOptional()
+  @Expose()
   @Type(() => DeviceReaderDto)
   @ValidateNested()
   @FieldType("custom", false, DeviceReaderDto)
@@ -129,6 +133,7 @@ export class DoorDto {
     description: "Camera",
   })
   @IsOptional()
+  @Expose()
   @Type(() => CameraDto)
   @ValidateNested()
   @FieldType("custom", false, CameraDto)

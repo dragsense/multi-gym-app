@@ -11,7 +11,9 @@ import { useApiPaginatedQuery } from "./use-api-paginated-query";
 import { useApiMutation } from "./use-api-mutation";
 import type { INotification } from "@shared/interfaces/notification.interface";
 import type { IPaginatedResponse } from "@shared/interfaces/api/response.interface";
+import type { IUserSettings } from "@shared/interfaces/settings.interface";
 import { useAuthUser } from "./use-auth-user";
+import { useUserSettings } from "./use-user-settings";
 
 export interface UseNotificationsReturn {
   notifications: INotification[];
@@ -27,6 +29,7 @@ export interface UseNotificationsReturn {
 
 export function useNotifications(): UseNotificationsReturn {
   const { user } = useAuthUser();
+  const { settings } = useUserSettings();
   const queryClient = useQueryClient();
   const queryKey = useMemo(() => ["notifications", user?.id], [user?.id]);
 
@@ -146,10 +149,25 @@ export function useNotifications(): UseNotificationsReturn {
         }
       );
 
-      toast.info(notification.title, {
-        description: notification.message,
-        duration: 5000,
-      });
+      // Get the latest settings from the query cache to ensure we have the most up-to-date value
+      // Fallback to settings from hook if cache doesn't have it yet
+      const latestSettings = queryClient.getQueryData<IUserSettings>(["user-settings"]) || settings;
+      const inAppEnabled = latestSettings?.notifications?.inAppEnabled;
+
+      // Default behavior: show toast unless explicitly disabled (false)
+      // Show toast if: true, undefined (not set), null, or any truthy value
+      // Hide toast only if: explicitly false
+      // This ensures backward compatibility - if setting doesn't exist, show toasts
+      // Check explicitly: only hide if it's exactly boolean false
+      const shouldShowToast = inAppEnabled !== false;
+
+      if (shouldShowToast) {
+        toast.info(notification.title, {
+          id: `notification-${notification.id}`,
+          description: notification.message,
+          duration: 5000,
+        });
+      }
 
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification(notification.title, {
@@ -167,7 +185,7 @@ export function useNotifications(): UseNotificationsReturn {
     return () => {
       unsubscribeNotification();
     };
-  }, [user?.id, queryClient, queryKey]);
+  }, [user?.id, queryClient, queryKey, settings]);
 
   const markAsRead = useCallback(
     (notificationId: string) => {
@@ -177,7 +195,7 @@ export function useNotifications(): UseNotificationsReturn {
   );
 
   const markAllAsRead = useCallback(() => {
-    markAllAsReadMutation.mutate();
+    markAllAsReadMutation.mutate(undefined);
   }, [markAllAsReadMutation]);
 
   const clearNotifications = useCallback(() => {

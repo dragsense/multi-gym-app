@@ -1,8 +1,9 @@
-import { Entity, Column, ManyToOne, Index, JoinColumn } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { Entity, Column, ManyToOne, OneToOne, Index, JoinColumn } from 'typeorm';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GeneralBaseEntity } from '@/common/entities';
-import { EBusinessStatus } from '@shared/enums/business/business.enum';
 import { User } from '@/common/base-user/entities/user.entity';
+import { StripeConnectAccount } from '@/modules/v1/stripe/entities/stripe-connect-account.entity';
+import { PaymentProcessor } from '@/common/payment-processors/entities/payment-processor.entity';
 
 
 @Entity('businesses')
@@ -26,4 +27,20 @@ export class Business extends GeneralBaseEntity {
     @JoinColumn({ name: 'userId' })
     user: User;
 
+    @ApiPropertyOptional({ example: 'acct_123456', description: 'Stripe Connect account ID' })
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    stripeConnectAccountId: string | null;
+
+    @ApiPropertyOptional({ type: () => StripeConnectAccount, description: 'Stripe Connect account' })
+    @OneToOne(() => StripeConnectAccount, (sc) => sc.business, { nullable: true, eager: false })
+    stripeConnectAccount: StripeConnectAccount | null;
+
+    @ApiPropertyOptional({ example: '550e8400-e29b-41d4-a716-446655440002', description: 'Payment processor ID (Stripe, Paysafe, etc.)' })
+    @Column({ type: 'uuid', nullable: true })
+    paymentProcessorId: string | null;
+
+    @ApiPropertyOptional({ type: () => PaymentProcessor, description: 'Payment processor this business uses' })
+    @ManyToOne(() => PaymentProcessor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'paymentProcessorId' })
+    paymentProcessor: PaymentProcessor | null;
 }

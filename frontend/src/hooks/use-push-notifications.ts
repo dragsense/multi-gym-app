@@ -93,6 +93,12 @@ export function usePushNotifications(): PushNotificationPermission {
       return null;
     }
 
+    // VAPID public key should be approximately 87 characters
+    if (VAPID_PUBLIC_KEY.length < 85 || VAPID_PUBLIC_KEY.length > 90) {
+      console.error(`VAPID public key appears invalid. Expected ~87 characters, got ${VAPID_PUBLIC_KEY.length}. Key may be truncated.`);
+      return null;
+    }
+
     try {
       const registration = await navigator.serviceWorker.ready;
       const existingSubscription =

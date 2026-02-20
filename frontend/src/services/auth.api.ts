@@ -1,6 +1,6 @@
 import type { IMessageResponse } from "@shared/interfaces";
 import { BaseService } from "./base.service.api";
-import { type ILoginResponse } from "@shared/interfaces/auth.interface";
+import {  type IAuthUser, type ILoginResponse } from "@shared/interfaces/auth.interface";
 import type {
   TLoginData,
   TSignupData,
@@ -20,7 +20,7 @@ export const login = (data: TLoginData) =>
 export const signup = (data: TSignupData) =>
   authService.post(data, undefined, "/signup");
 
-export const me = () => authService.getSingle(null, undefined, "/me");
+export const me = () => authService.getSingle<IAuthUser>(null, undefined, "/me");
 
 export const verifyOtp = (data: TVerifyOtpData) =>
   authService.post(data, undefined, "/verify-otp");

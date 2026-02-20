@@ -21,7 +21,11 @@ const equipmentService = new BaseService<
 >(EQUIPMENT_API_PATH);
 
 // Re-export common CRUD operations
-export const fetchEquipment = (params: IListQueryParams) => equipmentService.get(params);
+export const fetchEquipment = (params: IListQueryParams, locationId?: string) =>
+  equipmentService.get<EquipmentDto>({
+    ...params,
+    filters: { ...(params.filters || {}), ...(locationId ? { locationId } : {}) },
+  });
 export const fetchEquipmentItem = (id: string, params?: IListQueryParams) => equipmentService.getSingle(id, params);
 export const deleteEquipment = (id: string) => equipmentService.delete(id);
 

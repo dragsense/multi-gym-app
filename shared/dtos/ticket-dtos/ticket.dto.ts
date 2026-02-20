@@ -8,7 +8,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
 import {
@@ -82,6 +82,7 @@ export class TicketDto {
     type: () => UserDto,
     description: 'User who created this ticket',
   })
+  @Expose()
   @Type(() => UserDto)
   @IsOptional()
   createdBy?: UserDto;
@@ -98,6 +99,7 @@ export class TicketDto {
     type: () => UserDto,
     description: 'User assigned to handle this ticket',
   })
+  @Expose()
   @Type(() => UserDto)
   @IsOptional()
   assignedTo?: UserDto;
@@ -136,7 +138,7 @@ export class CreateTicketDto {
   })
   @IsNotEmpty()
   @IsString()
-  @FieldType("text", false)
+  @FieldType("text", true)
   title: string;
 
   @ApiPropertyOptional({
@@ -236,6 +238,14 @@ export class TicketListDto extends ListQueryDto<TicketDto> {
   })
   @IsOptional()
   @IsEnum(ETicketStatus)
+  @FieldType("select", false)
+  @FieldOptions([
+    { value: ETicketStatus.OPEN, label: "Open" },
+    { value: ETicketStatus.IN_PROGRESS, label: "In Progress" },
+    { value: ETicketStatus.PENDING, label: "Pending" },
+    { value: ETicketStatus.RESOLVED, label: "Resolved" },
+    { value: ETicketStatus.CLOSED, label: "Closed" },
+  ])
   @Equals()
   status?: ETicketStatus;
 
@@ -245,6 +255,13 @@ export class TicketListDto extends ListQueryDto<TicketDto> {
   })
   @IsOptional()
   @IsEnum(ETicketPriority)
+  @FieldType("select", false)
+  @FieldOptions([
+    { value: ETicketPriority.LOW, label: "Low" },
+    { value: ETicketPriority.MEDIUM, label: "Medium" },
+    { value: ETicketPriority.HIGH, label: "High" },
+    { value: ETicketPriority.URGENT, label: "Urgent" },
+  ])
   @Equals()
   priority?: ETicketPriority;
 
@@ -285,6 +302,7 @@ export class TicketListDto extends ListQueryDto<TicketDto> {
 
 export class TicketPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [TicketDto] })
+  @Expose()
   @Type(() => TicketDto)
   data: TicketDto[];
 }

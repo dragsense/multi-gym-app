@@ -1,4 +1,4 @@
-import { IMessageResponse } from './api/response.interface';
+import type { IMessageResponse } from './api/response.interface';
 import { MembershipDto } from '../dtos/membership-dtos';
 
 export interface IMembership extends MembershipDto {};

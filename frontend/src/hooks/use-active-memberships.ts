@@ -13,7 +13,12 @@ import type { IMembership } from "@shared/interfaces";
 export function useActiveMemberships() {
   return useQuery<{ data: IMembership[] }>({
     queryKey: ["active-memberships"],
-    queryFn: () => fetchMemberships({ page: 1, limit: 100, enabled: "true" } as any),
+    queryFn: () => fetchMemberships({
+    page: 1,
+    limit: 100,
+    enabled: "true",
+    _relations: "doors,doors.location",
+  } as any),
   });
 }
 

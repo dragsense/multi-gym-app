@@ -18,7 +18,7 @@ import {
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { FieldOptions, FieldType } from "../../decorators/field.decorator";
 import { SignupUserLevel } from "../../enums/user.enum";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 
 @ValidatorConstraint({ name: "passwordMatch", async: false })
 class PasswordMatchConstraint implements ValidatorConstraintInterface {
@@ -37,6 +37,7 @@ export class SignupTrainerDto {
   @IsNumber()
   @IsNotEmpty()
   @Min(0)
+  @Expose()
   @Type(() => Number)
   @FieldType("number", true)
   experience: number;

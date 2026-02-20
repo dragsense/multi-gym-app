@@ -25,6 +25,7 @@ import { EUserLevels } from '@shared/enums';
 import { MinUserLevel } from '@/decorators/level.decorator';
 import Stripe from 'stripe';
 import { UsersService } from '../../users/users.service';
+import { RequestContext } from '@/common/context/request-context';
 
 @ApiBearerAuth('access-token')
 @ApiTags('Stripe Customer')
@@ -43,7 +44,8 @@ export class StripeCustomerController {
   @ApiResponse({ status: 400, description: 'Failed to retrieve customer info' })
   async getCustomerInfo(@AuthUser() user: User): Promise<Stripe.Customer> {
     try {
-      return await this.stripeCustomerService.getCustomerInfo(user);
+      const tenantId = RequestContext.get<string>('tenantId');
+      return await this.stripeCustomerService.getCustomerInfo(user, tenantId);
     } catch (error) {
       throw new BadRequestException(
         `Failed to retrieve customer information: ${error instanceof Error ? error.message : String(error)
@@ -68,7 +70,8 @@ export class StripeCustomerController {
     @AuthUser() user: User,
   ) {
     try {
-      return await this.stripeCustomerService.getCustomerCards(user);
+      const tenantId = RequestContext.get<string>('tenantId');
+      return await this.stripeCustomerService.getCustomerCards(user, tenantId);
     } catch (error) {
       throw new BadRequestException(
         `Failed to retrieve customer cards: ${error instanceof Error ? error.message : String(error)
@@ -104,7 +107,8 @@ export class StripeCustomerController {
     @Body() body: { paymentMethodId: string; setAsDefault?: boolean },
   ): Promise<{ message: string }> {
     try {
-      await this.stripeCustomerService.addPaymentMethod(user, body.paymentMethodId, body.setAsDefault || false);
+      const tenantId = RequestContext.get<string>('tenantId');
+      await this.stripeCustomerService.addPaymentMethod(user, body.paymentMethodId, body.setAsDefault || false, tenantId);
       return { message: 'Payment method added successfully' };
     } catch (error) {
       throw new BadRequestException(
@@ -128,7 +132,8 @@ export class StripeCustomerController {
     @AuthUser() user: User,
   ) {
     try {
-      const defaultPaymentMethod= await this.stripeCustomerService.getDefaultPaymentMethod(user);
+      const tenantId = RequestContext.get<string>('tenantId');
+      const defaultPaymentMethod= await this.stripeCustomerService.getDefaultPaymentMethod(user, tenantId);
       return defaultPaymentMethod;
     } catch (error) {
       throw new BadRequestException(
@@ -158,7 +163,8 @@ export class StripeCustomerController {
       if (!user) {
         throw new NotFoundException('User not found');
       }
-      const defaultPaymentMethod= await this.stripeCustomerService.getDefaultPaymentMethod(user);
+      const tenantId = RequestContext.get<string>('tenantId');
+      const defaultPaymentMethod= await this.stripeCustomerService.getDefaultPaymentMethod(user, tenantId);
       return defaultPaymentMethod;
     } catch (error) {
       throw new BadRequestException(
@@ -184,7 +190,8 @@ export class StripeCustomerController {
     @Param('paymentMethodId') paymentMethodId: string,
   ): Promise<{ message: string }> {
     try {
-      await this.stripeCustomerService.setDefaultPaymentMethod(user, paymentMethodId);
+      const tenantId = RequestContext.get<string>('tenantId');
+      await this.stripeCustomerService.setDefaultPaymentMethod(user, paymentMethodId, tenantId);
       return { message: 'Default payment method set successfully' };
     } catch (error) {
       throw new BadRequestException(
@@ -210,7 +217,8 @@ export class StripeCustomerController {
     @Param('paymentMethodId') paymentMethodId: string,
   ): Promise<{ message: string }> {
     try {
-      return await this.stripeCustomerService.deletePaymentMethod(user, paymentMethodId);
+      const tenantId = RequestContext.get<string>('tenantId');
+      return await this.stripeCustomerService.deletePaymentMethod(user, paymentMethodId, tenantId);
     } catch (error) {
       throw new BadRequestException(
         `Failed to delete payment method: ${error instanceof Error ? error.message : String(error)}`,

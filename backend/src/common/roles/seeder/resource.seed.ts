@@ -54,6 +54,11 @@ export class ResourceSeed {
       description: 'Staff and trainer management',
     },
     {
+      name: EResource.VIDEO_STREAM,
+      displayName: 'Video Stream',
+      description: 'Video streaming and camera management',
+    },
+    {
       name: EResource.ADVERTISEMENTS,
       displayName: 'Advertisements',
       description: 'Advertisement management',
@@ -113,6 +118,7 @@ export class ResourceSeed {
       displayName: 'Service Offers',
       description: 'Service offer management',
     },
+   
   ];
 
   async run(dataSource?: DataSource): Promise<void> {

@@ -11,10 +11,11 @@ import {
   Matches,
   Min,
   Max,
+  ValidateIf,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Transform, Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -22,7 +23,7 @@ import {
   Equals,
 } from "../../decorators/crud.dto.decorators";
 import { LocationDto } from "../location-dtos/location.dto";
-import { ECameraProtocol } from "@shared/enums";
+import { ECameraProtocol } from "../../enums";
 
 
 export class CreateCameraDto {
@@ -57,6 +58,7 @@ export class CreateCameraDto {
     { value: ECameraProtocol.RTMP, label: 'RTMP' },
     { value: ECameraProtocol.SRT, label: 'SRT' },
     { value: ECameraProtocol.HLS, label: 'HLS' },
+    { value: ECameraProtocol.HTTP_MPEGTS, label: 'HTTP MPEG-TS' },
     { value: ECameraProtocol.HTTP_MJPEG, label: 'HTTP MJPEG' },
   ])
   protocol: ECameraProtocol;
@@ -84,7 +86,12 @@ export class CreateCameraDto {
     description: 'Camera IP address',
   })
   @IsOptional()
+  @Expose()
+  @Transform(({ value }) => (value === "" ? undefined : value))
   @IsString()
+  @ValidateIf(
+    (o) => !(typeof o.streamUrl === "string" && o.streamUrl.trim() !== ""),
+  )
   @Matches(/^(\d{1,3}\.){3}\d{1,3}$/, { message: "Invalid IP address format" })
   @FieldType("text", false)
   ipAddress?: string;
@@ -94,9 +101,19 @@ export class CreateCameraDto {
     description: 'Camera port',
   })
   @IsOptional()
+  @Expose()
+  @Transform(({ value }) => {
+    if (value === "" || value === null || value === undefined) return undefined;
+    const num = typeof value === "number" ? value : Number(value);
+    return Number.isNaN(num) ? value : num;
+  })
+  @ValidateIf(
+    (o) => !(typeof o.streamUrl === "string" && o.streamUrl.trim() !== ""),
+  )
   @IsNumber()
   @Min(1)
   @Max(65535)
+  @Expose()
   @Type(() => Number)
   @FieldType("number", false)
   port?: number;
@@ -110,12 +127,27 @@ export class CreateCameraDto {
   @FieldType("text", false)
   path?: string;
 
+  @ApiPropertyOptional({
+    example: 'rtsp://192.168.1.100:554/stream',
+    description:
+      'Optional stream URL. If provided, it will be used instead of generating from protocol, ip, port, and path.',
+  })
+  @IsOptional()
+  @IsString()
+  @Matches(/^(rtsp|rtsps|http|https):\/\/.+/i, {
+    message:
+      'Stream URL must start with rtsp://, rtsps://, http://, or https://',
+  })
+  @FieldType("url", false)
+  streamUrl?: string;
+
   @ApiProperty({
     type: LocationDto,
     description: "Location that this camera belongs to",
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @FieldType("nested", true, LocationDto)
   location: LocationDto;
@@ -152,6 +184,7 @@ export class CameraListDto extends ListQueryDto {
 
 export class CameraPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [CameraDto] })
+  @Expose()
   @Type(() => CameraDto)
   data: CameraDto[];
 }
@@ -236,6 +269,7 @@ export class CameraDto {
     description: "Location that this camera belongs to",
   })
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @IsOptional()
   location?: LocationDto;

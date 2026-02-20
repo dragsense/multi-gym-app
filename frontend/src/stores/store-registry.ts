@@ -6,7 +6,6 @@ import { useId, useMemo, useTransition } from 'react';
 
 // React 19: Enhanced store registry with better performance
 export function useRegisteredStore<TStore>(key: string) {
-    console.log("useRegisteredStore", key);
     return useGlobalStore.getState().getStore<TStore>(key);
 }
 

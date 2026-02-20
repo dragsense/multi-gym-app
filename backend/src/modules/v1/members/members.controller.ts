@@ -29,18 +29,20 @@ import {
 import { Member } from './entities/member.entity';
 import { AuthUser } from '@/decorators/user.decorator';
 import { User } from '@/common/base-user/entities/user.entity';
-import { Brackets, SelectQueryBuilder } from 'typeorm';
+import { SelectQueryBuilder } from 'typeorm';
 import { EUserLevels } from '@shared/enums';
 import { MinUserLevel } from '@/decorators/level.decorator';
 import { Resource } from '@/decorators';
 import { EResource } from '@shared/enums';
 
 @ApiTags('Members')
-@MinUserLevel(EUserLevels.STAFF)
+@MinUserLevel(EUserLevels.ADMIN)
 @Resource(EResource.MEMBERS)
 @Controller('members')
 export class MembersController {
-  constructor(private readonly membersService: MembersService) {}
+  constructor(
+    private readonly membersService: MembersService,
+  ) { }
 
   @ApiOperation({ summary: 'Get current user member profile' })
   @ApiResponse({
@@ -48,7 +50,7 @@ export class MembersController {
     description: 'Returns member if exists, null otherwise',
     type: MemberDto,
   })
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
   @Get('me')
   async getMyMember(@AuthUser() currentUser: User) {
     return this.membersService.getSingle({ userId: currentUser.id }, { _relations: ['user'] });
@@ -61,32 +63,26 @@ export class MembersController {
     type: MemberPaginatedDto,
   })
   @Get()
-  findAll(@Query() query: MemberListDto, @AuthUser() currentUser: User) {
-    const isAdmin = currentUser.level === EUserLevels.ADMIN;
+  @MinUserLevel(EUserLevels.STAFF)
+  async findAll(@Query() query: MemberListDto, @AuthUser() currentUser: User) {
+    const locationId = (query as any).locationId;
     return this.membersService.get(query, MemberListDto, {
-      beforeQuery: (query: SelectQueryBuilder<Member>) => {
-        if (!isAdmin) {
-          query
-            .leftJoin(
-              'trainer_members',
-              'trainerMembers',
-              'trainerMembers.memberId = entity.id',
-            )
-            .leftJoin('trainerMembers.trainer', 'memberTrainer')
-            .andWhere(
-              new Brackets((qb2) => {
-                qb2
-                  .where('entity.createdByUserId = :uid', {
-                    uid: currentUser.id,
-                  })
-                  .orWhere('memberTrainer.userId = :uid', {
-                    uid: currentUser.id,
-                  });
-              }),
-            )
-            .distinct(true);
+      beforeQuery: (qb: SelectQueryBuilder<Member>) => {
+        if (locationId) {
+          qb.andWhere(
+            `entity.id IN (
+              SELECT mm."memberId" FROM member_memberships mm
+              JOIN memberships m ON m.id = mm."membershipId"
+              WHERE mm."isActive" = true
+              AND (
+                EXISTS (SELECT 1 FROM membership_doors md JOIN doors d ON d.id = md."doorId" WHERE md."membershipId" = m.id AND d."locationId" = :memberLocationId)
+                OR NOT EXISTS (SELECT 1 FROM membership_doors md WHERE md."membershipId" = m.id)
+              )
+            )`,
+            { memberLocationId: locationId },
+          );
         }
-        return query;
+        return qb;
       },
     });
   }
@@ -100,6 +96,7 @@ export class MembersController {
   })
   @ApiResponse({ status: 404, description: 'Member not found' })
   @Get(':id')
+  @MinUserLevel(EUserLevels.STAFF)
   findOne(@Param('id') id: string, @Query() query: SingleQueryDto<Member>) {
     return this.membersService.getSingle(id, query);
   }

@@ -1,7 +1,5 @@
 // Location storage utility for managing selected location in localStorage
 
-import type { ILocation } from "@shared/interfaces/location.interface";
-
 const LOCATION_STORAGE_KEY = 'selected_location';
 
 export interface IStoredLocation {
@@ -9,9 +7,8 @@ export interface IStoredLocation {
     name: string;
 }
 
-
 /**
- * Set selected location ID in localStorage
+ * Set selected location in localStorage
  */
 export function setSelectedLocation(location: IStoredLocation | null): void {
     if (typeof window === 'undefined') return;
@@ -29,5 +26,5 @@ export function getSelectedLocation(): IStoredLocation | null {
     if (typeof window === 'undefined') return null;
     const locationData = localStorage.getItem(LOCATION_STORAGE_KEY);
     if (!locationData) return null;
-    return JSON.parse(locationData) as ILocation;
+    return JSON.parse(locationData) as IStoredLocation;
 }

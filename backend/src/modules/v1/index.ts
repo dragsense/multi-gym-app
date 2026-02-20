@@ -10,6 +10,7 @@ export { RewardsModule } from './rewards/rewards.module';
 export { UserSettingsModule } from './user-settings/user-settings.module';
 export { UserAvailabilityModule } from './user-availability/user-availability.module';
 export { StripeModule } from './stripe/stripe.module';
+export { PaysafeModule } from './paysafe/paysafe.module';
 export { DashboardModule } from './dashboard/dashboard.module';
 export { BusinessModule } from './business/business.module';
 export { MembershipsModule } from './memberships/memberships.module';
@@ -31,3 +32,7 @@ export { EquipmentReservationsModule } from './equipment-reservations/equipment-
 export { ProductModule } from './product/product.module';
 export { CamerasModule } from './cameras/cameras.module';
 export { StreamsModule } from './cameras/streams/streams.module';
+export { AutomationModule } from './automation/automation.module';
+export { CartModule } from './cart/cart.module';
+export { StoreModule } from './store/store.module';
+export { OrdersModule } from './orders/orders.module';

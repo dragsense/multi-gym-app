@@ -90,28 +90,50 @@ const AccessFeaturesSelect = React.memo((props: TCustomInputWrapper) => {
 const DoorSelect = React.memo((props: TCustomInputWrapper) => {
     const searchableDoors = useSearchableDoors({});
     const { t } = useI18n();
-    
+    const value = props.value as IDoor[] | undefined;
+    const isAllDoors = !value || (Array.isArray(value) && value.length === 0);
+
     return (
-        <SearchableInputWrapper<IDoor>
-            {...props}
-            modal={true}
-            useSearchable={() => searchableDoors}
-            getLabel={(item) => {
-                if (!item) return buildSentence(t, 'select', 'door');
-                return item.name || item.id;
-            }}
-            getKey={(item) => item.id.toString()}
-            getValue={(item) => {
-                return {
-                    id: item.id,
-                    name: item.name,
-                    description: item.description,
-                    locationId: item.locationId,
-                } as IDoor;
-            }}
-            shouldFilter={false}
-            multiple={true}
-        />
+        <div className="space-y-2">
+            <div className="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    id="doors-all-doors"
+                    checked={isAllDoors}
+                    onChange={(e) => {
+                        if (e.target.checked && props.onChange) {
+                            props.onChange([]);
+                        }
+                    }}
+                    className="rounded border-input"
+                />
+                <label htmlFor="doors-all-doors" className="text-sm font-medium cursor-pointer">
+                    {buildSentence(t, 'all', 'doors')}
+                </label>
+            </div>
+            <SearchableInputWrapper<IDoor>
+                {...props}
+                modal={true}
+                useSearchable={() => searchableDoors}
+                getLabel={(item) => {
+                    if (!item) return buildSentence(t, 'select', 'door');
+                    const loc = (item as any).location?.name || (item as any).location?.address;
+                    return loc ? `${item.name || item.id} (${loc})` : (item.name || item.id);
+                }}
+                getKey={(item) => item.id.toString()}
+                getValue={(item) => {
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        description: item.description,
+                        locationId: item.locationId,
+                    } as IDoor;
+                }}
+                shouldFilter={false}
+                multiple={true}
+                disabled={isAllDoors}
+            />
+        </div>
     );
 });
 

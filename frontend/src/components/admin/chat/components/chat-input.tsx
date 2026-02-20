@@ -20,7 +20,7 @@ export function ChatInput({ onSend }: ChatInputProps) {
   };
 
   const handleSend = () => {
-    if (!message.trim()) return;
+    if (!message.trim() && !selectedFile) return;
     onSend(message.trim(), selectedFile || undefined);
     setMessage("");
     setSelectedFile(null);
@@ -50,8 +50,8 @@ export function ChatInput({ onSend }: ChatInputProps) {
         </div>
       )}
 
-      <div className="p-3 border-t border-border bg-background">
-        <div className="flex gap-2 items-center">
+      <div className="p-4 border-t border-border">
+        <div className="flex gap-2">
           <input
             ref={fileInputRef}
             type="file"
@@ -60,9 +60,8 @@ export function ChatInput({ onSend }: ChatInputProps) {
             onChange={handleFileSelect}
           />
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 hover:bg-muted"
+            variant="outline"
+            size="sm"
             onClick={() => fileInputRef.current?.click()}
           >
             <Paperclip className="h-4 w-4" />
@@ -77,14 +76,9 @@ export function ChatInput({ onSend }: ChatInputProps) {
                 handleSend();
               }
             }}
-            className="flex-1 h-9 text-sm"
+            className="flex-1"
           />
-          <Button
-            onClick={handleSend}
-            disabled={!message.trim()}
-            size="icon"
-            className="h-8 w-8"
-          >
+          <Button onClick={handleSend} disabled={!message.trim() && !selectedFile}>
             <Send className="h-4 w-4" />
           </Button>
         </div>

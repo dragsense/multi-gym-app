@@ -23,11 +23,13 @@ import type { TMemberListData } from "@shared/types";
 import type { TMemberViewExtraProps } from "@/components/admin/members/view/member-view";
 import type { IMemberListExtraProps } from "@/components/admin/members/list/member-list";
 import { MemberListDto } from "@shared/dtos";
+import { getSelectedLocation } from "@/utils/location-storage";
 
 export default function MembersPage() {
     const queryClient = useQueryClient();
 
     const MEMBERS_STORE_KEY = 'member';
+    const location = getSelectedLocation();
 
     return (
         <PageInnerLayout Header={<Header />}>
@@ -49,7 +51,7 @@ export default function MembersPage() {
             />
 
             <ListHandler<IMember, TMemberListData, IMemberListExtraProps, IMember, TMemberViewExtraProps>
-                queryFn={fetchMembers}
+                queryFn={(params) => fetchMembers({ ...params, locationId: location?.id })}
                 initialParams={{
                     _relations: 'user',
                     _select: 'user.email, user.isActive, user.firstName, user.lastName',

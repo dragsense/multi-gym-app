@@ -12,7 +12,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -73,6 +73,7 @@ export class CreateCheckinDto {
   @ApiProperty({ type: UserDto })
   @IsNotEmpty({ message: "User is required" })
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   @FieldType("nested", true, UserDto)
   user: UserDto;
@@ -102,6 +103,7 @@ export class CreateCheckinDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @FieldType("nested", false, LocationDto)
   location?: LocationDto;
@@ -112,6 +114,7 @@ export class CreateCheckinDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => DoorDto)
   @FieldType("nested", false, DoorDto)
   door?: DoorDto;
@@ -195,6 +198,7 @@ export class CheckinListDto extends ListQueryDto {
 
 export class CheckinPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [CheckinDto] })
+  @Expose()
   @Type(() => CheckinDto)
   data: CheckinDto[];
 }
@@ -213,6 +217,7 @@ export class CheckinDto {
 
   @ApiProperty({ type: UserDto })
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   user: UserDto;
 
@@ -238,6 +243,7 @@ export class CheckinDto {
   })
   @IsOptional()
   @IsString()
+  @Expose()
   @Type(() => LocationDto)
   location?: LocationDto;
 
@@ -246,6 +252,7 @@ export class CheckinDto {
     description: "Door where check-in occurred",
   })
   @IsOptional()
+  @Expose()
   @Type(() => DoorDto)
   door?: DoorDto;
 
@@ -279,6 +286,7 @@ export class CheckinDto {
   })
   @IsOptional()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => CheckinSnapshotDto)
   snapshots?: CheckinSnapshotDto[];
 

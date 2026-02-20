@@ -13,7 +13,7 @@ import {
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
 import {
   ECurrency,
@@ -91,6 +91,7 @@ export class LimitSettingsDto {
   @Min(1)
   @Max(50)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   maxSessionsPerDay?: number;
 
@@ -100,6 +101,7 @@ export class LimitSettingsDto {
   @Min(1)
   @Max(100)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   maxMembersPerSession?: number;
 
@@ -109,6 +111,7 @@ export class LimitSettingsDto {
   @Min(1)
   @Max(100)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   maxMembersPerTrainer?: number;
 
@@ -121,6 +124,7 @@ export class LimitSettingsDto {
   @Min(15)
   @Max(480)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   maxSessionDuration?: number;
 
@@ -133,6 +137,7 @@ export class LimitSettingsDto {
   @Min(5)
   @Max(180)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   slotStepMinutes?: number;
 }
@@ -188,6 +193,7 @@ export class BillingSettingsDto {
   @Min(0)
   @Max(50)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   taxRate?: number;
 
@@ -203,6 +209,7 @@ export class BillingSettingsDto {
   @Min(0)
   @Max(100)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   commissionRate?: number;
 }
@@ -258,6 +265,7 @@ export class CreateOrUpdateUserSettingsDto {
   @ApiProperty({ type: CurrencySettingsDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => CurrencySettingsDto)
   @FieldType("nested", false, CurrencySettingsDto)
   currency?: CurrencySettingsDto;
@@ -265,6 +273,7 @@ export class CreateOrUpdateUserSettingsDto {
   @ApiProperty({ type: TimeSettingsDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => TimeSettingsDto)
   @FieldType("nested", false, TimeSettingsDto)
   time?: TimeSettingsDto;
@@ -272,6 +281,7 @@ export class CreateOrUpdateUserSettingsDto {
   @ApiProperty({ type: LimitSettingsDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LimitSettingsDto)
   @FieldType("nested", false, LimitSettingsDto)
   limits?: LimitSettingsDto;
@@ -279,6 +289,7 @@ export class CreateOrUpdateUserSettingsDto {
   @ApiProperty({ type: BusinessSettingsDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => BusinessSettingsDto)
   @FieldType("nested", false, BusinessSettingsDto)
   business?: BusinessSettingsDto;
@@ -286,6 +297,7 @@ export class CreateOrUpdateUserSettingsDto {
   @ApiProperty({ type: BillingSettingsDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => BillingSettingsDto)
   @FieldType("nested", false, BillingSettingsDto)
   billing?: BillingSettingsDto;
@@ -293,6 +305,7 @@ export class CreateOrUpdateUserSettingsDto {
   @ApiProperty({ type: NotificationSettingsDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => NotificationSettingsDto)
   @FieldType("nested", false, NotificationSettingsDto)
   notifications?: NotificationSettingsDto;
@@ -300,6 +313,7 @@ export class CreateOrUpdateUserSettingsDto {
   @ApiProperty({ type: ThemeSettingsDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => ThemeSettingsDto)
   @FieldType("nested", false, ThemeSettingsDto)
   theme?: ThemeSettingsDto;

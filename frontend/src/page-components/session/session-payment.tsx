@@ -14,7 +14,7 @@ import { type TSingleHandlerStore } from "@/stores";
 import { type ISingleHandlerState } from "@/@types/handler-types/single.type";
 
 // Components
-import { StripePaymentModal } from "@/components/shared-ui/stripe-payment-modal";
+import { PaymentModalAdapter } from "@/payment-processors";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppDialog } from "@/components/layout-ui/app-dialog";
 import { Button } from "@/components/ui/button";
@@ -23,10 +23,10 @@ import { Button } from "@/components/ui/button";
 import { createSessionPaymentIntent } from "@/services/session-billing.api";
 
 // Hooks
-import { useStripePaymentCards } from "@/hooks/use-stripe-payment-cards";
+import { usePaymentCards } from "@/hooks/use-payment-cards";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
-import type { StripeCardFormData } from "@/@types/payment.types";
+import type { PaymentCardFormData } from "@/@types/payment.types";
 
 export type TSessionPaymentExtraProps = Record<string, unknown>;
 
@@ -76,8 +76,8 @@ export default function SessionPayment({
     });
   }, [storeState, startTransition]);
 
-  const { stripeCards, isLoadingPaymentCards, errorPaymentCards } =
-    useStripePaymentCards();
+  const { cards, isLoadingPaymentCards, errorPaymentCards } =
+    usePaymentCards();
 
   const { mutate: processPayment, isPending: isProcessingPayment } =
     useMutation({
@@ -96,7 +96,7 @@ export default function SessionPayment({
     });
 
   const handlePayClick = useCallback(
-    async (paymentMethodId: string, cardData?: StripeCardFormData) => {
+    async (paymentMethodId: string, cardData?: PaymentCardFormData) => {
       if (!session) {
         setErrorMessage(buildSentence(t, "session", "not", "found"));
         setShowErrorDialog(true);
@@ -143,14 +143,14 @@ export default function SessionPayment({
 
   return (
     <>
-      <StripePaymentModal
+      <PaymentModalAdapter
         open={action === "pay" && !showSuccessDialog && !showErrorDialog}
         onOpenChange={(open) => {
           if (!open) {
             handleClose();
           }
         }}
-        stripeCards={stripeCards}
+        cards={cards}
         onPay={handlePayClick}
         isLoading={isLoadingPaymentCards || isProcessingPayment}
         amount={session.price}

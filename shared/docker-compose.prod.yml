@@ -5,12 +5,11 @@ services:
       context: ..
       dockerfile: shared/Dockerfile
       target: prod
-    container_name: app-container-prod
+    container_name: vivast-app-staging
     ports:
-      - "3000:3000" # Backend port
-      - "5173:5173" # Frontend port
+      - "3001:3000" # Backend port
     env_file:
-      - ../backend/.env.production
+      - ../backend/.env
     volumes:
       - app_logs:/app/logs
     depends_on:
@@ -18,8 +17,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      ovenmediaengine:
-        condition: service_started
     restart: unless-stopped
     networks:
       - app-network
@@ -27,10 +24,10 @@ services:
   # Redis Cache
   redis:
     image: redis:latest
-    container_name: app-redis-prod
+    container_name: vivast-redis-staging
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -41,15 +38,41 @@ services:
     networks:
       - app-network
 
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: vivast-redis-commander-staging
+    environment:
+      - REDIS_HOSTS=local:vivast-dragonfly-staging:6379
+    ports:
+      - "8082:8081"
+    depends_on:
+      - dragonfly
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    container_name: vivast-dragonfly-staging
+    restart: unless-stopped
+    mem_limit: 6g # optional, matches Docker memory
+    command: >
+      dragonfly
+      --maxmemory=5g # slightly less than container memory
+    ports:
+      - "6381:6379"
+    networks:
+      - app-network
+
   # PostgreSQL 17 Database
   postgres:
     image: postgres:17
-    container_name: app-postgres-prod
+    container_name: vivast-postgres-staging
     restart: unless-stopped
     ports:
-      - "5433:5432"
+      - "5434:5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-formance_db}
+      POSTGRES_DB: ${POSTGRES_DB:-vivast_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_HOST_AUTH_METHOD: trust
@@ -63,24 +86,31 @@ services:
     networks:
       - app-network
 
-  # ANT Media Server
-  mediamtx:
-    image: bluenviron/mediamtx:latest-ffmpeg
-    container_name: vivast-mediamtx
+
+  # Mailpit for email testing
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: vivast-mailpit-staging
     restart: unless-stopped
     ports:
-      - "1935:1935"     # RTMP
-      - "8554:8554"     # RTSP
-      - "7222:7222"     # API/Web
-      - "8888:8888"     # Web UI
-      - "8080:8080"     # HLS
-    volumes:
-      - ./mediamtx/config.yml:/mediamtx.yml:ro
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+    networks:
+      - app-network
+
+   # SRS - Host network for WebRTC ICE (UDP works); app reaches via host.docker.internal
+  srs:
+    image: ossrs/srs:latest
+    container_name: vivast-srs-staging
     environment:
-      - RTSP_PROTOCOLS=tcpudp  # allow both TCP & UDP
-      - RTMP_PORT=1935
-      - HLS_PORT=8080
-      - API_PORT=7222
+      CANDIDATE: "35.84.225.108"
+      SRS_RTC_SERVER_CANDIDATE: "35.84.225.108"
+      SRS_RTC_SERVER_USE_AUTO_DETECT_NETWORK_IP: "off"
+    volumes:
+      - ./srs_conf:/usr/local/srs/conf
+    command: >
+      ./objs/srs -c conf/srs.conf
+    restart: unless-stopped
     networks:
       - app-network
 

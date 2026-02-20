@@ -62,7 +62,7 @@ export default function ChatPage() {
             action: "showParticipants",
             comp: ChatParticipants,
           },
-
+       
         ]}
       />
     </PageInnerLayout>

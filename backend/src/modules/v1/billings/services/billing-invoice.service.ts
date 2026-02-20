@@ -334,8 +334,8 @@ export class BillingInvoiceService {
       throw new NotFoundException('Billing not found');
     }
 
-    const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
+    const isSuperAdmin = currentUser.level === (EUserLevels.PLATFORM_OWNER as number) ||
+      currentUser.level === (EUserLevels.SUPER_ADMIN as number) || currentUser.level === (EUserLevels.ADMIN as number);
     const isOwner =
       billing.recipientUser?.id === currentUser.id ||
       billing.createdByUserId === currentUser.id;

@@ -1,6 +1,6 @@
 import { IsOptional, IsDateString, IsEnum, IsNumber, IsUUID, IsArray, ValidateNested, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { EAnalyticsPeriod } from '../../enums/dashboard-analytics.enum';
 import { ESessionStatus } from '../../enums/session.enum';
 import { EBillingType } from '../../enums/billing.enum';
@@ -71,6 +71,7 @@ export class MembershipsStatsDto {
   })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => MembershipTypeStatsDto)
   byType: MembershipTypeStatsDto[];
 
@@ -137,6 +138,7 @@ export class RecentSessionsDto {
   })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => RecentSessionDto)
   sessions: RecentSessionDto[];
 }
@@ -349,23 +351,27 @@ export class MembersAnalyticsResponseDto {
   @ApiProperty({ type: [MembersTimelineItemDto] })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => MembersTimelineItemDto)
   timeline: MembersTimelineItemDto[];
 
   @ApiProperty({ type: MembersStatsDto })
   @ValidateNested()
+  @Expose()
   @Type(() => MembersStatsDto)
   memberStats: MembersStatsDto;
 
   @ApiProperty({ type: [FitnessLevelDistributionDto] })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => FitnessLevelDistributionDto)
   fitnessLevelDistribution: FitnessLevelDistributionDto[];
 
   @ApiProperty({ type: [GoalDistributionDto] })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => GoalDistributionDto)
   goalDistribution: GoalDistributionDto[];
 }
@@ -438,23 +444,27 @@ export class MembershipsAnalyticsResponseDto {
   @ApiProperty({ type: [MembershipsTimelineItemDto] })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => MembershipsTimelineItemDto)
   timeline: MembershipsTimelineItemDto[];
 
   @ApiProperty({ type: MembershipStatsDto })
   @ValidateNested()
+  @Expose()
   @Type(() => MembershipStatsDto)
   membershipStats: MembershipStatsDto;
 
   @ApiProperty({ type: [MembershipByTypeDto] })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => MembershipByTypeDto)
   byType: MembershipByTypeDto[];
 
   @ApiProperty({ type: [BillingFrequencyDistributionDto] })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => BillingFrequencyDistributionDto)
   billingFrequencyDistribution: BillingFrequencyDistributionDto[];
 }
@@ -499,17 +509,20 @@ export class CheckinsAnalyticsResponseDto {
   @ApiProperty({ type: [CheckinsTimelineItemDto] })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => CheckinsTimelineItemDto)
   timeline: CheckinsTimelineItemDto[];
 
   @ApiProperty({ type: CheckinStatsDto })
   @ValidateNested()
+  @Expose()
   @Type(() => CheckinStatsDto)
   checkinStats: CheckinStatsDto;
 
   @ApiProperty({ type: [LocationDistributionDto] })
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => LocationDistributionDto)
   locationDistribution: LocationDistributionDto[];
 
@@ -529,16 +542,19 @@ export class DashboardStatsResponseDto {
 
   @ApiProperty({ type: DashboardOverviewDto })
   @ValidateNested()
+  @Expose()
   @Type(() => DashboardOverviewDto)
   overview: DashboardOverviewDto;
 
   @ApiProperty({ type: DashboardMetricsDto })
   @ValidateNested()
+  @Expose()
   @Type(() => DashboardMetricsDto)
   metrics: DashboardMetricsDto;
 
   @ApiProperty({ type: ReferralLinkStatsDto })
   @ValidateNested()
+  @Expose()
   @Type(() => ReferralLinkStatsDto)
   referralLinks: ReferralLinkStatsDto;
 }

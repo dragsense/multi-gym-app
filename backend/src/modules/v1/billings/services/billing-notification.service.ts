@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { In } from 'typeorm';
+import { In, Not } from 'typeorm';
 import { User } from '@/common/base-user/entities/user.entity';
 import { NotificationService } from '@/common/notification/notification.service';
 import {
@@ -120,22 +120,19 @@ export class BillingNotificationService {
   }
 
   /**
-   * Send notification to admins when billing is created
+   * Send notification to Platform Owner when billing is created
+   * This notification includes "for [user]" text
    */
   async notifyAdminsBillingCreated(
     billing: Billing,
     createdBy?: string,
   ): Promise<void> {
     try {
-      // Find all admin users (PLATFORM_OWNER = 0, SUPER_ADMIN = 1, ADMIN = 2)
+      // Find platform owner only
       const userRepo = this.entityRouterService.getRepository<User>(User);
       const adminUsers = await userRepo.find({
         where: {
-          level: In([
-            EUserLevels.PLATFORM_OWNER,
-            EUserLevels.SUPER_ADMIN,
-            EUserLevels.ADMIN,
-          ]),
+          level: EUserLevels.PLATFORM_OWNER,
           isActive: true,
         },
         select: ['id', 'email', 'firstName', 'lastName'],
@@ -165,13 +162,69 @@ export class BillingNotificationService {
       await Promise.all(notificationPromises);
 
       this.logger.log(
-        `✅ Notifications sent to ${adminUsers.length} admin(s) for billing ${billing.id}`,
+        `✅ Notifications sent to ${adminUsers.length} platform owner(s) for billing ${billing.id}`,
       );
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(
-        `❌ Failed to send admin notifications for billing ${billing.id}: ${errorMessage}`,
+        `❌ Failed to send platform owner notifications for billing ${billing.id}: ${errorMessage}`,
+      );
+    }
+  }
+
+  /**
+   * Send notification to Super Admins and Admins when billing is created
+   * This notification includes the due date
+   */
+  async notifySuperAdminsBillingCreated(
+    billing: Billing,
+    createdBy?: string,
+  ): Promise<void> {
+    try {
+      // Find Super Admins and Admins, excluding the recipient to avoid duplicate notifications
+      const userRepo = this.entityRouterService.getRepository<User>(User);
+      const adminUsers = await userRepo.find({
+        where: {
+          id: Not(billing.recipientUser.id),
+          level: In([EUserLevels.SUPER_ADMIN, EUserLevels.ADMIN]),
+          isActive: true,
+        },
+        select: ['id', 'email', 'firstName', 'lastName'],
+      });
+
+      if (adminUsers.length === 0) {
+        return;
+      }
+
+      const notificationPromises = adminUsers.map((admin) =>
+        this.notificationService.createNotification({
+          title: 'New Billing Created',
+          message: `A new billing "${billing.title}" for $${billing.amount} has been created. Due date: ${new Date(billing.dueDate).toLocaleDateString()}`,
+          type: ENotificationType.INFO,
+          priority: ENotificationPriority.NORMAL,
+          entityId: admin.id,
+          entityType: 'billing',
+          metadata: {
+            action: 'billing_created',
+            billingId: billing.id,
+            amount: billing.amount,
+            dueDate: billing.dueDate,
+            createdBy,
+          },
+        }),
+      );
+
+      await Promise.all(notificationPromises);
+
+      this.logger.log(
+        `✅ Notifications sent to ${adminUsers.length} super admin(s)/admin(s) for billing ${billing.id}`,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `❌ Failed to send super admin notifications for billing ${billing.id}: ${errorMessage}`,
       );
     }
   }
@@ -204,5 +257,105 @@ export class BillingNotificationService {
         `❌ Failed to send notification for deleted billing ${billing.id}: ${errorMessage}`,
       );
     }
+  }
+
+  /**
+   * Send notification when billing payment failed
+   */
+  async notifyBillingFailed(billing: Billing, reason?: string): Promise<void> {
+    try {
+      await this.notificationService.createNotification({
+        title: 'Payment Failed',
+        message: `Payment for billing "${billing.title}" has failed.${reason ? ` Reason: ${reason}` : ''} Please try again or contact support.`,
+        type: ENotificationType.ERROR,
+        priority: ENotificationPriority.HIGH,
+        entityId: billing.recipientUser.id,
+        entityType: 'billing',
+        emailSubject: `Payment Failed: ${billing.title}`,
+        metadata: {
+          action: 'billing_failed',
+          billingId: billing.id,
+          amount: billing.amount,
+          reason,
+        },
+      });
+
+      this.logger.log(`✅ Notification sent for failed billing ${billing.id}`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `❌ Failed to send notification for failed billing ${billing.id}: ${errorMessage}`,
+      );
+    }
+  }
+
+  /**
+   * Send notification when billing is pending payment
+   */
+  async notifyBillingPending(billing: Billing): Promise<void> {
+    try {
+      await this.notificationService.createNotification({
+        title: 'Payment Pending',
+        message: `Your billing "${billing.title}" for $${billing.amount} is pending payment. Due date: ${new Date(billing.dueDate).toLocaleDateString()}`,
+        type: ENotificationType.WARNING,
+        priority: ENotificationPriority.NORMAL,
+        entityId: billing.recipientUser.id,
+        entityType: 'billing',
+        emailSubject: `Payment Pending: ${billing.title}`,
+        metadata: {
+          action: 'billing_pending',
+          billingId: billing.id,
+          amount: billing.amount,
+          dueDate: billing.dueDate,
+        },
+      });
+
+      this.logger.log(`✅ Notification sent for pending billing ${billing.id}`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `❌ Failed to send notification for pending billing ${billing.id}: ${errorMessage}`,
+      );
+    }
+  }
+
+  /**
+   * Send email notification to admins and platform owners when billing is created
+   * PLACEHOLDER: To be implemented later for email notifications to admins
+   */
+  async notifyAdminsBillingCreatedEmail(
+    billing: Billing,
+    createdBy?: string,
+  ): Promise<void> {
+    // TODO: Implement email notifications to admins and platform owners
+    // This will send email notifications when:
+    // - A new billing is created
+    // - Billing status changes (paid, failed, pending)
+    // - Payment issues occur
+    this.logger.log(
+      `📧 [PLACEHOLDER] Email notification to admins for billing ${billing.id} - To be implemented`,
+    );
+  }
+
+  /**
+   * Send email notification to admins and platform owners when billing status changes
+   * PLACEHOLDER: To be implemented later for email notifications to admins
+   */
+  async notifyAdminsBillingStatusChangedEmail(
+    billing: Billing,
+    status: string,
+    reason?: string,
+  ): Promise<void> {
+    // TODO: Implement email notifications to admins and platform owners
+    // This will send email notifications when billing status changes to:
+    // - PAID: Success notification
+    // - FAILED: Alert notification with failure reason
+    // - PENDING: Reminder notification
+    // - OVERDUE: Urgent notification
+    this.logger.log(
+      `📧 [PLACEHOLDER] Email notification to admins for billing ${billing.id} status change to ${status} - To be implemented`,
+    );
   }
 }

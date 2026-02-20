@@ -150,6 +150,7 @@ export default function BillingForm({ storeKey, store }: IBillingFormProps) {
           open: action === "createOrUpdate",
           onClose: handleClose,
           user: user,
+          billingStatus: response?.status ?? undefined,
         }}
       />
     </div>

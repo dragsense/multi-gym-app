@@ -20,7 +20,6 @@ const MemberOnboardingCheckRedirect = () => {
       location.pathname.startsWith(`${onboardingPath}/`);
   }, [location.pathname, onboardingPath]);
 
-  console.log("isOnMemberOnboardingRoute", isOnMemberOnboardingRoute);
 
   // If user is MEMBER level
   if (user.level === EUserLevels.MEMBER) {

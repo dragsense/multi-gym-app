@@ -69,11 +69,22 @@ export class BillingEventListenerService implements OnModuleInit {
 
         // Send notifications
         await Promise.all([
+          // SMS notification to member (automatically triggered via notification service)
           this.billingNotificationService.notifyBillingCreated(
             billing,
             data?.createdBy,
           ),
+          // In-app notifications to admins
           this.billingNotificationService.notifyAdminsBillingCreated(
+            billing,
+            data?.createdBy,
+          ),
+          this.billingNotificationService.notifySuperAdminsBillingCreated(
+            billing,
+            data?.createdBy,
+          ),
+          // Email notification to admins (placeholder)
+          this.billingNotificationService.notifyAdminsBillingCreatedEmail(
             billing,
             data?.createdBy,
           ),
@@ -191,10 +202,19 @@ export class BillingEventListenerService implements OnModuleInit {
       try {
         const billing = await this.billingsService.getSingle(payload.entityId, {
           _relations: ['recipientUser'],
-          _select: ['recipientUser.id'],
         });
         if (!billing) throw new NotFoundException('Billing not found');
-        // Send paid confirmation to trainer
+
+        // Send SMS notification (automatically triggered via notification service)
+        await this.billingNotificationService.notifyBillingPaid(billing);
+
+        // Send email notification to admins (placeholder)
+        await this.billingNotificationService.notifyAdminsBillingStatusChangedEmail(
+          billing,
+          'PAID',
+        );
+
+        // Send paid confirmation email to recipient
         await this.billingQueue.add(
           'send-billing-paid',
           {
@@ -209,6 +229,97 @@ export class BillingEventListenerService implements OnModuleInit {
       } catch (error) {
         this.logger.error(
           `Failed to handle billing paid for billing ${payload.entityId}:`,
+          error,
+        );
+      }
+    });
+  }
+
+  /**
+   * Handle billing status changed to FAILED
+   */
+  @OnEvent('billing.status.failed')
+  async handleBillingFailed(payload: EventPayload): Promise<void> {
+    if (!payload.entity) return;
+
+    // Get tenantId from event payload data
+    const tenantId = (payload.data as any)?.tenantId;
+    const reason = (payload.data as any)?.reason;
+
+    // Execute within RequestContext.run() to create a new async context
+    await RequestContext.run(async () => {
+      if (tenantId) {
+        RequestContext.set('tenantId', tenantId);
+      }
+
+      try {
+        const billing = await this.billingsService.getSingle(payload.entityId, {
+          _relations: ['recipientUser'],
+        });
+        if (!billing) throw new NotFoundException('Billing not found');
+
+        // Send SMS notification (automatically triggered via notification service)
+        await this.billingNotificationService.notifyBillingFailed(
+          billing,
+          reason,
+        );
+
+        // Send email notification to admins (placeholder)
+        await this.billingNotificationService.notifyAdminsBillingStatusChangedEmail(
+          billing,
+          'FAILED',
+          reason,
+        );
+
+        this.logger.log(
+          `✅ SMS notification sent for failed billing ${billing.id}`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to handle billing failed for billing ${payload.entityId}:`,
+          error,
+        );
+      }
+    });
+  }
+
+  /**
+   * Handle billing status changed to PENDING
+   */
+  @OnEvent('billing.status.pending')
+  async handleBillingPending(payload: EventPayload): Promise<void> {
+    if (!payload.entity) return;
+
+    // Get tenantId from event payload data
+    const tenantId = (payload.data as any)?.tenantId;
+
+    // Execute within RequestContext.run() to create a new async context
+    await RequestContext.run(async () => {
+      if (tenantId) {
+        RequestContext.set('tenantId', tenantId);
+      }
+
+      try {
+        const billing = await this.billingsService.getSingle(payload.entityId, {
+          _relations: ['recipientUser'],
+        });
+        if (!billing) throw new NotFoundException('Billing not found');
+
+        // Send SMS notification (automatically triggered via notification service)
+        await this.billingNotificationService.notifyBillingPending(billing);
+
+        // Send email notification to admins (placeholder)
+        await this.billingNotificationService.notifyAdminsBillingStatusChangedEmail(
+          billing,
+          'PENDING',
+        );
+
+        this.logger.log(
+          `✅ SMS notification sent for pending billing ${billing.id}`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Failed to handle billing pending for billing ${payload.entityId}:`,
           error,
         );
       }

@@ -118,7 +118,8 @@ const DoorSelect = React.memo((props: TCustomInputWrapper) => {
       useSearchable={() => searchableDoors}
       getLabel={(item) => {
         if (!item) return buildSentence(t, 'select', 'door');
-        return item.name || item.id;
+        const loc = (item as any).location?.name || (item as any).location?.address;
+        return loc ? `${item.name || item.id} (${loc})` : (item.name || item.id);
       }}
       getKey={(item) => item.id.toString()}
       getValue={(item) => {

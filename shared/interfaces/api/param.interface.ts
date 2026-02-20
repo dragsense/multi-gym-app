@@ -1,4 +1,4 @@
-import { TQueryParams } from '../../types/api/param.type';
+import type { TQueryParams } from '../../types/api/param.type';
 
 
 export interface IListQueryParams {

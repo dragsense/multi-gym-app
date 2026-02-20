@@ -73,15 +73,20 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
   const { user } = useAuthUser();
   const { t, direction } = useI18n();
   const { resolvedTheme } = useTheme();
-  
+
   // Get theme from store
-  const themeStore = useRegisteredStore<TSingleHandlerStore<IBusinessTheme | null, {}>>(BUSINESS_THEME_STORE_KEY + "-single");
-  const theme = themeStore ? themeStore(useShallow((state) => state.response)) : null;
-  
+  const themeStore = useRegisteredStore<
+    TSingleHandlerStore<IBusinessTheme | null, {}>
+  >(BUSINESS_THEME_STORE_KEY + "-single");
+  const theme = themeStore
+    ? themeStore(useShallow((state) => state.response))
+    : null;
+
   // Get logo based on theme
-  const themeLogo = resolvedTheme === 'dark' 
-    ? (theme?.logoDark?.url || theme?.logoDark) 
-    : (theme?.logoLight?.url || theme?.logoLight);
+  const themeLogo =
+    resolvedTheme === "dark"
+      ? theme?.logoDark?.url || theme?.logoDark
+      : theme?.logoLight?.url || theme?.logoLight;
   const displayLogo = themeLogo || logo;
   const displayBrandName = theme?.title || t("appName");
 
@@ -105,7 +110,7 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
       group.items.forEach((item) => {
         if (item.children) {
           const isChildActive = item.children.some((child) =>
-            matchRoutePath(child.url, location.pathname)
+            matchRoutePath(child.url, location.pathname),
           );
           const isParentActive = matchRoutePath(item.url, location.pathname);
 
@@ -137,14 +142,14 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
   // React 19: Memoized sidebar header for better performance
   const renderSidebarHeader = React.useMemo(
     () =>
-      (showCloseButton: boolean = false) =>
-      (
+      (showCloseButton: boolean = false) => (
         <SidebarHeader className="mt-5" data-component-id={componentId}>
           <div
             className={
               showCloseButton
-                ? `flex items-center justify-between p-4 ${direction === "rtl" ? "flex-row-reverse" : ""
-                }`
+                ? `flex items-center justify-between p-4 ${
+                    direction === "rtl" ? "flex-row-reverse" : ""
+                  }`
                 : ""
             }
           >
@@ -182,11 +187,19 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
           </div>
         </SidebarHeader>
       ),
-    [componentId, setOpenMobile, startTransition, t, direction, displayLogo, displayBrandName]
+    [
+      componentId,
+      setOpenMobile,
+      startTransition,
+      t,
+      direction,
+      displayLogo,
+      displayBrandName,
+    ],
   );
 
   const renderNavItems = () => (
-    <SidebarContent className="mt-2">
+    <SidebarContent className="mt-2 custom-scrollbar">
       {navItems.map((group, groupIndex) => (
         <SidebarGroup key={group.groupTitle || groupIndex}>
           {group.groupTitle && (
@@ -210,7 +223,10 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            isActive={matchRoutePath(item.url, location.pathname)}
+                            isActive={matchRoutePath(
+                              item.url,
+                              location.pathname,
+                            )}
                             tooltip={t(item.title)}
                             className="group cursor-pointer text-muted-foreground/80 p-6 rounded-xl hover:bg-muted/50 transition-all duration-200"
                           >
@@ -222,10 +238,11 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <SidebarMenuSub
-                            className={`${direction === "rtl"
-                              ? "mr-4 border-r pr-4"
-                              : "ml-4 border-l pl-4"
-                              } border-sidebar-border`}
+                            className={`${
+                              direction === "rtl"
+                                ? "mr-4 border-r pr-4"
+                                : "ml-4 border-l pl-4"
+                            } border-sidebar-border`}
                           >
                             {item.children?.map((child) => (
                               <SidebarMenuSubItem key={child.title}>
@@ -281,8 +298,9 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            className={`${direction === "rtl" ? "justify-end" : "justify-start"
-              } gap-2 mb-2 w-full`}
+            className={`${
+              direction === "rtl" ? "justify-end" : "justify-start"
+            } gap-2 mb-2 w-full`}
             disabled={isLoading}
           >
             {isLoading ? (

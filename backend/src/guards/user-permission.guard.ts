@@ -111,11 +111,14 @@ export class UerPermissionGuard implements CanActivate {
         resource.id,
         requiredPermissions,
       );
+
       if (!hasPermission) {
         throw new ForbiddenException(
           `Insufficient permissions. Required: ${requiredPermissions.join(', ')}.`,
         );
       }
+
+      return true;
     }
 
     // Check legacy resource/action permissions (for backward compatibility)
@@ -126,7 +129,7 @@ export class UerPermissionGuard implements CanActivate {
       const hasPermission = await this.permissionService.hasPermission(
         resource.id,
         resourceName,
-        finalAction,
+        [finalAction, EPermissionAction.MANAGE],
       );
 
       if (!hasPermission) {

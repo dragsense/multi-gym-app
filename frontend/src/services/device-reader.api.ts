@@ -18,8 +18,8 @@ const deviceReaderService = new BaseService<
 >(DEVICE_READER_API_PATH);
 
 // Re-export common CRUD operations
-export const fetchDeviceReaders = (params: IListQueryParams) =>
-  deviceReaderService.get<IDeviceReader>(params);
+export const fetchDeviceReaders = (params: IListQueryParams, locationId?: string) =>
+  deviceReaderService.get<IDeviceReader>({ ...params, filters: { ...(params.filters || {}), locationId } });
 
 export const fetchDeviceReader = (id: string, params?: Record<string, any>) =>
   deviceReaderService.getSingle<IDeviceReader>(id, params);
@@ -33,6 +33,6 @@ export const updateDeviceReader = (id: string) => (data: TUpdateDeviceReaderData
 export const deleteDeviceReader = (id: string) =>
   deviceReaderService.delete(id);
 
-export const updateDeviceReaderStatus = (id: string) => (data: { status: string; message?: string }) =>
+export const updateDeviceReaderStatus = (id: string) => (data: { status: any; message?: string }) =>
   deviceReaderService.patch<IMessageResponse>(id)(data, undefined, "/status");
 

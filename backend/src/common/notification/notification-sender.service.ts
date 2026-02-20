@@ -4,7 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { SettingsService } from '@/common/settings/settings.service';
 import { Notification } from './entities/notification.entity';
 import { PushNotificationService } from './services/push-notification.service';
+import { SmsNotificationService } from './services/sms-notification.service';
 import { User } from '@/common/base-user/entities/user.entity';
+import { Profile } from '@/modules/v1/users/profiles/entities/profile.entity';
 import { ServerGateway } from '@/common/gateways/server.gateway';
 import { EntityRouterService } from '@/common/database/entity-router.service';
 
@@ -16,6 +18,7 @@ export class NotificationSenderService {
     private readonly serverGateway: ServerGateway,
     private readonly settingsService: SettingsService,
     private readonly pushNotificationService: PushNotificationService,
+    private readonly smsNotificationService: SmsNotificationService,
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
     private readonly entityRouterService: EntityRouterService,
@@ -24,7 +27,10 @@ export class NotificationSenderService {
   /**
    * Get user notification preferences
    */
-  private async getUserNotificationPreferences(entityId: string): Promise<{
+  private async getUserNotificationPreferences(
+    entityId: string,
+    notificationType?: string,
+  ): Promise<{
     emailEnabled: boolean;
     smsEnabled: boolean;
     pushEnabled: boolean;
@@ -35,34 +41,82 @@ export class NotificationSenderService {
 
       const notifications = ((settings?.notifications as
         | {
-            emailEnabled?: boolean;
-            smsEnabled?: boolean;
-            pushEnabled?: boolean;
-            inAppEnabled?: boolean;
-          }
+          emailEnabled?: boolean;
+          smsEnabled?: boolean;
+          pushEnabled?: boolean;
+          inAppEnabled?: boolean;
+        }
         | undefined) || {}) as {
-        emailEnabled?: boolean;
-        smsEnabled?: boolean;
-        pushEnabled?: boolean;
-        inAppEnabled?: boolean;
-      };
+          emailEnabled?: boolean;
+          smsEnabled?: boolean;
+          pushEnabled?: boolean;
+          inAppEnabled?: boolean;
+        };
 
-      return {
+      // For billing notifications, automatically enable SMS if user has phone number
+      let smsEnabled = notifications.smsEnabled ?? true; // Default to true
+      if (notificationType === 'billing') {
+        // For billing notifications, check if user has phone number and auto-enable SMS
+        try {
+          const userRepo = this.entityRouterService.getRepository<User>(User);
+          const profileRepo = this.entityRouterService.getRepository<Profile>(Profile);
+          
+          const user = await userRepo.findOne({
+            where: { id: entityId },
+            select: ['id', 'level'],
+          });
+
+          if (user) {
+            const profile = await profileRepo.findOne({
+              where: { userId: user.id },
+            });
+
+            if (profile?.phoneNumber) {
+              smsEnabled = true; // Auto-enable SMS for billing if phone number exists
+              this.logger.log(
+                `📱 Auto-enabling SMS for billing notifications for user ${entityId} (phone number: ${profile.phoneNumber})`,
+              );
+            } else {
+              // Only log if this is actually a member (not an admin receiving admin notifications)
+              // Check user level to avoid spam logs for admins
+              const userLevel = (user as any).level;
+              const isMember = userLevel === 0; // MEMBER level (EUserLevels.MEMBER = 0)
+              
+              if (isMember) {
+                this.logger.log(
+                  `📱 Skipping SMS for billing notification - no phone number found for member user ${entityId}`,
+                );
+              }
+              // Silently skip for admins to avoid log spam
+            }
+          }
+        } catch (error) {
+          // If we can't check phone number, keep original preference
+          this.logger.warn(
+            `Failed to check phone number for user ${entityId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          );
+        }
+      }
+
+      const prefs = {
         emailEnabled: notifications.emailEnabled ?? true, // Default to true
-        smsEnabled: notifications.smsEnabled ?? false,
+        smsEnabled,
         pushEnabled: notifications.pushEnabled ?? false,
         inAppEnabled: notifications.inAppEnabled ?? true, // Default to true
       };
-    } catch {
+
+      return prefs;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.warn(
-        `Failed to get notification preferences for user ${entityId}, using defaults`,
+        `Failed to get notification preferences for user ${entityId}: ${errorMessage}, using defaults`,
       );
       // Return defaults if settings not found
       return {
-        emailEnabled: false,
-        smsEnabled: false,
-        pushEnabled: false,
-        inAppEnabled: true,
+        emailEnabled: true, // Default: enabled
+        smsEnabled: true, // Default: enabled
+        pushEnabled: false, // Default: disabled
+        inAppEnabled: true, // Default: enabled
       };
     }
   }
@@ -201,19 +255,43 @@ export class NotificationSenderService {
   }
 
   /**
-   * Send notification via SMS (placeholder for future implementation)
+   * Send notification via SMS
    */
   private async sendSmsNotification(
     entityId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _notification: Notification,
+    notification: Notification,
   ): Promise<void> {
-    // TODO: Implement SMS notification service
-    // Using void await to satisfy linter for async method
-    await Promise.resolve();
-    this.logger.log(
-      `📱 SMS notification queued for user ${entityId} (not implemented yet)`,
-    );
+    try {
+      // Only send SMS for billing notifications
+      if (notification.entityType !== 'billing') {
+        this.logger.log(
+          `Skipping SMS for non-billing notification type: ${notification.entityType}`,
+        );
+        return;
+      }
+
+      const success = await this.smsNotificationService.sendSmsNotification(
+        entityId,
+        notification,
+      );
+
+      if (success) {
+        this.logger.log(
+          `✅ SMS notification sent to user ${entityId} for notification ${notification.id}`,
+        );
+      } else {
+        this.logger.warn(
+          `Failed to send SMS notification to user ${entityId} for notification ${notification.id}`,
+        );
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `❌ Failed to send SMS notification to user ${entityId}: ${errorMessage}`,
+      );
+      throw error;
+    }
   }
 
   /**
@@ -262,6 +340,7 @@ export class NotificationSenderService {
 
     const preferences = await this.getUserNotificationPreferences(
       notification.entityId,
+      notification.entityType,
     );
 
     const results = {
@@ -295,8 +374,8 @@ export class NotificationSenderService {
       }
     }
 
-    // Send via SMS
-    if (preferences.smsEnabled) {
+    // Send via SMS - only for billing notifications
+    if (preferences.smsEnabled && notification.entityType === 'billing') {
       try {
         await this.sendSmsNotification(notification.entityId, notification);
         results.sms = true;
@@ -307,8 +386,14 @@ export class NotificationSenderService {
       }
     }
 
-    // Send via push
-    if (preferences.pushEnabled) {
+    // Send via push - only for chat and billing notifications
+    const shouldSendPush =
+      notification.entityType === 'chat' ||
+      notification.entityType === 'billing' ||
+      (notification.metadata as Record<string, unknown>)?.action === 'new_message';
+
+
+    if (preferences.pushEnabled && shouldSendPush) {
       try {
         await this.sendPushNotification(notification.entityId, notification);
         results.push = true;

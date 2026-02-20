@@ -28,12 +28,14 @@ const WorkersPage = lazy(() => import("./workers"));
 const RolesPage = lazy(() => import("./roles"));
 const QueuesPage = lazy(() => import("./queues"));
 const SettingsPage = lazy(() => import("./settings"));
+const PaymentProcessorPage = lazy(() => import("./settings/payment-processor"));
 const CachePage = lazy(() => import("./cache"));
 const UserAvailabilityPage = lazy(() => import("./user-availability"));
 const AccountPage = lazy(() => import("./account"));
 const ProductPage = lazy(() => import("./products"));
 const ProductTypesPage = lazy(() => import("./products/product-types"));
 const AttributesPage = lazy(() => import("./products/attributes"));
+const AutomationPage = lazy(() => import("./automation"))
 
 const DashboardPage = lazy(() => import("./dashboards/dashboard"));
 const SystemDashboardPage = lazy(() => import("./dashboards/system-dashboard"));
@@ -73,6 +75,12 @@ const EquipmentPage = lazy(() => import("./equipment"));
 const LinkMembersPage = lazy(() => import("./link-members"));
 const LinkMemberDetailPage = lazy(() => import("./link-members/detail"));
 const CustomizationPage = lazy(() => import("./customization"));
+const StorePage = lazy(() => import("./store"));
+const StoreProductDetailPage = lazy(() => import("./store/detail"));
+const CartPage = lazy(() => import("./cart"));
+const CheckoutPage = lazy(() => import("./checkout"));
+const OrdersPage = lazy(() => import("./orders"));
+const OrderDetailPage = lazy(() => import("./orders/detail"));
 // Helper to create route with component and user level
 const createRoute = (
   path: string,
@@ -96,7 +104,12 @@ const commonRoutes = (userLevel: string): RouteDefinition[] => [
 
 const staffAndMemberSharedRoutes = (userLevel: string): RouteDefinition[] => [
   createRoute(ADMIN_ROUTES.USER_AVAILABILITY, UserAvailabilityPage, userLevel, ["loading", "user", "availability"]),
-
+  createRoute(ADMIN_ROUTES.STORE, StorePage, userLevel, ["loading", "store"]),
+  createRoute(ADMIN_ROUTES.STORE_PRODUCT, StoreProductDetailPage, userLevel, ["loading", "store", "product"]),
+  createRoute(ADMIN_ROUTES.CART, CartPage, userLevel, ["loading", "cart"]),
+  createRoute(ADMIN_ROUTES.CHECKOUT, CheckoutPage, userLevel, ["loading", "checkout"]),
+  createRoute(ADMIN_ROUTES.ORDERS, OrdersPage, userLevel, ["loading", "orders"]),
+  createRoute(ADMIN_ROUTES.ORDER_DETAIL, OrderDetailPage, userLevel, ["loading", "order", "detail"]),
 ];
 
 const adminAndStaffSharedRoutes = (userLevel: string): RouteDefinition[] => [
@@ -118,6 +131,11 @@ const platformOwnerAndSuperAdminSharedRoutes = (userLevel: string): RouteDefinit
 ];
 
 const platformOwnerAndSuperAdminAndAdminSharedRoutes = (userLevel: string): RouteDefinition[] => [
+];
+
+const platformOwnerAndAdminSharedRoutes = (userLevel: string): RouteDefinition[] => [
+  createRoute(ADMIN_ROUTES.ACTIVITY_LOGS, ActivityLogsPage, userLevel, ["loading", "activity", "logs"]),
+
   createRoute(ADMIN_ROUTES.CMS.EMAIL_TEMPLATES, EmailTemplatesPage, userLevel, ["loading", "email", "templates"]),
   createRoute(ADMIN_ROUTES.CMS.EMAIL_TEMPLATE_CREATE, CreateEmailTemplatePage, userLevel, ["loading", "email", "template", "create"]),
   createRoute(ADMIN_ROUTES.CMS.EMAIL_TEMPLATE_EDIT, EditEmailTemplatePage, userLevel, ["loading", "email", "template", "edit"]),
@@ -126,10 +144,6 @@ const platformOwnerAndSuperAdminAndAdminSharedRoutes = (userLevel: string): Rout
   createRoute(ADMIN_ROUTES.CMS.PAGE_CREATE, CreatePagePage, userLevel, ["loading", "page", "create"]),
   createRoute(ADMIN_ROUTES.CMS.PAGE_EDIT, EditPagePage, userLevel, ["loading", "page", "edit"]),
   createRoute(ADMIN_ROUTES.CMS.PAGE_PREVIEW, PagePreviewPage, userLevel, ["loading", "page", "preview"]),
-];
-
-const platformOwnerAndAdminSharedRoutes = (userLevel: string): RouteDefinition[] => [
-  createRoute(ADMIN_ROUTES.ACTIVITY_LOGS, ActivityLogsPage, userLevel, ["loading", "activity", "logs"]),
 ];
 
 const platformOwnerRoutes: RouteDefinition[] = [
@@ -155,6 +169,7 @@ const adminRoutes: RouteDefinition[] = [
   ...platformOwnerAndAdminSharedRoutes("Admin"),
   ...adminAndStaffSharedRoutes("Admin"),
   ...adminAndMemberAndStaffSharedRoutes("Admin"),
+  ...staffAndMemberSharedRoutes("Admin"),
   ...platformOwnerAndSuperAdminAndAdminSharedRoutes("Admin"),
   createRoute(ADMIN_ROUTES.STAFF_DETAIL, StaffDetailPage, "Admin", ["loading", "staff", "detail"]),
   createRoute(ADMIN_ROUTES.MEMBERSHIPS, MembershipsPage, "Admin", ["loading", "memberships"]),
@@ -172,18 +187,20 @@ const adminRoutes: RouteDefinition[] = [
   createRoute(ADMIN_ROUTES.FACILITY_INFO, FacilityInfoPage, "Admin", ["loading", "facility", "info"]),
   createRoute(ADMIN_ROUTES.EQUIPMENT_RESERVATIONS, EquipmentReservationsPage, "Admin", ["loading", "equipment", "reservations"]),
   createRoute(ADMIN_ROUTES.EQUIPMENT, EquipmentPage, "Admin", ["loading", "equipment"]),
-  createRoute(ADMIN_ROUTES.CAMERAS, CamerasPage, "Admin", ["loading", "cameras"]),
   createRoute(ADMIN_ROUTES.MEMBERS, MembersPage, "Admin", ["loading", "members"]),
   createRoute(ADMIN_ROUTES.MEMBER_DETAIL, MemberDetailPage, "Admin", ["loading", "member", "detail"]),
   createRoute(ADMIN_ROUTES.REFERRAL_LINKS, ReferralLinksPage, "Admin", ["loading", "referral", "links"]),
   createRoute(ADMIN_ROUTES.DASHBOARD, DashboardPage, "Admin", ["loading", "dashboard"]),
   createRoute(ADMIN_ROUTES.FILES, FilesPage, "Admin", ["loading", "files"]),
+  createRoute(ADMIN_ROUTES.AUTOMATION, AutomationPage, 'Admin', ["loading", "automation"]),
+  createRoute(ADMIN_ROUTES.CAMERAS, CamerasPage, "Admin", ["loading", "cameras"]),
 ];
 
 const superAdminRoutes: RouteDefinition[] = [
   ...commonRoutes("Super Admin"),
   ...platformOwnerAndSuperAdminSharedRoutes("Super Admin"),
   ...platformOwnerAndSuperAdminAndAdminSharedRoutes("Super Admin"),
+  createRoute(ADMIN_ROUTES.PAYMENT_PROCESSOR, PaymentProcessorPage, "Super Admin", ["loading", "payment", "processor"]),
   createRoute(ADMIN_ROUTES.DASHBOARD, SuperAdminDashboardPage, "Super Admin", ["loading", "dashboard"]),
   createRoute(ADMIN_ROUTES.CUSTOMIZATION, CustomizationPage, "Super Admin", ["loading", "customization"]),
 ];
@@ -215,6 +232,7 @@ const routeFeatureMap: Record<string, ESubscriptionFeatures> = {
   [ADMIN_ROUTES.CHAT]: ESubscriptionFeatures.CHAT,
   [ADMIN_ROUTES.ROLES]: ESubscriptionFeatures.ROLES,
   [ADMIN_ROUTES.LOCATIONS]: ESubscriptionFeatures.LOCATIONS,
+  [ADMIN_ROUTES.CAMERAS]: ESubscriptionFeatures.VIDEO_STREAM,
   [ADMIN_ROUTES.EQUIPMENT_RESERVATIONS]: ESubscriptionFeatures.EQUIPMENT_RESERVATION,
   [ADMIN_ROUTES.ADVERTISEMENTS]: ESubscriptionFeatures.ADVERTISEMENTS,
   [ADMIN_ROUTES.SERVICE_OFFERS]: ESubscriptionFeatures.SERVICE_OFFERS,
@@ -269,7 +287,7 @@ export const filterStaffRoutes = (
   user?: IUser | null,
   subscriptionFeatures?: string[]
 ): RouteDefinition[] => {
- 
+
   // Map routes to required resources
   const routeResourceMap: Record<string, EResource> = {
     [ADMIN_ROUTES.SESSIONS]: EResource.SESSIONS,
@@ -279,7 +297,6 @@ export const filterStaffRoutes = (
     [ADMIN_ROUTES.CHAT]: EResource.CHAT,
     [ADMIN_ROUTES.CMS.FAQS]: EResource.FAQS,
     [ADMIN_ROUTES.MEMBERS]: EResource.MEMBERS,
-    [ADMIN_ROUTES.CAMERAS]: EResource.VIDEO_STREAM,
     [ADMIN_ROUTES.MEMBERSHIPS]: EResource.MEMBERSHIPS,
     [ADMIN_ROUTES.STAFF]: EResource.STAFF,
     [ADMIN_ROUTES.SERVICE_OFFERS]: EResource.SERVICE_OFFERS,
@@ -297,7 +314,7 @@ export const filterStaffRoutes = (
     // Then check resource permissions
     const requiredResource = routeResourceMap[route.path];
     if (requiredResource) {
-    
+
       return hasResourcePermission(user, requiredResource);
     }
     // Allow routes without resource mapping (like dashboard, account, settings)
@@ -315,7 +332,7 @@ const getFilteredRoutesByLevel = (
   subscriptionFeatures?: string[]
 ): RouteDefinition[] => {
   let routes: RouteDefinition[] = [];
-  
+
   switch (level) {
     case EUserLevels.PLATFORM_OWNER:
       routes = platformOwnerRoutes;
@@ -348,15 +365,15 @@ const getFilteredRoutesByLevel = (
 // Note: For STAFF level, routes are filtered dynamically in StaffRoutes component
 // Note: Routes are now filtered by subscription features for ADMIN, STAFF, and MEMBER levels
 export const adminRoutesByLevel = {
-  [EUserLevels.PLATFORM_OWNER]: (user?: IUser | null, subscriptionFeatures?: string[]) => 
+  [EUserLevels.PLATFORM_OWNER]: (user?: IUser | null, subscriptionFeatures?: string[]) =>
     getFilteredRoutesByLevel(EUserLevels.PLATFORM_OWNER, user, subscriptionFeatures),
-  [EUserLevels.SUPER_ADMIN]: (user?: IUser | null, subscriptionFeatures?: string[]) => 
+  [EUserLevels.SUPER_ADMIN]: (user?: IUser | null, subscriptionFeatures?: string[]) =>
     getFilteredRoutesByLevel(EUserLevels.SUPER_ADMIN, user, subscriptionFeatures),
-  [EUserLevels.ADMIN]: (user?: IUser | null, subscriptionFeatures?: string[]) => 
+  [EUserLevels.ADMIN]: (user?: IUser | null, subscriptionFeatures?: string[]) =>
     getFilteredRoutesByLevel(EUserLevels.ADMIN, user, subscriptionFeatures),
-  [EUserLevels.STAFF]: (user?: IUser | null, subscriptionFeatures?: string[]) => 
+  [EUserLevels.STAFF]: (user?: IUser | null, subscriptionFeatures?: string[]) =>
     getFilteredRoutesByLevel(EUserLevels.STAFF, user, subscriptionFeatures),
-  [EUserLevels.MEMBER]: (user?: IUser | null, subscriptionFeatures?: string[]) => 
+  [EUserLevels.MEMBER]: (user?: IUser | null, subscriptionFeatures?: string[]) =>
     getFilteredRoutesByLevel(EUserLevels.MEMBER, user, subscriptionFeatures),
 };
 

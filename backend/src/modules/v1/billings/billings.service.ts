@@ -24,14 +24,11 @@ import { LoggerService } from '@/common/logger/logger.service';
 import { CrudService } from '@/common/crud/crud.service';
 import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
 import { UsersService } from '../users/users.service';
-import { JwtService } from '@nestjs/jwt';
-import { StripeService } from '../stripe/stripe.service';
-import { StripeBillingService } from '../stripe/services/stripe-billing.service';
 import { EBillingStatus } from '@shared/enums/billing.enum';
 import { EUserLevels } from '@shared/enums';
 import { BillingNotificationService } from './services/billing-notification.service';
 import { UserSettingsService } from '../user-settings/user-settings.service';
-import { StripeCustomerService } from '../stripe/services/stripe-customer.service';
+import { PaymentAdapterService } from '../payment-adapter/payment-adapter.service';
 import { User } from '@/common/base-user/entities/user.entity';
 import { DateTime } from 'luxon';
 import { BillingEmailService } from './services/billing-email.service';
@@ -39,7 +36,6 @@ import { BillingHistoryService } from './services/billing-history.service';
 import { generateInvoiceRef } from './utils/billing.utils';
 import { LinkMemberService } from '../members/services/link-member.service';
 import { MembersService } from '../members/members.service';
-import Stripe from 'stripe';
 
 @Injectable()
 export class BillingsService extends CrudService<Billing> {
@@ -49,12 +45,9 @@ export class BillingsService extends CrudService<Billing> {
     @InjectRepository(Billing)
     private readonly billingRepo: Repository<Billing>,
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
-    private readonly stripeBillingService: StripeBillingService,
-    private readonly stripeService: StripeService,
     private readonly billingNotificationService: BillingNotificationService,
     private readonly userSettingsService: UserSettingsService,
-    private readonly stripeCustomerService: StripeCustomerService,
+    private readonly paymentAdapterService: PaymentAdapterService,
     @Inject(forwardRef(() => BillingEmailService))
     private readonly billingEmailService: BillingEmailService,
     private readonly billingHistoryService: BillingHistoryService,
@@ -72,6 +65,11 @@ export class BillingsService extends CrudService<Billing> {
   async createBilling(
     createBillingDto: CreateBillingDto,
   ): Promise<IMessageResponse & { billing: Billing }> {
+    const tenantId = RequestContext.get<string>('tenantId');
+    if (tenantId) {
+      await this.paymentAdapterService.assertBusinessHasPaymentProcessor(tenantId);
+    }
+
     // Check if trainer exists and is actually a trainer
     const recipientUser = await this.usersService.getUser(
       createBillingDto.recipientUser.id,
@@ -165,6 +163,23 @@ export class BillingsService extends CrudService<Billing> {
       throw new ForbiddenException('You are not authorized to update this billing');
     }
 
+    // Financial compliance: do not allow updating amount once billing is paid
+    const { status } = await this.getBillingStatus(id);
+    if (status === EBillingStatus.PAID) {
+      const hasLineItemChanges =
+        updateBillingDto.lineItems !== undefined &&
+        Array.isArray(updateBillingDto.lineItems) &&
+        updateBillingDto.lineItems.length > 0;
+      if (hasLineItemChanges) {
+        throw new ForbiddenException(
+          'Cannot update billing amount or line items once the billing is paid. This is required for financial compliance.',
+        );
+      }
+      // Strip line items so the rest of the update can proceed 
+      const { lineItems, ...rest } = updateBillingDto;
+      Object.assign(updateBillingDto, rest);
+    }
+
     if (updateBillingDto.recipientUser && updateBillingDto.recipientUser.id) {
       // Check if trainer exists and is actually a trainer
       const recipientUser = await this.usersService.getUser(
@@ -177,7 +192,7 @@ export class BillingsService extends CrudService<Billing> {
       }
       recipientUserId = recipientUser.id;
     } else {
-   
+
       if (existingBilling?.recipientUser) {
         recipientUserId = existingBilling.recipientUser.id;
       }
@@ -268,12 +283,21 @@ export class BillingsService extends CrudService<Billing> {
     currentUser: User,
     timezone: string,
     metadata?: Record<string, unknown>,
+    tenantId?: string,
   ): Promise<IMessageResponse & { paymentIntentId: string }> {
     const { billingId, paymentMethodId, saveForFutureUse, setAsDefault } =
       billingPaymentIntentDto;
 
-    const billing = await this.getSingle(billingId, {
-      _relations: ['recipientUser'],
+    tenantId = tenantId || RequestContext.get<string>('tenantId');
+
+
+    const billingRepository = this.getRepository(tenantId);
+
+    const billing = await billingRepository.findOne({
+      where: {
+        id: billingId,
+      },
+      relations: ['recipientUser'],
     });
 
     if (!billing) {
@@ -282,20 +306,36 @@ export class BillingsService extends CrudService<Billing> {
 
     // Check if current user is the recipient or a linked member
     const isRecipient = billing.recipientUser.id === currentUser.id;
-    
+
     if (!isRecipient && currentUser.level === EUserLevels.MEMBER) {
       // Check if current user is a linked member of the recipient
       try {
-        const currentMember = await this.membersService.getSingle({ userId: currentUser.id });
-        const recipientMember = await this.membersService.getSingle({ userId: billing.recipientUser.id });
-        
+
+        const currentMemberRepository = this.membersService.getRepository(tenantId);
+        const recipientMemberRepository = this.membersService.getRepository(tenantId);
+
+        const currentMember = await currentMemberRepository.findOne({
+          where: {
+            user: {
+              id: currentUser.id,
+            },
+          },
+        });
+        const recipientMember = await recipientMemberRepository.findOne({
+          where: {
+            user: {
+              id: billing.recipientUser.id,
+            },
+          },
+        });
+
         if (currentMember && recipientMember) {
           // Check if they are linked (either direction)
           const linkAsPrimary = await this.linkMemberService.getSingle({
             primaryMemberId: recipientMember.id,
             linkedMemberId: currentMember.id,
           });
-        
+
           if (!linkAsPrimary) {
             throw new ForbiddenException(
               'You are not authorized to create a payment intent for this billing',
@@ -317,34 +357,34 @@ export class BillingsService extends CrudService<Billing> {
       }
     }
 
-    const { hasPaid } = await this.checkBillingPayment(billingId);
+    const { hasPaid } = await this.checkBillingPayment(billingId, tenantId);
 
     if (hasPaid) {
       throw new BadRequestException('Billing is already paid');
     }
 
-    const stripeCustomer =
-      await this.stripeCustomerService.createOrGetStripeCustomer(currentUser);
-
+    const adapter = await this.paymentAdapterService.getAdapterForTenant(tenantId);
+    const customer = await adapter.createOrGetCustomer(currentUser, tenantId);
 
     if (paymentMethodId && (saveForFutureUse || setAsDefault)) {
-      await this.stripeCustomerService.attachPaymentMethod(
-        stripeCustomer.stripeCustomerId,
+      await adapter.attachPaymentMethod(
+        customer.customerId,
         paymentMethodId,
-        setAsDefault,
+        setAsDefault ?? false,
+        tenantId,
       ).then(() => {
         this.customLogger.log('Payment method attached successfully');
-      })
+      });
     }
 
-    const cardInfo = await this.stripeCustomerService.getCardInfoFromPaymentMethod(paymentMethodId);
+    const cardInfo = await adapter.getCardInfoFromPaymentMethod(paymentMethodId, tenantId);
     if (!cardInfo) {
       throw new BadRequestException('No card information found for the payment method');
     }
 
-    const paymentIntent = await this.stripeBillingService.createPaymentIntent({
+    const paymentIntent = await adapter.createPaymentIntent({
       amountCents: Math.round(billing.amount * 100),
-      customerId: stripeCustomer.stripeCustomerId,
+      customerId: customer.customerId,
       paymentMethodId,
       confirm: true,
       metadata: {
@@ -352,8 +392,8 @@ export class BillingsService extends CrudService<Billing> {
         createdBy: currentUser.id,
         ...metadata,
       },
-    })
-
+      tenantId,
+    });
 
     if (paymentIntent.status === 'succeeded') {
       await this.update(billingId, {
@@ -380,38 +420,43 @@ export class BillingsService extends CrudService<Billing> {
         this.customLogger.error(`Failed to create billing history: ${error.message}`, error.stack);
       });
 
-      // Include tenantId for multi-tenant database routing in event handlers
-      const tenantId = RequestContext.get<string>('tenantId');
-      this.emitEvent('status.paid', billing, undefined, { tenantId });
+      const tenantIdForEvent = RequestContext.get<string>('tenantId');
+      this.emitEvent('status.paid', billing, undefined, { tenantId: tenantIdForEvent });
     } else {
-      this.billingHistoryService.create({
+      const attemptedAt = DateTime.now().setZone(timezone).toJSDate();
+      const failureReason = `Payment intent not successful (status=${paymentIntent.status})`;
+
+      await this.billingHistoryService.create({
         billing: { id: billingId },
         status: EBillingStatus.FAILED,
         source: 'BILLING_PAYMENT_INTENT',
-        message: `Payment intent not successful (status=${paymentIntent.status})`,
+        message: failureReason,
         metadata: {
           paymentIntentId: paymentIntent.id,
-          stripeStatus: paymentIntent.status,
+          paymentStatus: paymentIntent.status,
           cardInfo,
         },
-      }).then(() => {
-        return { message: 'Payment intent created successfully' };
+        attemptedAt,
       }).catch((error: Error) => {
         this.customLogger.error(`Failed to create billing history: ${error.message}`, error.stack);
+      });
+
+      this.emitEvent('status.failed', billing, undefined, {
+        tenantId,
+        reason: failureReason,
       });
 
       throw new BadRequestException('Failed to create payment intent');
     }
 
-
     return { message: 'Payment intent created successfully', paymentIntentId: paymentIntent.id };
   }
 
-  async checkBillingPayment(billingId: string): Promise<{
+  async checkBillingPayment(billingId: string, tenantId?: string): Promise<{
     hasPaid: boolean;
     paidAt?: Date | null;
   }> {
-    const repository = this.getRepository();
+    const repository = this.getRepository(tenantId);
     const billing = await repository.findOne({
       where: {
         id: billingId,
@@ -424,90 +469,15 @@ export class BillingsService extends CrudService<Billing> {
 
     // Check if the associated billing is paid based on history
     const { status, paidAt } =
-      await this.getBillingStatus(billingId);
-    const hasPaidInDb = status === EBillingStatus.PAID;
-
-    // Also verify with Stripe using the stored payment intent ID
-    let hasPaidInStripe = false;
-    if (billing.paymentIntentId) {
-      try {
-        const paymentIntent = await this.stripeBillingService.getPaymentIntent(
-          billing.paymentIntentId,
-        );
-        hasPaidInStripe = paymentIntent.status === 'succeeded';
-      } catch (error: unknown) {
-        this.customLogger.warn(
-          `Failed to verify payment with Stripe: ${error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      }
-    }
-
-    const hasPaid = hasPaidInStripe || hasPaidInDb;
+      await this.getBillingStatus(billingId, tenantId);
+    const hasPaid = status === EBillingStatus.PAID;
 
     return {
       hasPaid,
       paidAt,
     };
   }
-  //-----------------------------------------------------
-  //Delete Billing
-  //-----------------------------------------------------
-  async deleteBilling(
-    billingId: string,
-    callbacks?: {
-      beforeDelete?: (entity: any, manager: EntityManager) => any | Promise<any>;
-      afterDelete?: (entity: any, manager: EntityManager) => any | Promise<any>;
-    },
-  ): Promise<any> {   //Just cahnge <T> to any
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
 
-    try {
-      const existingEntity = await this.getSingle(billingId);
-      //-----------------------Added New check--------------------------
-      //If billing alredy paid do not delete
-      const { hasPaid } = await this.checkBillingPayment(billingId);
-      if (hasPaid) {
-        throw new BadRequestException('Cannot delete: billing already paid');
-      }
-      //----------------------------------------------------------------
-
-      if (callbacks?.beforeDelete) {
-        await callbacks.beforeDelete(existingEntity, queryRunner.manager);
-      }
-
-      const merged = queryRunner.manager.merge(
-        this.repository.target as any,
-        existingEntity,
-        {
-          deletedAt: new Date(),
-          deletedByUserId: RequestContext.get<string>('userId'),
-        } as any,
-      );
-
-      const savedEntity = await queryRunner.manager.save(merged);
-
-      if (callbacks?.afterDelete) {
-        await callbacks.afterDelete(existingEntity, queryRunner.manager);
-      }
-
-      await queryRunner.commitTransaction();
-      // Include tenantId for multi-tenant database routing in event handlers
-      const tenantId = RequestContext.get<string>('tenantId');
-      this.emitEvent('crud.delete', existingEntity, undefined, { tenantId });
-
-      return savedEntity;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      this.logger.error(`Error deleting entity: ${error.message}`, error.stack);
-      if (error instanceof NotFoundException) throw error;
-      throw new BadRequestException(`Failed to delete entity: ${error.message}`);
-    } finally {
-      await queryRunner.release();
-    }
-  }
 
   async generateInvoiceHtml(id: string, currentUser: User): Promise<string> {
     const billing = await this.getSingle(id, {
@@ -765,13 +735,27 @@ export class BillingsService extends CrudService<Billing> {
       attemptedAt: DateTime.now().setZone(timezone).toJSDate(),
     });
 
+    // Emit event for status change (will trigger SMS notifications)
+    const tenantId = RequestContext.get<string>('tenantId');
+    if (status === EBillingStatus.PAID) {
+      this.emitEvent('status.paid', billing, undefined, { tenantId });
+    } else if (status === EBillingStatus.FAILED) {
+      this.emitEvent('status.failed', billing, undefined, {
+        tenantId,
+        reason: message || 'Payment failed',
+      });
+    } else if (status === EBillingStatus.PENDING) {
+      this.emitEvent('status.pending', billing, undefined, { tenantId });
+    }
+
     return { message: 'Billing status updated successfully' };
   }
 
   async getBillingStatus(
     billingId: string,
+    tenantId?: string,
   ): Promise<{ status: EBillingStatus | null; paidAt?: Date | null }> {
-    const lastHistory = await this.billingHistoryService.getLatestBillingHistoryQuery()
+    const lastHistory = await this.billingHistoryService.getLatestBillingHistoryQuery(tenantId)
       .andWhere('bh.billingId = :billingId', { billingId: billingId })
       .getOne();
 

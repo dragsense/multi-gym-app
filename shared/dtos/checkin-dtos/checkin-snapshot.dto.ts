@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, IsNumber, IsOptional } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FileUploadDto } from "../file-upload-dtos/file-upload.dto";
 
 export class CheckinSnapshotDto {
@@ -25,6 +25,7 @@ export class CheckinSnapshotDto {
         type: () => FileUploadDto,
     })
     @IsOptional()
+    @Expose()
     @Type(() => FileUploadDto)
     image?: FileUploadDto | null;
 

@@ -12,18 +12,14 @@ import { fetchCurrentBusinessTheme } from "@/services/business/business-theme.ap
 import { BusinessThemeComponent } from "@/components/layout-ui/business-theme";
 import { BUSINESS_THEME_STORE_KEY } from "@/components/layout-ui/business-theme";
 
-interface MainLayoutProps { }
+interface MainLayoutProps {}
 
-export default function MainLayout({ }: MainLayoutProps) {
+export default function MainLayout({}: MainLayoutProps) {
   // React 19: Essential IDs
   const componentId = useId();
 
-
   return (
-    <div
-      className="p-2"
-      data-component-id={componentId}
-    >
+    <div className="p-2" data-component-id={componentId}>
       {/* Load business theme using SingleHandler */}
       <SingleHandler<IBusinessTheme | null, {}>
         storeKey={BUSINESS_THEME_STORE_KEY}
@@ -32,11 +28,11 @@ export default function MainLayout({ }: MainLayoutProps) {
         queryFn={async (_id, _queryParams) => {
           return fetchCurrentBusinessTheme();
         }}
-        SingleComponent={({ storeKey, store }) =>
+        SingleComponent={({ storeKey, store }) => (
           <BusinessThemeComponent storeKey={storeKey} store={store}>
             <Outlet />
           </BusinessThemeComponent>
-        }
+        )}
       />
 
       <Toaster />

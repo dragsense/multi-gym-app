@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCard, Star, Loader2 } from "lucide-react";
 
 // Types
-import type { IStripeCard } from "@/services/stripe.api";
+import type { IStripeCard } from "@/@types/payment.types";
 
 interface IDefaultCardDisplayProps {
   card: IStripeCard | null;

@@ -10,7 +10,7 @@ import { PartialType } from "../../lib/dto-type-adapter";
 import { FieldType } from "../../decorators/field.decorator";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 
 export class CreateEquipmentTypeDto {
   @ApiProperty({ example: "Treadmill", description: "Equipment type name" })
@@ -37,6 +37,7 @@ export class EquipmentTypeListDto extends ListQueryDto {
 
 export class EquipmentTypePaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [EquipmentTypeDto] })
+  @Expose()
   @Type(() => EquipmentTypeDto)
   data: EquipmentTypeDto[];
 }

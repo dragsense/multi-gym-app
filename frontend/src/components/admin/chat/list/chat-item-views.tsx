@@ -152,15 +152,13 @@ export function chatItemViews() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                {isGroupChat && (
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation();
-                    onShowParticipants(chat, e);
-                  }}>
-                    <Users className="h-4 w-4 mr-2" />
-                    {buildSentence(t, "view", "participants")}
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation();
+                  onShowParticipants(chat, e);
+                }}>
+                  <Users className="h-4 w-4 mr-2" />
+                  {buildSentence(t, "view", "participants")}
+                </DropdownMenuItem>
                 {isGroupChat && isAdmin && (
                   <>
                     <DropdownMenuItem onClick={(e) => {

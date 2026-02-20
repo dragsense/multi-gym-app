@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { In } from 'typeorm';
+import { In, Not } from 'typeorm';
 import { User } from '@/common/base-user/entities/user.entity';
 import { NotificationService } from '@/common/notification/notification.service';
 import {
@@ -89,6 +89,7 @@ export class UserNotificationService {
       const userRepo = this.entityRouterService.getRepository<User>(User);
       const adminUsers = await userRepo.find({
         where: {
+          id: Not(user.id),
           level: In([EUserLevels.SUPER_ADMIN, EUserLevels.ADMIN]),
           isActive: true,
         },
@@ -137,10 +138,19 @@ export class UserNotificationService {
    */
   async notifyAdminsUserUpdated(user: User, updatedBy?: string): Promise<void> {
     try {
+      // Don't notify admins about platform owner updates - platform owner outranks all admins
+      if (user.level === EUserLevels.PLATFORM_OWNER) {
+        this.logger.log(
+          `Skipping admin notifications for platform owner ${user.email}`,
+        );
+        return;
+      }
+
       // Find all admin users (PLATFORM_OWNER = 0, SUPER_ADMIN = 1, ADMIN = 2)
       const userRepo = this.entityRouterService.getRepository<User>(User);
       const adminUsers = await userRepo.find({
         where: {
+          id: Not(user.id),
           level: In([EUserLevels.SUPER_ADMIN, EUserLevels.ADMIN]),
           isActive: true,
         },
@@ -185,13 +195,76 @@ export class UserNotificationService {
   }
 
   /**
+   * Send notification to Platform Owner when a new Super Admin (business) is onboarded
+   */
+  async notifyPlatformOwnerSuperAdminCreated(
+    user: User,
+    createdBy?: string,
+  ): Promise<void> {
+    try {
+      // Find all platform owners
+      const userRepo = this.entityRouterService.getRepository<User>(User);
+      const platformOwners = await userRepo.find({
+        where: {
+          level: EUserLevels.PLATFORM_OWNER,
+          isActive: true,
+        },
+        select: ['id', 'email', 'firstName', 'lastName'],
+      });
+
+      if (platformOwners.length === 0) {
+        this.logger.warn('No platform owners found to notify');
+        return;
+      }
+
+      // Send notification to each platform owner
+      const notificationPromises = platformOwners.map((owner) =>
+        this.notificationService.createNotification({
+          title: 'New Business Onboarded',
+          message: `A new business "${user.firstName} ${user.lastName}" (${user.email}) has been onboarded to the platform.`,
+          type: ENotificationType.SUCCESS,
+          priority: ENotificationPriority.NORMAL,
+          entityId: owner.id,
+          entityType: 'user',
+          metadata: {
+            action: 'super_admin_created',
+            targetUserId: user.id,
+            targetUserEmail: user.email,
+            createdBy,
+          },
+        }),
+      );
+
+      await Promise.all(notificationPromises);
+
+      this.logger.log(
+        `✅ Notifications sent to ${platformOwners.length} platform owner(s) for new Super Admin ${user.email}`,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(
+        `❌ Failed to send platform owner notifications for Super Admin ${user.email}: ${errorMessage}`,
+      );
+    }
+  }
+
+  /**
    * Send notifications to both user and admins when user is created
+   * Also notifies Platform Owner if the new user is a Super Admin
    */
   async handleUserCreated(user: User, createdBy?: string): Promise<void> {
-    await Promise.all([
+    const notifications: Promise<void>[] = [
       this.notifyUserCreated(user, createdBy),
       this.notifyAdminsUserCreated(user, createdBy),
-    ]);
+    ];
+
+    // If the new user is a Super Admin, notify Platform Owners
+    if (user.level === EUserLevels.SUPER_ADMIN) {
+      notifications.push(this.notifyPlatformOwnerSuperAdminCreated(user, createdBy));
+    }
+
+    await Promise.all(notifications);
   }
 
   /**
@@ -244,6 +317,7 @@ export class UserNotificationService {
       const userRepo = this.entityRouterService.getRepository<User>(User);
       const adminUsers = await userRepo.find({
         where: {
+          id: Not(user.id),
           level: In([EUserLevels.SUPER_ADMIN, EUserLevels.ADMIN]),
           isActive: true,
         },
@@ -307,6 +381,7 @@ export class UserNotificationService {
       const userRepo = this.entityRouterService.getRepository<User>(User);
       const adminUsers = await userRepo.find({
         where: {
+          id: Not(user.id),
           level: In([EUserLevels.SUPER_ADMIN, EUserLevels.ADMIN]),
           isActive: true,
         },

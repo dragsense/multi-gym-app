@@ -57,6 +57,11 @@ export function getDirtyData<T>(
 ): Partial<T> {
   const result: Partial<T> = {};
 
+  // Handle case where initialValues is null/undefined - include all formData
+  if (initialValues == null) {
+    return formData as Partial<T>;
+  }
+
   // Get all keys from both formData and initialValues
   const allKeys = new Set([
     ...Object.keys(initialValues as object),
@@ -94,19 +99,34 @@ export function getDirtyData<T>(
         }
       } else {
         // Nested object → recurse
+        // Handle case where initialValue is undefined/null for nested object
+        const nestedInitialValue = initialValue != null ? (initialValue as any) : ({} as any);
+        // Create a new WeakMap for recursive call to avoid cross-contamination
         const nestedDirty = getDirtyData(
           value as any,
-          initialValue as any,
-          seen
+          nestedInitialValue,
+          new WeakMap()
         );
 
-        // Only include if nested object has dirty fields
-        if (Object.keys(nestedDirty).length > 0) {
-          (result as any)[key] = nestedDirty as any;
+        // Check if nested object has dirty fields
+        const hasDirtyFields = Object.keys(nestedDirty).length > 0;
+        
+        // Always include nested object if it has dirty fields OR if objects are different
+        // This ensures false values are included when they differ from initial values
+        if (hasDirtyFields) {
+          // Include the dirty fields from the recursive call
+          (result as any)[key] = nestedDirty;
+        } else {
+          // If no dirty fields detected but objects are different, include entire value
+          // This handles edge cases where the recursive call might miss differences
+          const objectsAreDifferent = !isDeepEqual(value, nestedInitialValue, new WeakMap());
+          if (objectsAreDifferent) {
+            (result as any)[key] = value;
+          }
         }
       }
     } else {
-      // Primitive value → assign directly
+      // Primitive value → assign directly (including false, 0, empty string, etc.)
       (result as any)[key] = value;
     }
   }
@@ -115,7 +135,7 @@ export function getDirtyData<T>(
 }
 
 // Deep equality with circular reference protection
-function isDeepEqual(
+export function isDeepEqual(
   a: any,
   b: any,
   seen = new WeakMap<object, object>()

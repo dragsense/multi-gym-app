@@ -61,6 +61,7 @@ export default function DoorsForm({
     name: "",
     description: "",
     deviceReader: undefined,
+    camera: undefined,
     locationId: extra?.locationId || "",
   };
 

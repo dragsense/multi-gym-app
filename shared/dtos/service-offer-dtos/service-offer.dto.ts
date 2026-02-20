@@ -10,7 +10,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -36,6 +36,7 @@ export class CreateServiceOfferDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", true)
+  @Expose()
   @Type(() => Number)
   offerPrice: number;
 
@@ -47,6 +48,7 @@ export class CreateServiceOfferDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   discount?: number;
 
@@ -66,6 +68,7 @@ export class CreateServiceOfferDto {
 
   @ApiProperty({ type: StaffDto })
   @ValidateNested()
+  @Expose()
   @Type(() => StaffDto)
   @FieldType("nested", true, StaffDto)
   @IsOptional()
@@ -73,6 +76,7 @@ export class CreateServiceOfferDto {
 
   @ApiProperty({ type: TrainerServiceDto, description: "Associated trainer service" })
   @ValidateNested()
+  @Expose()
   @Type(() => TrainerServiceDto)
   @FieldType("nested", true, TrainerServiceDto)
   @IsNotEmpty()
@@ -85,6 +89,7 @@ export * from "./service-offer-status.dto";
 
 export class ServiceOfferPaginationDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [ServiceOfferDto] })
+  @Expose()
   @Type(() => ServiceOfferDto)
   data: ServiceOfferDto[];
 }
@@ -130,12 +135,14 @@ export class ServiceOfferDto {
   @ApiProperty({ type: StaffDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => StaffDto)
   trainer?: StaffDto;
 
   @ApiProperty({ type: TrainerServiceDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => TrainerServiceDto)
   @IsOptional()
   trainerService?: TrainerServiceDto;

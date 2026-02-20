@@ -183,6 +183,11 @@ const ChatFormModal = React.memo(function ChatFormModal({
           ? buildSentence(t, "edit", "chat")
           : buildSentence(t, "create", "chat")
       }
+      description={
+        isEditing
+          ? buildSentence(t, "edit", "chat", "details")
+          : buildSentence(t, "create", "a", "new", "chat")
+      }
       formStore={store}
       footerContent={formButtons}
       width="md"

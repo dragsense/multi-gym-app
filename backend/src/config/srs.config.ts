@@ -35,7 +35,11 @@ export default registerAs('srs', () => {
     // Stream URL Helper Functions
     getFlvUrl: (streamKey: string) => `http://${publicHost}:${publicHttpPort}/${app}/${streamKey}.flv`,
     getHlsUrl: (streamKey: string) => `http://${publicHost}:${publicHttpPort}/${app}/${streamKey}.m3u8`,
-    getWhepUrl: (streamKey: string) => `http://${publicHost}:${publicApiPort}/rtc/v1/whep/?app=${app}&stream=${streamKey}`,
+    // eip= forces SRS to use this IP as ICE candidate (required when SRS runs in Docker)
+    getWhepUrl: (streamKey: string) => {
+      const eip = publicHost === 'localhost' ? '127.0.0.1' : publicHost;
+      return `http://${publicHost}:${publicApiPort}/rtc/v1/whep/?app=${app}&stream=${streamKey}&eip=${eip}`;
+    },
     getRtmpUrl: (streamKey: string) => `rtmp://${host}:${rtmpPort}/${app}/${streamKey}`,
   };
 });

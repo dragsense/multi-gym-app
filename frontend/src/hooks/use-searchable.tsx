@@ -27,10 +27,11 @@ import type { ILocation } from "@shared/interfaces/location.interface";
 import type { IDoor } from "@shared/interfaces/door.interface";
 import { fetchDeviceReaders } from "@/services/device-reader.api";
 import type { IDeviceReader } from "@shared/interfaces/device-reader.interface";
-import { fetchCameras } from "@/services/camera.api";
-import type { ICamera } from "@shared/interfaces/camera.interface";
-import { 
-  } from "@shared/enums/trainer-service.enum";
+// import { fetchCameras } from "@/services/camera.api";
+// import type { ICamera } from "@shared/interfaces/camera.interface";
+import { fetchEmailTemplates } from "@/services/cms.api";
+import type { IEmailTemplate } from "@shared/interfaces/cms.interface";
+
 import { fetchStaff } from "@/services/staff.api";
 import { EServiceOfferStatus } from "@shared/enums/service-offer.enum";
 import { fetchProductTypes, fetchAttributes, fetchAttributeValuesByAttribute } from "@/services/products";
@@ -297,12 +298,12 @@ export function useSearchableDoors({ locationId, initialParams }: { locationId?:
   // React 19: Memoized fetcher for better performance
   const memoizedFetcher = useMemo(() =>
     (params: IListQueryParams) => {
+      const withLocation = { ...params, _relations: 'location' };
       if (locationId) {
-        return fetchDoorsByLocation(locationId, params);
+        return fetchDoorsByLocation(locationId, withLocation);
       }
-      // When no locationId, fetch all doors (useful for multiple locations)
       return fetchDoors({
-        ...params,
+        ...withLocation,
         _select: 'id, name, description, locationId'
       });
     },
@@ -420,17 +421,40 @@ export function useAttributeValues(attributeId: string, { initialParams }: { ini
 }
 
 
-export function useSearchableCameras({ locationId, initialParams }: { locationId?: string, initialParams?: IListQueryParams }) {
-  // React 19: Memoized key generation for better performance
-  const memoizedKey = useMemo(() => `searchable-cameras-${locationId || 'all'}`, [locationId]);
+export function useSearchableDeviceReaders({ locationId, initialParams }: { locationId?: string; initialParams?: IListQueryParams }) {
+  const memoizedKey = useMemo(
+    () => `searchable-device-readers-${locationId || 'all'}`,
+    [locationId]
+  );
 
-  // React 19: Memoized fetcher for better performance
   const memoizedFetcher = useMemo(() =>
-    (params: IListQueryParams) => fetchCameras({
-      ...params,
-      _select: 'id, name, description, locationId',
-    }, locationId),
-    [locationId]);
+    (params: IListQueryParams) => fetchDeviceReaders(
+      { ...params, _select: 'id, deviceName, macAddress, locationId' },
+      locationId
+    ),
+    [locationId]
+  );
+
+  return useSearchableResource<IDeviceReader>(
+    memoizedKey,
+    memoizedFetcher,
+    initialParams
+  );
+}
+
+export function useSearchableCameras({ locationId, initialParams }: { locationId?: string; initialParams?: IListQueryParams }) {
+  const memoizedKey = useMemo(
+    () => `searchable-cameras-${locationId || 'all'}`,
+    [locationId]
+  );
+
+  const memoizedFetcher = useMemo(() =>
+    (params: IListQueryParams) => fetchCameras(
+      { ...params, _select: 'id, name, locationId' },
+      locationId
+    ),
+    [locationId]
+  );
 
   return useSearchableResource<ICamera>(
     memoizedKey,
@@ -439,21 +463,22 @@ export function useSearchableCameras({ locationId, initialParams }: { locationId
   );
 }
 
-export function useSearchableDeviceReaders({ initialParams }: { initialParams?: IListQueryParams }) {
+export function useSearchableEmailTemplates({ initialParams }: { initialParams?: IListQueryParams }) {
   // React 19: Memoized key generation for better performance
-  const memoizedKey = "searchable-device-readers";
+  const memoizedKey = "searchable-email-templates";
 
   // React 19: Memoized fetcher for better performance
   const memoizedFetcher = useMemo(() =>
-    (params: IListQueryParams) => fetchDeviceReaders({
+    (params: IListQueryParams) => fetchEmailTemplates({
       ...params,
-      _select: 'id, deviceName, macAddress'
+      _select: 'id, name, identifier, subject',
     }),
     []);
 
-  return useSearchableResource<IDeviceReader>(
+  return useSearchableResource<IEmailTemplate>(
     memoizedKey,
     memoizedFetcher,
     initialParams
   );
 }
+

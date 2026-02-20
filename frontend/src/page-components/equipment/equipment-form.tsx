@@ -27,6 +27,7 @@ import type { TEquipmentData } from '@shared/types/equipment-reservation.type';
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 import { EEquipmentStatus } from "@shared/enums";
+import { getSelectedLocation } from "@/utils/location-storage";
 
 export type TEquipmentExtraProps = {};
 
@@ -55,18 +56,19 @@ export default function EquipmentForm({
     reset: state.reset
   })));
 
+  const location = getSelectedLocation();
   const INITIAL_VALUES: TEquipmentData = {
     equipmentType: null,
     name: "",
     description: "",
     serialNumber: "",
     status: EEquipmentStatus.AVAILABLE,
+    ...(location && { location: { id: location.id, name: location.name } }),
   };
 
-  // React 19: Memoized initial values with deferred processing
   const initialValues = useMemo(() => {
     return strictDeepMerge<TEquipmentData>(INITIAL_VALUES, response ?? {});
-  }, [INITIAL_VALUES, response?.id]);
+  }, [INITIAL_VALUES, response?.id, location]);
 
   // React 19: Enhanced handler with transitions
   const handleClose = useCallback(() => {

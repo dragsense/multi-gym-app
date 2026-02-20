@@ -17,6 +17,7 @@ import { buildSentence } from "@/locales/translations";
 import type { TFormHandlerStore } from "@/stores";
 import type { TBillingData } from "@shared/types/billing.type";
 import type { IBillingResponse } from "@shared/interfaces/billing.interface";
+import { EBillingStatus } from "@shared/enums/billing.enum";
 
 // Components
 import { ModalForm } from "@/components/form-ui/modal-form";
@@ -66,6 +67,7 @@ export interface IBillingFormModalExtraProps {
   open: boolean;
   onClose: () => void;
   user?: IUser;
+  billingStatus?: string | null;
 }
 
 type IBillingFormModalProps = THandlerComponentProps<
@@ -91,7 +93,9 @@ const BillingFormModal = React.memo(function BillingFormModal({
   const open = store ? store((state) => state.extra.open) : false;
   const onClose = store ? store((state) => state.extra.onClose) : () => {};
   const user = store ? store((state) => state.extra.user) : undefined;
+  const billingStatus = store ? store((state) => state.extra.billingStatus) : undefined;
   const storeFields = store ? store((state) => state.fields) : {};
+  const isPaidBilling = billingStatus === EBillingStatus.PAID;
 
   // Reset stepper when modal opens/closes
   useEffect(() => {
@@ -155,13 +159,15 @@ const BillingFormModal = React.memo(function BillingFormModal({
         lineItems: {
           ...(storeFields as TFieldConfigObject<TBillingData>).lineItems,
           label: "",
+          disabled: isPaidBilling,
           subFields: {
             ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
               .subFields,
 
             description:{
               ...(storeFields as TFieldConfigObject<TBillingData>).lineItems.subFields.description,
-              placeholder:buildSentence(t,"description")
+              placeholder:buildSentence(t,"description"),
+              disabled: isPaidBilling,
             },
             unitPrice: {
               ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
@@ -169,12 +175,14 @@ const BillingFormModal = React.memo(function BillingFormModal({
               label: buildSentence(t, "unit", "price"),
               placeholder:buildSentence(t,"unit price"),
               required:true,
+              disabled: isPaidBilling,
             },
             quantity: {
               ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
                 .subFields.quantity,
               label: buildSentence(t, "quantity"),
-              placeholder:buildSentence(t,"quantity")
+              placeholder:buildSentence(t,"quantity"),
+              disabled: isPaidBilling,
             },
           },
         },
@@ -192,7 +200,7 @@ const BillingFormModal = React.memo(function BillingFormModal({
           },
         },
       } as TFieldConfigObject<TBillingData>),
-    [storeFields, t, RecipientUserSelect]
+    [storeFields, t, RecipientUserSelect, isPaidBilling]
   );
 
   const inputs = useInput<TBillingData>({
@@ -311,20 +319,21 @@ const BillingFormModal = React.memo(function BillingFormModal({
           currentStep={currentStep}
           inputs={inputs}
           isEditing={isEditing}
+          isPaidBilling={isPaidBilling}
         />
         <button type="submit" id="billing-form-submit-button" hidden>
           Submit
         </button>
-      </ModalForm>
 
-      {/* Confirmation Modal */}
-      <BillingConfirmModal
-        open={showConfirmModal}
-        isEditing={isEditing}
-        onOpenChange={setShowConfirmModal}
-        isSubmitting={isSubmitting}
-        onConfirm={handleFinalConfirm}
-      />
+        {/* Confirmation modal must be inside ModalForm to read form context (lineItems, etc.) */}
+        <BillingConfirmModal
+          open={showConfirmModal}
+          isEditing={isEditing}
+          onOpenChange={setShowConfirmModal}
+          isSubmitting={isSubmitting}
+          onConfirm={handleFinalConfirm}
+        />
+      </ModalForm>
     </>
   );
 });

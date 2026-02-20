@@ -1,7 +1,7 @@
 import { BaseService } from "../base.service.api";
 import type { IListQueryParams } from "@shared/interfaces/api/param.interface";
 import type { TBusinessData, TCreateBusinessWithUserData, TUpdateBusinessWithUserData } from "@shared/types";
-import type { IBusiness, IMessageResponse } from "@shared/interfaces";
+import type { IBusiness, IMessageResponse, IMyBusinessPaymentProcessorTypeResponse } from "@shared/interfaces";
 import type { BusinessImpersonateResponseDto } from "@shared/dtos";
 
 const BUSINESS_API_PATH = "/business";
@@ -34,8 +34,14 @@ export const updateBusinessWithUser = (id: string) => (data: TUpdateBusinessWith
 export const deleteBusiness = (id: string) =>
   businessService.delete(id);
 
-export const getMyBusiness = (): Promise<IBusiness | null> => 
+export const getMyBusiness = (): Promise<IBusiness | null> =>
   businessService.getSingle<IBusiness | null>(undefined, undefined, "/me");
+
+export const getMyBusinessPaymentProcessorType = (): Promise<IMyBusinessPaymentProcessorTypeResponse> =>
+  businessService.getSingle<IMyBusinessPaymentProcessorTypeResponse>(undefined, undefined, "/me/payment-processor-type");
+
+export const updateMyBusiness = (data: Partial<TBusinessData>): Promise<IBusiness> =>
+  businessService.patch<IBusiness>(undefined)(data, undefined, "/me");
 
 /**
  * Login to current user's business

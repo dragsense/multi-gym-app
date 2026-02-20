@@ -130,6 +130,10 @@ export const memberItemViews = ({
       header: "Email",
     },
     {
+      accessorKey: "user.profile.phoneNumber",
+      header: "Phone",
+    },
+    {
       accessorKey: "isActive",
       header: "Status",
       cell: ({ row }) => {
@@ -166,6 +170,7 @@ export const memberItemViews = ({
     const firstName = item.user?.firstName;
     const lastName = item.user?.lastName;
     const email = item.user?.email;
+    const phoneNumber = item.user?.profile?.phoneNumber;
 
     // React 19: Memoized badge class for better performance
     const badgeClass = useMemo(() =>
@@ -182,7 +187,7 @@ export const memberItemViews = ({
     };
 
     return (
-      <AppCard 
+      <AppCard
         data-component-id={componentId}
         className="cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={handleCardClick}
@@ -213,6 +218,12 @@ export const memberItemViews = ({
                     <Mail className="h-3 w-3 flex-shrink-0" />
                     <span className="truncate">{email}</span>
                   </div>
+                  {phoneNumber && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Phone className="h-3 w-3 flex-shrink-0" />
+                      <span className="truncate">{phoneNumber}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

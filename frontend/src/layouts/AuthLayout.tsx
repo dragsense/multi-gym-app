@@ -21,15 +21,20 @@ export default function AuthLayout() {
   const componentId = useId();
   const { t, direction } = useI18n();
   const { resolvedTheme } = useTheme();
-  
+
   // Get theme from store
-  const themeStore = useRegisteredStore<TSingleHandlerStore<IBusinessTheme | null, {}>>('business-theme-single');
-  const theme = themeStore ? themeStore(useShallow((state) => state.response)) : null;
-  
+  const themeStore = useRegisteredStore<
+    TSingleHandlerStore<IBusinessTheme | null, {}>
+  >("business-theme-single");
+  const theme = themeStore
+    ? themeStore(useShallow((state) => state.response))
+    : null;
+
   // Get logo based on theme
-  const themeLogo = resolvedTheme === 'dark' 
-    ? (theme?.logoDark?.url || theme?.logoDark) 
-    : (theme?.logoLight?.url || theme?.logoLight);
+  const themeLogo =
+    resolvedTheme === "dark"
+      ? theme?.logoDark?.url || theme?.logoDark
+      : theme?.logoLight?.url || theme?.logoLight;
   const displayLogo = themeLogo || logo;
 
   return (
@@ -38,32 +43,36 @@ export default function AuthLayout() {
       data-component-id={componentId}
       dir={direction}
     >
-
-
       {/* Left Panel */}
       <div className="flex flex-col items-center justify-center gap-4">
-        <img src={displayLogo} alt="Logo" className="w-10 md:w-10" crossOrigin="anonymous" />
+        <img
+          src={displayLogo}
+          alt="Logo"
+          className="w-10 md:w-10"
+          crossOrigin="anonymous"
+        />
 
         <div className="space-y-1 text-center">
-          <h1 className="text-3xl font-bold text-center">{t("welcomeTo")} {theme?.title || t("appName")}</h1>
+          <h1 className="text-3xl font-bold text-center">
+            {t("welcomeTo")} {theme?.title || t("appName")}
+          </h1>
           <p className="text-center text-sm max-w-sm">
             {t("authHeroDescription")}
           </p>
-          <a
+          {/* <a
             href="https://linkedin.com/company/formance"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-muted-foreground underline underline-offset-4"
           >
             {t("visitLinkedIn")}
-          </a>
+          </a> */}
         </div>
       </div>
 
       {/* Right Panel */}
 
       <div className="flex items-center justify-center">
-
         <div className="w-full max-w-md">
           {/*   <div className="mb-4">
             <LanguageSwitcher />

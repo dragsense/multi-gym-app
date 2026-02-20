@@ -41,9 +41,8 @@ import { LinkMemberService } from '../members/services/link-member.service';
 import { Brackets, SelectQueryBuilder } from 'typeorm';
 import { MinUserLevel } from '@/decorators/level.decorator';
 import { Timezone } from '@/decorators/timezone.decorator';
-import { Resource } from '@/decorators';
-import { EResource } from '@shared/enums';
-import { LinkMember } from '../members/entities/link-member.entity';
+import { RequirePermissions, Resource, SkipPermissions } from '@/decorators';
+import { EPermissionAction, EResource } from '@shared/enums';
 
 @ApiTags('Billings')
 @MinUserLevel(EUserLevels.ADMIN)
@@ -92,13 +91,13 @@ export class BillingsController {
     type: BillingPaginatedDto,
   })
   @Get('user/:userId')
-  @MinUserLevel(EUserLevels.MEMBER)
   async getUserBillings(
     @Param('userId') userId: string,
     @Query() query: BillingListDto,
     @AuthUser() currentUser: User,
   ) {
-    const isAdmin = currentUser.level === EUserLevels.ADMIN;
+    const isAdmin = currentUser.level === (EUserLevels.PLATFORM_OWNER as number) 
+             || currentUser.level === (EUserLevels.SUPER_ADMIN as number) || currentUser.level === (EUserLevels.ADMIN as number);
 
     const {linkedMemberId, ...restQuery} = query;
 
@@ -150,14 +149,15 @@ export class BillingsController {
   })
   @ApiResponse({ status: 404, description: 'Billing not found' })
   @Get(':id')
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
   async findOne(
     @Param('id') id: string,
     @Query() query: SingleQueryDto<Billing>,
   ) {
     const billing = await this.billingsService.getSingle(id, query);
     if (!billing) throw new NotFoundException('Billing not found');
-    return billing;
+    const { status } = await this.billingsService.getBillingStatus(id);
+    return { ...billing, status: status ?? undefined };
   }
 
   @ApiOperation({ summary: 'Add a new billing' })
@@ -190,12 +190,10 @@ export class BillingsController {
   @ApiResponse({ status: 404, description: 'Billing not found' })
   @Delete(':id')
   async remove(@Param('id') id: string, @AuthUser() currentUser: User) {
-    //Replace common delete method with custom delete
-    await this.billingsService.deleteBilling(id);
+    await this.billingsService.delete(id);
   }
 
   @Post(':id/send-email')
-  @MinUserLevel(EUserLevels.SUPER_ADMIN)
   @ApiOperation({ summary: 'Send billing email to recipient' })
   @ApiParam({ name: 'id', description: 'Billing ID' })
   @ApiResponse({ status: 200, description: 'Email sent successfully' })
@@ -211,16 +209,20 @@ export class BillingsController {
     description: 'Payment intent created',
   })
   @Post('payment-intent')
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
+  @RequirePermissions(`${EResource.BILLINGS}:${EPermissionAction.READ}`)
   async createBillingPaymentIntent(
     @Body() billingPaymentIntentDto: BillingPaymentIntentDto,
     @AuthUser() currentUser: User,
     @Timezone() timezone: string,
   ) {
+
+
     return this.billingsService.createBillingPaymentIntent(
       billingPaymentIntentDto,
       currentUser,
       timezone,
+      {},
     );
   }
 
@@ -236,7 +238,7 @@ export class BillingsController {
   })
   @ApiResponse({ status: 404, description: 'Billing not found' })
   @Patch('notes/:id')
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
   async updateBillingNotes(
     @Param('id') id: string,
     @Body() updateNotesDto: UpdateBillingNotesDto,
@@ -294,7 +296,7 @@ export class BillingsController {
     description: 'Returns recent billings and total outstanding amount',
   })
   @Get('user/:userId/recent')
-  @MinUserLevel(EUserLevels.SUPER_ADMIN)
+  @MinUserLevel(EUserLevels.ADMIN)
   async getOutstandingBillingSummary(
     @Param('userId') userId: string,
     @Query() query: { limit?: number },
@@ -308,7 +310,7 @@ export class BillingsController {
     description: 'Returns recent billings and total outstanding amount for current user',
   })
   @Get('me/outstanding')
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
   async getMyOutstandingBillingSummary(
     @AuthUser() currentUser: User,
     @Query() query: { limit?: number },

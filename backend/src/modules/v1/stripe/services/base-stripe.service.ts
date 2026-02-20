@@ -2,8 +2,8 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { LoggerService } from '@/common/logger/logger.service';
-import { PaymentMethodsService } from '@/common/payment-methods/payment-methods.service';
-import { EPaymentMethodType } from '@shared/enums/payment-methods.enum';
+import { PaymentProcessorsService } from '@/common/payment-processors/payment-processors.service';
+import { EPaymentProcessorType } from '@shared/enums/payment-processors.enum';
 
 @Injectable()
 export class BaseStripeService {
@@ -17,7 +17,7 @@ export class BaseStripeService {
 
   constructor(
     protected readonly configService: ConfigService,
-    private readonly paymentMethodsService: PaymentMethodsService,
+    private readonly paymentProcessorsService: PaymentProcessorsService,
   ) {
     this.logger.log('Initializing Stripe service...');
 
@@ -38,17 +38,17 @@ export class BaseStripeService {
   }
 
   /**
-   * Check if Stripe is enabled by checking payment method
+   * Check if Stripe is enabled by checking payment processor
    */
   async isStripeEnabled(): Promise<boolean> {
     try {
-      const stripePaymentMethod = await this.paymentMethodsService.getSingle({
-        type: EPaymentMethodType.STRIPE,
+      const stripeProcessor = await this.paymentProcessorsService.getSingle({
+        type: EPaymentProcessorType.STRIPE,
       });
-      return !!stripePaymentMethod && stripePaymentMethod.enabled;
+      return !!stripeProcessor && stripeProcessor.enabled;
     } catch {
-      this.logger.warn('Stripe payment method not found or not active');
-      throw new Error('Stripe payment method not found or not active');
+      this.logger.warn('Stripe payment processor not found or not active');
+      throw new Error('Stripe payment processor not found or not active');
     }
   }
 
@@ -59,7 +59,7 @@ export class BaseStripeService {
     try {
       this.logger.log('Initializing Stripe service...');
 
-      const stripeConfig = this.configService.get('stripe') as {
+      const stripeConfig = this.configService.get('paymentProcessors.stripe') as {
         secretKey: string;
         webhookSecret?: string;
         publishableKey: string;
@@ -93,7 +93,7 @@ export class BaseStripeService {
     if (!this.stripe) {
       this.logger.error('Stripe initialization failed - service not available');
       throw new BadRequestException(
-        'Stripe is not configured. Please configure Stripe in Payment Methods settings or install stripe package.',
+        'Stripe is not configured. Please configure Stripe in Payment Processors settings or install stripe package.',
       );
     }
   }
