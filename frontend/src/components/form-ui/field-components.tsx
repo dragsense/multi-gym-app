@@ -103,10 +103,6 @@ export const TextField = React.memo(function TextField({
             value = field.required ? null : undefined;
         }
 
-        if (field.type === "number") {
-            value = Number(value);
-        }
-
         field?.onChange?.(value);
         return value;
     };

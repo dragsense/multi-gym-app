@@ -445,7 +445,7 @@ export default function Calendar({
               DateTime.now(),
               "day"
             );
-            // Friday (5), Saturday (6), and Sunday (0) are considered weekends
+            // Saturday (6) and Sunday (0) are considered weekends
             const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
             return (

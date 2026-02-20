@@ -91,13 +91,13 @@ export class BillingsController {
     type: BillingPaginatedDto,
   })
   @Get('user/:userId')
-  @MinUserLevel(EUserLevels.MEMBER)
   async getUserBillings(
     @Param('userId') userId: string,
     @Query() query: BillingListDto,
     @AuthUser() currentUser: User,
   ) {
-    const isAdmin = currentUser.level === EUserLevels.ADMIN || currentUser.level === EUserLevels.PLATFORM_OWNER;
+    const isAdmin = currentUser.level === (EUserLevels.PLATFORM_OWNER as number) 
+             || currentUser.level === (EUserLevels.SUPER_ADMIN as number) || currentUser.level === (EUserLevels.ADMIN as number);
 
     const {linkedMemberId, ...restQuery} = query;
 
@@ -156,7 +156,8 @@ export class BillingsController {
   ) {
     const billing = await this.billingsService.getSingle(id, query);
     if (!billing) throw new NotFoundException('Billing not found');
-    return billing;
+    const { status } = await this.billingsService.getBillingStatus(id);
+    return { ...billing, status: status ?? undefined };
   }
 
   @ApiOperation({ summary: 'Add a new billing' })
@@ -209,7 +210,7 @@ export class BillingsController {
     description: 'Payment intent created',
   })
   @Post('payment-intent')
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
   @RequirePermissions(`${EResource.BILLINGS}:${EPermissionAction.READ}`)
   async createBillingPaymentIntent(
     @Body() billingPaymentIntentDto: BillingPaymentIntentDto,
@@ -238,7 +239,7 @@ export class BillingsController {
   })
   @ApiResponse({ status: 404, description: 'Billing not found' })
   @Patch('notes/:id')
-  @MinUserLevel(EUserLevels.STAFF)
+  @MinUserLevel(EUserLevels.MEMBER)
   async updateBillingNotes(
     @Param('id') id: string,
     @Body() updateNotesDto: UpdateBillingNotesDto,

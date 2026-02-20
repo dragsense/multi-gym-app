@@ -13,8 +13,8 @@ import {
   Equals,
   TransformToBoolean,
 } from "../../decorators/crud.dto.decorators";
-import { IFaq } from "../../interfaces/cms.interface";
-import { Type } from "class-transformer";
+import type { IFaq } from "../../interfaces/cms.interface";
+import { Type, Expose } from "class-transformer";
 
 export class CreateFaqDto {
   @ApiProperty({
@@ -88,6 +88,7 @@ export class FaqListDto extends ListQueryDto<IFaq> {
 
 export class FaqPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [FaqDto] })
+  @Expose()
   @Type(() => FaqDto)
   data: FaqDto[];
 }

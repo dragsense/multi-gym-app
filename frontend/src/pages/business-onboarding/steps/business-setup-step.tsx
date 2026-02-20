@@ -1,5 +1,5 @@
 // React
-import { useTransition, useMemo } from "react";
+import { useTransition, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 // Types
@@ -43,6 +43,7 @@ export function BusinessSetupStep({
   const [, startTransition] = useTransition();
   const { t } = useI18n();
   const queryClient = useQueryClient();
+  const hasChangesRef = useRef(false);
 
   const INITIAL_VALUES: CreateBusinessDto = {
     name: "",
@@ -65,7 +66,14 @@ export function BusinessSetupStep({
 
   const mutationFn =
     isEditing && existingBusiness
-      ? (data: CreateBusinessDto) => updateBusiness(existingBusiness.id)(data)
+      ? (data: CreateBusinessDto) => {
+        if (Object.keys(data).length === 0) {
+          hasChangesRef.current = false;
+          return Promise.resolve(existingBusiness);
+        }
+        hasChangesRef.current = true;
+        return updateBusiness(existingBusiness.id)(data);
+      }
       : createBusiness;
 
   const handleSuccess = (res: IBusiness) => {
@@ -74,9 +82,13 @@ export function BusinessSetupStep({
       return;
     }
 
-    toast.success(
-      isEditing ? "Business updated successfully" : "Business setup completed successfully"
-    );
+    if (!isEditing || hasChangesRef.current) {
+      toast.success(
+        isEditing
+          ? "Information updated successfully"
+          : "Business setup completed successfully"
+      );
+    }
 
     queryClient.invalidateQueries({ queryKey: ["business-onboarding-setup", businessData?.businessId] });
     queryClient.invalidateQueries({ queryKey: ["my-business"] });

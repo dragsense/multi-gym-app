@@ -1,4 +1,4 @@
-import { IMessageResponse } from './api/response.interface';
+import type { IMessageResponse } from './api/response.interface';
 import { CheckinDto } from '../dtos/checkin-dtos';
 
 export interface ICheckin extends CheckinDto {};

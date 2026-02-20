@@ -74,7 +74,6 @@ export default function BillingSendEmail({
             <DialogContent className="min-w-md">
                 <AppDialog
                     title={buildSentence(t, 'send', 'email')}
-                    description={buildSentence(t, 'send', 'email')}
                 >
                     <div className="space-y-4">
                         <div className="space-y-2">

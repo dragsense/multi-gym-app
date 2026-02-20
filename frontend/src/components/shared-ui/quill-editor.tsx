@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, { useRef, useEffect, useMemo, useCallback } from "react";
 import { useId } from "react";
 import Quill, { Delta } from "quill";
 import { cn } from "@/lib/utils";
@@ -49,8 +49,10 @@ export const QuillEditor = React.memo(function QuillEditor({
 }: QuillEditorProps) {
   const componentId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const quillInstanceRef = useRef<Quill | null>(null);
   const isUpdatingFromPropsRef = useRef(false);
+  const initializingRef = useRef(false);
 
   // Merge user-provided modules with defaults
   const editorModules = useMemo(
@@ -70,21 +72,18 @@ export const QuillEditor = React.memo(function QuillEditor({
   // Initialize Quill editor
   useEffect(() => {
     const container = containerRef.current;
-    if (!container) return;
+    const editorEl = editorRef.current;
+    if (!container || !editorEl) return;
 
-    // Prevent double initialization - check ref first
-    if (quillInstanceRef.current) return;
-    
-    // Always ensure container is clean before initializing (handles StrictMode)
-    const existingToolbar = container.querySelector(".ql-toolbar");
-    const existingContainer = container.querySelector(".ql-container");
-    if (existingToolbar || existingContainer) {
-      // Remove any existing Quill elements
-      container.innerHTML = "";
-    }
-  
+    // Prevent double initialization
+    if (quillInstanceRef.current || initializingRef.current) return;
+    initializingRef.current = true;
+
+    // Remove any stale Quill toolbars from previous mount cycles
+    container.querySelectorAll(".ql-toolbar").forEach((el) => el.remove());
+
     try {
-      const quill = new Quill(container, {
+      const quill = new Quill(editorEl, {
         theme: "snow",
         placeholder,
         readOnly,
@@ -114,8 +113,6 @@ export const QuillEditor = React.memo(function QuillEditor({
       quill.on("text-change", handleTextChange);
 
       return () => {
-        // Cleanup function
-        
         if (quillInstanceRef.current) {
           const instance = quillInstanceRef.current;
           try {
@@ -125,16 +122,23 @@ export const QuillEditor = React.memo(function QuillEditor({
           }
           quillInstanceRef.current = null;
         }
-        
-        // Clean up DOM elements - remove Quill-generated elements
+        initializingRef.current = false;
+
+        // Remove Quill-generated toolbar (it gets prepended before the editor div)
         if (containerRef.current) {
-          const toolbar = containerRef.current.querySelector(".ql-toolbar");
-          const editorContainer = containerRef.current.querySelector(".ql-container");
-          if (toolbar) toolbar.remove();
-          if (editorContainer) editorContainer.remove();
+          containerRef.current
+            .querySelectorAll(".ql-toolbar")
+            .forEach((el) => el.remove());
+        }
+
+        // Reset the editor element so Quill can re-init on it cleanly
+        if (editorRef.current) {
+          editorRef.current.className = "quill-editor";
+          editorRef.current.innerHTML = "";
         }
       };
     } catch (error) {
+      initializingRef.current = false;
       console.error("Failed to initialize Quill editor:", error);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -156,7 +160,7 @@ export const QuillEditor = React.memo(function QuillEditor({
       isUpdatingFromPropsRef.current = true;
       const selection = quillInstanceRef.current.getSelection();
       quillInstanceRef.current.root.innerHTML = value || "";
-      
+
       // Restore selection if it existed
       if (selection) {
         // Use requestAnimationFrame to ensure DOM is updated
@@ -174,6 +178,7 @@ export const QuillEditor = React.memo(function QuillEditor({
 
   return (
     <div
+      ref={containerRef}
       className={cn(
         "relative quill-editor-wrapper",
         readOnly && "opacity-50 cursor-not-allowed",
@@ -182,7 +187,7 @@ export const QuillEditor = React.memo(function QuillEditor({
       data-component-id={componentId}
     >
       <div
-        ref={containerRef}
+        ref={editorRef}
         className="quill-editor"
         style={{
           minHeight,

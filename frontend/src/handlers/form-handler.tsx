@@ -36,7 +36,7 @@ import { toast } from "sonner";
 import { type TQueryParams } from "@shared/types/api/param.type";
 import { useShallow } from "zustand/shallow";
 import { getDirtyData, pickKeys, isDeepEqual } from "@/utils";
-import { classValidatorResolver } from "@/lib/validation";
+import { classValidatorResolver } from "@shared/lib/validation";
 import { dtoToFields } from "@/lib/fields/dto-to-feilds";
 import { type ClassConstructor } from "class-transformer";
 import { type TFieldConfigObject } from "@/@types/form/field-config.type";

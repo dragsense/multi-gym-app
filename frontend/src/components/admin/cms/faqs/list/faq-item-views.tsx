@@ -104,7 +104,7 @@ export const faqItemViews = ({
               )}
             </div>
             <AccordionContent>
-              <div 
+              <div
                 className="text-sm text-muted-foreground prose prose-sm max-w-none pt-2"
                 dangerouslySetInnerHTML={{ __html: item.answer }}
               />

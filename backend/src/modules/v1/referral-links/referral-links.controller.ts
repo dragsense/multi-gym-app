@@ -56,7 +56,6 @@ export class ReferralLinksController {
     description: 'Referral links retrieved successfully',
   })
   findAll(@Query() query: ReferralLinkListDto, @AuthUser() currentUser: User) {
-    const isSuperAdmin = currentUser.level === EUserLevels.SUPER_ADMIN;
     return this.referralLinksService.get(query, ReferralLinkListDto, {
       beforeQuery: (query: SelectQueryBuilder<ReferralLink>) => {
           query.andWhere('entity.createdByUserId = :createdByUserId', {

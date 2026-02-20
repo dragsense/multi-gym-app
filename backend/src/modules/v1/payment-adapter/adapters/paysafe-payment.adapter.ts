@@ -1,7 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from '@/common/base-user/entities/user.entity';
 import { LoggerService } from '@/common/logger/logger.service';
-import { PaysafeService } from '../services/paysafe.service';
+import { PaysafeService } from '../../paysafe/services/paysafe.service';
+import { PaysafeCustomerService } from '../../paysafe/services/paysafe-customer.service';
 import type {
   IPaymentAdapter,
   PaymentCustomerResult,
@@ -19,17 +20,22 @@ import type {
 export class PaysafePaymentAdapter implements IPaymentAdapter {
   private readonly logger = new LoggerService(PaysafePaymentAdapter.name);
 
-  constructor(private readonly paysafeService: PaysafeService) {}
+  constructor(
+    private readonly paysafeService: PaysafeService,
+    private readonly paysafeCustomerService: PaysafeCustomerService,
+  ) {}
 
   async createOrGetCustomer(
-    _user: User,
-    _tenantId?: string,
+    user: User,
+    tenantId?: string,
   ): Promise<PaymentCustomerResult> {
-    // Paysafe MVP: we don't use customer vault; single-use token per payment.
-    // Return a placeholder so billing flow can call createPaymentIntent.
+    const customer = await this.paysafeCustomerService.createOrGetCustomer(
+      user,
+      tenantId,
+    );
     return {
-      customerId: 'paysafe-single-use',
-      metadata: {},
+      customerId: customer.paysafeCustomerId,
+      metadata: { paysafeCustomerId: customer.paysafeCustomerId },
     };
   }
 
@@ -88,12 +94,18 @@ export class PaysafePaymentAdapter implements IPaymentAdapter {
   }
 
   async attachPaymentMethod(
-    _customerId: string,
-    _paymentMethodId: string,
-    _setAsDefault: boolean,
-    _tenantId?: string,
+    customerId: string,
+    paymentMethodId: string,
+    setAsDefault: boolean,
+    tenantId?: string,
   ): Promise<void> {
-    // MVP: Paysafe single-use tokens are not stored; no-op.
-    this.logger.debug('Paysafe attachPaymentMethod no-op (single-use token flow)');
+    // Convert single-use token into a permanent multi-use paymentHandleToken saved on the customer
+    await this.paysafeCustomerService.addCardForCustomerId({
+      paysafeCustomerId: customerId,
+      paymentHandleTokenFrom: paymentMethodId,
+      setAsDefault,
+      tenantId,
+    });
+    this.logger.debug('Paysafe card saved to customer profile');
   }
 }

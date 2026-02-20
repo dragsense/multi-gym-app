@@ -1,10 +1,15 @@
 // Hooks
 import { usePaymentCardsManager } from "@/hooks/use-payment-cards";
+import { EPaymentProcessorType } from "@shared/enums";
+import { useCurrentBusinessPaymentProcessor } from "@/payment-processors";
 
 // Components
 import { PaymentCardsManager } from "@/components/shared-ui/payment-cards-manager";
 
 export default function PaymentCardsTab() {
+  const { processorType } = useCurrentBusinessPaymentProcessor();
+  const resolvedType = processorType ?? EPaymentProcessorType.STRIPE;
+
   const {
     cards,
     defaultPaymentMethodId,
@@ -21,6 +26,7 @@ export default function PaymentCardsTab() {
     <PaymentCardsManager
       cards={cards}
       defaultPaymentMethodId={defaultPaymentMethodId}
+      processorType={resolvedType}
       isLoading={isLoading}
       onSetDefault={setDefaultCard}
       onDelete={deleteCard}

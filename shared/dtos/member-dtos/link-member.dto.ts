@@ -7,11 +7,11 @@ import {
   ValidateNested,
   IsNotEmpty,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { PartialType, OmitType } from '../../lib/dto-type-adapter';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { ListQueryDto, SingleQueryDto } from '../common/list-query.dto';
-import { ILinkMember } from '../../interfaces/link-member.interface';
+import type { ILinkMember } from '../../interfaces/link-member.interface';
 import { FieldType } from '../../decorators/field.decorator';
 import {
   Equals,
@@ -24,6 +24,7 @@ export class CreateLinkMemberDto {
     description: 'Primary member',
   })
   @ValidateNested()
+  @Expose()
   @Type(() => MemberDto)
   @FieldType('nested', true, MemberDto)
   primaryMember: MemberDto;
@@ -33,6 +34,7 @@ export class CreateLinkMemberDto {
     description: 'Linked member',
   })
   @ValidateNested()
+  @Expose()
   @Type(() => MemberDto)
   @FieldType('nested', true, MemberDto)
   linkedMember: MemberDto;
@@ -95,6 +97,7 @@ export class LinkMemberListDto extends ListQueryDto<ILinkMember> {
 
 export class LinkMemberPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [LinkMemberDto] })
+  @Expose()
   @Type(() => LinkMemberDto)
   data: LinkMemberDto[];
 }
@@ -122,6 +125,7 @@ export class LinkMemberDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => MemberDto)
   @FieldType('nested', false, MemberDto)
   primaryMember?: MemberDto;
@@ -140,6 +144,7 @@ export class LinkMemberDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => MemberDto)
   @FieldType('nested', false, MemberDto)
   linkedMember?: MemberDto;

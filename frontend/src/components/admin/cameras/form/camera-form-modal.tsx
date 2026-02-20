@@ -133,6 +133,12 @@ const CameraFormModal = React.memo(function CameraFormModal({
       label: buildSentence(t, 'path'),
       placeholder: '/stream',
     },
+    streamUrl: {
+      ...storeFields.streamUrl,
+      label: buildSentence(t, "streamUrl"),
+      placeholder: "rtsp://192.168.1.100:554/stream",
+      bottomAdornment: "Optional Stream URL",
+    },
     location: {
       ...storeFields.location,
       type: "custom" as const,
@@ -223,6 +229,7 @@ const CameraFormModal = React.memo(function CameraFormModal({
             {inputs.ipAddress}
             {inputs.port}
             {inputs.path}
+            {inputs.streamUrl}
           </div>
         </div>
 

@@ -9,7 +9,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
@@ -30,6 +30,7 @@ export class CreateEquipmentDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @FieldType("custom", false, LocationDto)
   location?: LocationDto;
@@ -115,6 +116,7 @@ export class EquipmentListDto extends ListQueryDto {
 
 export class EquipmentPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [EquipmentDto] })
+  @Expose()
   @Type(() => EquipmentDto)
   data: EquipmentDto[];
 }
@@ -131,6 +133,7 @@ export class EquipmentDto {
 
   @ApiPropertyOptional({ type: () => LocationDto })
   @IsOptional()
+  @Expose()
   @Type(() => LocationDto)
   location?: LocationDto;
 
@@ -150,6 +153,7 @@ export class EquipmentDto {
   status?: EEquipmentStatus;
 
   @ApiPropertyOptional({ type: () => EquipmentTypeDto })
+  @Expose()
   @Type(() => EquipmentTypeDto)
   equipmentType?: EquipmentTypeDto;
 

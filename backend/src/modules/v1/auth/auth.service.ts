@@ -67,10 +67,6 @@ export class AuthService {
           throw error;
         }
       } else {
-
-
-
-
         const res = await this.userService.createUser({
           ...userData,
           isActive: true,

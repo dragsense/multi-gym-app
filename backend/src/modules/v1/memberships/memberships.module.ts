@@ -18,7 +18,7 @@ import { MemberMembershipBillingController } from './controllers/member-membersh
 import { MemberMembershipController } from './controllers/member-membership.controller';
 import { CrudModule } from '@/common/crud/crud.module';
 import { BillingsModule } from '../billings/billings.module';
-import { StripeModule } from '../stripe/stripe.module';
+import { PaymentAdapterModule } from '../payment-adapter/payment-adapter.module';
 import { MembersModule } from '../members/members.module';
 import { ScheduleModule } from '@/common/schedule/schedule.module';
 import { ActionModule } from '@/common/helper/action.module';
@@ -29,7 +29,7 @@ import { DoorsModule } from '../locations/doors/doors.module';
     TypeOrmModule.forFeature([Membership, MemberMembership, MemberMembershipHistory, MemberMembershipBilling]),
     CrudModule,
     BillingsModule,
-    StripeModule,
+    PaymentAdapterModule,
     MembersModule,
     ScheduleModule,
     ActionModule,

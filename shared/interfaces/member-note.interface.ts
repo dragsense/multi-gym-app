@@ -1,4 +1,4 @@
-import { IMessageResponse } from './api/response.interface';
+import type { IMessageResponse } from './api/response.interface';
 import { MemberNoteDto } from '../dtos/member-note-dtos';
 
 export interface IMemberNote extends MemberNoteDto {}

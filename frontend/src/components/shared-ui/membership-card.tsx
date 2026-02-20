@@ -6,7 +6,7 @@ import type { IMembership } from "@shared/interfaces";
 
 // Components
 import { AppCard } from "@/components/layout-ui/app-card";
-import { Check, Clock, Calendar, Tag, DollarSign, AlertCircle } from "lucide-react";
+import { Check, Clock, Calendar, Tag, DollarSign, AlertCircle, DoorOpen, MapPin } from "lucide-react";
 
 // Utils
 import { formatCurrency } from "@/lib/utils";
@@ -219,6 +219,37 @@ export function MembershipCard({
                   {formatCurrency(totalPrice)}
                 </span>
               </div>
+            </div>
+          )}
+
+          {/* Doors / Location access */}
+          {(membership.doors === undefined || membership.doors === null || (Array.isArray(membership.doors) && membership.doors.length === 0)) ? (
+            <div className="pt-3 border-t">
+              <div className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <DoorOpen className="h-4 w-4" />
+                Access:
+              </div>
+              <div className="text-sm text-muted-foreground">All doors / all locations</div>
+            </div>
+          ) : membership.doors && membership.doors.length > 0 && (
+            <div className="pt-3 border-t">
+              <div className="text-sm font-semibold mb-2 flex items-center gap-2">
+                <DoorOpen className="h-4 w-4" />
+                Access:
+              </div>
+              <ul className="text-sm space-y-1.5">
+                {membership.doors.map((door: any, idx: number) => (
+                  <li key={door.id || idx} className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                    {door.name || door.id}
+                    {door.location && (
+                      <span className="text-xs">
+                        ({typeof door.location === "object" ? (door.location.name || door.location.address) : door.location})
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

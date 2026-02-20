@@ -5,15 +5,15 @@ import { useShallow } from "zustand/shallow";
 import { PageInnerLayout } from "@/layouts";
 import { FormHandler } from "@/handlers";
 import { CheckoutForm, CheckoutSummary } from "@/components/admin/checkout";
-import { StripePaymentModal } from "@/components/shared-ui/stripe-payment-modal";
+import { PaymentModalAdapter } from "@/payment-processors";
 import { getCart } from "@/services/cart.api";
 import { checkout } from "@/services/order.api";
 import { SEGMENTS, ADMIN_ROUTES } from "@/config/routes.config";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { useI18n } from "@/hooks/use-i18n";
-import { useStripePaymentCards } from "@/hooks/use-stripe-payment-cards";
+import { usePaymentCards } from "@/hooks/use-payment-cards";
 import { EPaymentPreference } from "@shared/enums/membership.enum";
-import type { StripeCardFormData } from "@/@types/payment.types";
+import type { PaymentCardFormData } from "@/@types/payment.types";
 import type { ICheckout } from "@shared/interfaces";
 import { CheckoutDto as CheckoutDtoClass } from "@shared/dtos";
 import { toast } from "sonner";
@@ -78,7 +78,7 @@ export default function CheckoutPage() {
   );
 
   const handlePaymentModalPay = useCallback(
-    (paymentMethodId: string, cardData?: StripeCardFormData) => {
+    (paymentMethodId: string, cardData?: PaymentCardFormData) => {
       if (!pendingFormData) {
         toast.error(t("formDataNotFound"));
         return;
@@ -109,7 +109,7 @@ export default function CheckoutPage() {
     (sum, i) => sum + (i.quantity ?? 0) * Number(i.unitPrice ?? 0),
     0
   );
-  const { stripeCards } = useStripePaymentCards();
+  const { cards } = usePaymentCards();
 
   return (
     <PageInnerLayout Header={null}>
@@ -125,13 +125,13 @@ export default function CheckoutPage() {
       />
 
 
-      <StripePaymentModal
+      <PaymentModalAdapter
         open={showPaymentModal}
         onOpenChange={(open) => {
           setShowPaymentModal(open);
           if (!open) setPendingFormData(null);
         }}
-        stripeCards={stripeCards}
+        cards={cards}
         onPay={handlePaymentModalPay}
         isLoading={placeOrderMutation.isPending}
         amount={totalAmount}

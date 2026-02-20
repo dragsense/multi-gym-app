@@ -23,7 +23,7 @@ import {
   getJwtConfig,
   bullQueueConfig,
   twilioConfig,
-  // srsConfig,
+  srsConfig,
 } from './config';
 
 import { AppController } from './app.controller';
@@ -44,6 +44,7 @@ import {
   UserSettingsModule,
   UserAvailabilityModule,
   StripeModule,
+  PaysafeModule,
   DashboardModule,
   BusinessModule,
   MembershipsModule,
@@ -62,8 +63,8 @@ import {
   TicketsModule,
   EquipmentReservationsModule,
   ProductModule,
-  // CamerasModule,
-  // StreamsModule,
+  CamerasModule,
+  StreamsModule,
   AutomationModule,
   CartModule,
   StoreModule,
@@ -122,12 +123,16 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
         healthConfig,
         bullQueueConfig,
         twilioConfig,
-        // srsConfig,
+        srsConfig,
       ],
       isGlobal: true,
     }),
 
-    
+    // Serve frontend static files, excluding API and uploads
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client', 'dist'),
+    }),
+
     // Serve public directory (includes uploads) at root path
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'public'),
@@ -154,13 +159,6 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
         },
       },
     }),
-
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client', 'dist'),
-      serveRoot: '/',
-      exclude: ['/api/*', '/uploads/*'],
-    }),
-
 
 
 
@@ -220,6 +218,7 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
     SettingsModule,
     UserAvailabilityModule,
     StripeModule,
+    PaysafeModule,
     SeedsModule,
     UsersModule,
     AuthModule,
@@ -244,8 +243,8 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
     StaffModule,
     EquipmentReservationsModule,
     ProductModule,
-    // CamerasModule,
-    // StreamsModule,
+    CamerasModule,
+    StreamsModule,
     AutomationModule,
     CartModule,
     StoreModule,

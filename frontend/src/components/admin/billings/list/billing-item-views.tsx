@@ -259,7 +259,7 @@ export function billingItemViews({
               <Banknote className="h-4 w-4" />
             </Button>
           )}
-          {user?.level <= EUserLevels.ADMIN && <Tooltip>
+          {user?.level === EUserLevels.ADMIN && <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"

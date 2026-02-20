@@ -85,7 +85,7 @@ export default function AccountPage() {
                     description: "Manage your Stripe Connect account"
                 });
             }
-        } else if (paymentProcessorType === EPaymentProcessorType.PAYSAFE) {
+        } /* else if (paymentProcessorType === EPaymentProcessorType.PAYSAFE) {
             if (BUSINESS_LEVELS.includes(user?.level ?? -1)) {
                 tabs.push({
                     id: "paysafe-account",
@@ -94,7 +94,7 @@ export default function AccountPage() {
                     description: "Manage your Paysafe account"
                 });
             }
-        }
+        } */
 
         return tabs;
     }, [user?.level, paymentProcessorType]);
@@ -142,9 +142,9 @@ export default function AccountPage() {
                     <StripeConnectTab />
                 </TabsContent>
 
-                <TabsContent value="paysafe-account" className="mt-0">
+             {/*    <TabsContent value="paysafe-account" className="mt-0">
                     <PaysafeAccountTab />
-                </TabsContent>
+                </TabsContent> */}
             </Tabs>
         </div>
     );

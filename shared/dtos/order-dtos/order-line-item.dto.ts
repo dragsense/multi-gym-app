@@ -8,7 +8,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PartialType } from '../../lib/dto-type-adapter';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { FieldType } from '../../decorators/field.decorator';
 
 /** Used when creating an order from cart (productId, variantId, quantity, unitPrice snapshot) */
@@ -32,6 +32,7 @@ export class CreateOrderLineItemDto {
   @ApiProperty({ example: 1, description: 'Quantity' })
   @IsNumber()
   @Min(1)
+  @Expose()
   @Type(() => Number)
   @FieldType('number', true)
   quantity: number;
@@ -39,6 +40,7 @@ export class CreateOrderLineItemDto {
   @ApiProperty({ example: 29.99, description: 'Unit price at time of order' })
   @IsNumber()
   @Min(0)
+  @Expose()
   @Type(() => Number)
   @FieldType('number', true)
   unitPrice: number;

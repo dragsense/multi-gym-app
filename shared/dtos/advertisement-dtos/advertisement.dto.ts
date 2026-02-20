@@ -11,7 +11,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -78,6 +78,7 @@ export class CreateAdvertisementDto {
   @IsNotEmpty()
   @IsObject({ message: "Banner image is required" })
   @ValidateNested()
+  @Expose()
   @Type(() => BannerImageDto)
   @FieldType("nested", true, BannerImageDto)
   bannerImage: BannerImageDto;
@@ -89,6 +90,7 @@ export * from "./advertisement-status.dto";
 
 export class AdvertisementPaginationDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [AdvertisementDto] })
+  @Expose()
   @Type(() => AdvertisementDto)
   data: AdvertisementDto[];
 }

@@ -16,7 +16,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OmitType, PartialType } from '../../lib/dto-type-adapter';
-import { Transform, Type } from 'class-transformer';
+import { Transform, Type, Expose } from 'class-transformer';
 import { FieldType } from '../../decorators/field.decorator';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { ListQueryDto } from '../common/list-query.dto';
@@ -81,6 +81,7 @@ export class CreateProductDto {
     example: '550e8400-e29b-41d4-a716-446655440000',
     description: 'Product type ID (e.g. Clothing, Electronics)',
   })
+  @Expose()
   @Transform(({ value }) => {
     // Handle multipart/form-data: productType may come as JSON string
     if (typeof value === 'string') {
@@ -94,6 +95,7 @@ export class CreateProductDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => ProductTypeDto)
   @FieldType('custom', false)
   productType?: ProductTypeDto;
@@ -114,6 +116,7 @@ export class CreateProductDto {
   @ApiProperty({ example: 29.99, description: 'Default price' })
   @IsNumber()
   @Min(0)
+  @Expose()
   @Type(() => Number)
   @FieldType('number', true)
   defaultPrice: number;
@@ -121,6 +124,7 @@ export class CreateProductDto {
   @ApiProperty({ example: 100, description: 'Total quantity across all variants' })
   @IsNumber()
   @Min(1)
+  @Expose()
   @Type(() => Number)
   @FieldType('number', true)
   totalQuantity: number;
@@ -148,6 +152,7 @@ export class CreateProductDto {
     type: [CreateProductVariantDto],
     description: 'Variants to create with the product.',
   })
+  @Expose()
   @Transform(({ value }) => {
     // Handle multipart/form-data: variants may come as JSON string
     if (typeof value === 'string') {
@@ -167,6 +172,7 @@ export class CreateProductDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => CreateProductVariantDto)
   @Validate(VariantQuantitiesSumValidConstraint)
   @FieldType('custom', false)
@@ -188,6 +194,7 @@ export class UpdateProductDto extends PartialType(OmitType(CreateProductDto, ['v
     type: [UpdateProductVariantDto],
     description: 'Variants to create/update/delete.',
   })
+  @Expose()
   @Transform(({ value }) => {
     // Handle multipart/form-data: variants may come as JSON string
     if (typeof value === 'string') {
@@ -207,6 +214,7 @@ export class UpdateProductDto extends PartialType(OmitType(CreateProductDto, ['v
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => UpdateProductVariantDto)
   @Validate(VariantQuantitiesSumValidConstraint)
   @FieldType('custom', false)
@@ -223,6 +231,7 @@ export class ProductListDto extends ListQueryDto<ProductDto> {
 
 export class ProductPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [ProductDto] })
+  @Expose()
   @Type(() => ProductDto)
   data: ProductDto[];
 }
@@ -233,6 +242,7 @@ export class ProductDto {
   id: string;
 
   @ApiPropertyOptional({ type: () => ProductTypeDto, description: 'Product type' })
+  @Expose()
   @Type(() => ProductTypeDto)
   productType?: ProductTypeDto;
 
@@ -252,6 +262,7 @@ export class ProductDto {
   totalQuantity: number;
 
   @ApiPropertyOptional({ type: () => [FileUploadDto], description: 'Default images (FileUpload)' })
+  @Expose()
   @Type(() => FileUploadDto)
   defaultImages?: FileUploadDto[];
 
@@ -259,6 +270,7 @@ export class ProductDto {
   isActive: boolean;
 
   @ApiPropertyOptional({ type: () => [ProductVariantDto] })
+  @Expose()
   @Type(() => ProductVariantDto)
   variants?: ProductVariantDto[];
 

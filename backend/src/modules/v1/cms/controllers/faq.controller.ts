@@ -28,17 +28,18 @@ import {
   SingleQueryDto,
 } from '@shared/dtos';
 import { EUserLevels } from '@shared/enums';
-import { MinUserLevel, RequireUserLevels } from '@/decorators/level.decorator';
+import { MinUserLevel, RequiredUserLevels } from '@/decorators/level.decorator';
 import { Resource } from '@/decorators';
 import { EResource } from '@shared/enums';
-import { User } from '@/common/base-user/entities/user.entity';
 import { AuthUser } from '@/decorators/user.decorator';
+import { User } from '@/common/base-user/entities/user.entity';
 import { Faq } from '../entities/faq.entity';
+import { SelectQueryBuilder } from 'typeorm';
 
 @ApiTags('CMS - FAQs')
 @ApiBearerAuth('access-token')
+@RequiredUserLevels([EUserLevels.PLATFORM_OWNER, EUserLevels.ADMIN])
 @Resource(EResource.FAQS)
-@RequireUserLevels([EUserLevels.ADMIN, EUserLevels.PLATFORM_OWNER])
 @Controller('cms/faqs')
 export class FaqController {
   constructor(private readonly faqService: FaqService) {}
@@ -54,10 +55,9 @@ export class FaqController {
   @ApiOperation({ summary: 'Get all FAQs with pagination' })
   @ApiResponse({ status: 200, type: FaqPaginatedDto })
   @MinUserLevel(EUserLevels.MEMBER)
-  async findAll(@AuthUser() currentUser: User, @Query() queryDto: FaqListDto) {
-
-    const isAdmin = currentUser.level === EUserLevels.ADMIN || currentUser.level === EUserLevels.PLATFORM_OWNER;
-
+  async findAll(@Query() queryDto: FaqListDto, @AuthUser() currentUser: User) {
+    const isAdmin =
+      currentUser.level === (EUserLevels.PLATFORM_OWNER as number) || currentUser.level === (EUserLevels.ADMIN as number);
     return this.faqService.get(queryDto, FaqListDto, {
       beforeQuery: (query: SelectQueryBuilder<Faq>) => {
         if (!isAdmin) {

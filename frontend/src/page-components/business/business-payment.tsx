@@ -15,7 +15,7 @@ import { type TSingleHandlerStore } from "@/stores";
 import { type ISingleHandlerState } from "@/@types/handler-types/single.type";
 
 // Components
-import { StripePaymentModal } from "@/components/shared-ui/stripe-payment-modal";
+import { PaymentModalAdapter } from "@/payment-processors";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppDialog } from "@/components/layout-ui/app-dialog";
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,10 @@ import { Button } from "@/components/ui/button";
 import { createBusinessPaymentIntent } from "@/services/business-billing.api";
 
 // Hooks
-import { useStripePaymentCards } from "@/hooks/use-stripe-payment-cards";
+import { usePaymentCards } from "@/hooks/use-payment-cards";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
-import type { StripeCardFormData } from "@/@types/payment.types";
+import type { PaymentCardFormData } from "@/@types/payment.types";
 import type { ESubscriptionFrequency } from "@shared/enums";
 
 export type TBusinessPaymentExtraProps = Record<string, unknown>;
@@ -79,8 +79,8 @@ export default function BusinessPayment({
         });
     }, [storeState, startTransition]);
 
-    const { stripeCards, isLoadingPaymentCards, errorPaymentCards } =
-        useStripePaymentCards();
+    const { cards, isLoadingPaymentCards, errorPaymentCards } =
+        usePaymentCards();
 
     const { mutate: processPayment, isPending: isProcessingPayment } =
         useMutation({
@@ -99,7 +99,7 @@ export default function BusinessPayment({
         });
 
     const handlePayClick = useCallback(
-        async (paymentMethodId: string, cardData?: StripeCardFormData) => {
+        async (paymentMethodId: string, cardData?: PaymentCardFormData) => {
             if (!business) {
                 setErrorMessage(buildSentence(t, "business", "not", "found"));
                 setShowErrorDialog(true);
@@ -148,14 +148,14 @@ export default function BusinessPayment({
 
     return (
         <>
-            <StripePaymentModal
+            <PaymentModalAdapter
                 open={action === "payBusiness" && !showSuccessDialog && !showErrorDialog}
                 onOpenChange={(open) => {
                     if (!open) {
                         handleClose();
                     }
                 }}
-                stripeCards={stripeCards}
+                cards={cards}
                 onPay={handlePayClick}
                 isLoading={isLoadingPaymentCards || isProcessingPayment}
                 amount={finalPrice}

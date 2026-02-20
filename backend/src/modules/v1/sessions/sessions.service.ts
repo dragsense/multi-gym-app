@@ -101,8 +101,7 @@ export class SessionsService extends CrudService<Session> {
     currentUser: User,
     timezone: string,
   ): Promise<IMessageResponse & { session: Session }> {
-    const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
+
 
     const isMember = currentUser.level === EUserLevels.MEMBER;
 
@@ -291,9 +290,6 @@ export class SessionsService extends CrudService<Session> {
         'Update scope is required for recurring sessions',
       );
     }
-
-    const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
 
     // Get trainer and members using reusable helper functions
     const trainer = await this.getTrainer(
@@ -848,7 +844,7 @@ export class SessionsService extends CrudService<Session> {
     memberId?: string,
     excludeSessionId?: string,
   ): Promise<SessionDto[]> {
-    const isSuperAdmin =
+    const isAdmin =
       currentUser.level === (EUserLevels.ADMIN as number);
 
     const { statuses, startDate, endDate, limit } = requestDto;
@@ -861,23 +857,24 @@ export class SessionsService extends CrudService<Session> {
       CalendarEventsRequestDto,
       {
         beforeQuery: (query: SelectQueryBuilder<Session>) => {
-          if (!isSuperAdmin) {
-              query
-                .leftJoin('entity.trainer', '_trainer')
-                .leftJoin('entity.members', '_members')
-                .andWhere(
-                  new Brackets((qb2) => {
-                    qb2
-                      .where('entity.createdByUserId = :uid', {
-                        uid: currentUser.id,
-                      })
-                      .orWhere('_trainer.userId = :uid', {
-                        uid: currentUser.id,
-                      })
-                      .orWhere('_members.userId = :uid', {
-                        uid: currentUser.id,
-                      });
-
+          if (!isAdmin) {
+            query
+              .leftJoin('entity.trainer', '_trainer')
+              .leftJoin('entity.members', '_members')
+              .andWhere(
+                new Brackets((qb2) => {
+                  qb2
+                    .where('entity.createdByUserId = :uid', {
+                      uid: currentUser.id,
+                    })
+                    .orWhere('_trainer.userId = :uid', {
+                      uid: currentUser.id,
+                    })
+                    .orWhere('_members.userId = :uid', {
+                      uid: currentUser.id,
+                    });
+  
+  
                 }),
               );
           }
@@ -989,7 +986,7 @@ export class SessionsService extends CrudService<Session> {
           specialization: overrideSession.trainer.specialization,
           experience: overrideSession.trainer.experience,
         } as Staff)
-        : session.trainer;
+        : session.trainer; 
       sessionObject.members =
         overrideSession.members && overrideSession.members.length > 0
           ? overrideSession.members.map(

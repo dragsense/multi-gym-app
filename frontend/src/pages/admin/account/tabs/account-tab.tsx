@@ -22,6 +22,7 @@ import { UpdateUserDto } from "@shared/dtos";
 
 // Hooks
 import { useApiQuery } from "@/hooks/use-api-query";
+import { EUserGender, EUserLevels } from "@shared/enums";
 
 export default function AccountTab() {
   const [, startTransition] = useTransition();
@@ -41,7 +42,7 @@ export default function AccountTab() {
       firstName: "",
       lastName: "",
       dateOfBirth: undefined,
-      gender: undefined,
+      gender: EUserGender.MALE,
     };
     return strictDeepMerge<TUpdateUserData>(INITIAL_USER_VALUES, user ?? {});
   }, [user]);

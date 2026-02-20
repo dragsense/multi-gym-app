@@ -11,7 +11,7 @@ import { OmitType, PartialType } from '../../lib/dto-type-adapter';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { ListQueryDto } from '../common/list-query.dto';
 import { FieldType } from '../../decorators/field.decorator';
-import { Type, Transform } from 'class-transformer';
+import { Type, Transform, Expose } from 'class-transformer';
 
 export class CreatePageDto {
   @ApiProperty({ example: 'Terms and Conditions', description: 'Page title' })
@@ -32,6 +32,7 @@ export class CreatePageDto {
   @ApiProperty({
     description: 'PUCK editor content (JSON)',
   })
+  @Expose()
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
@@ -128,6 +129,7 @@ export class PageListDto extends ListQueryDto {
 
 export class PagePaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [PageDto] })
+  @Expose()
   @Type(() => PageDto)
   data: PageDto[];
 }

@@ -7,13 +7,14 @@ import {
   Min,
   IsDateString,
   ValidateNested,
+  IsUUID,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type, Transform } from "class-transformer";
+import { Type, Transform, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
-import { IMember } from "../../interfaces/member.interface";
+import type { IMember } from "../../interfaces/member.interface";
 import { FieldType } from "../../decorators/field.decorator";
 import { OmitType } from "../../lib/dto-type-adapter";
 import {
@@ -39,6 +40,7 @@ import { CreateUserDto, UpdateUserDto, UserDto } from "../user-dtos/user.dto";
 export class CreateMemberDto {
   @ApiProperty({ type: CreateUserDto })
   @ValidateNested()
+  @Expose()
   @Type(() => CreateUserDto)
   @FieldType("nested", true, CreateUserDto)
   user: CreateUserDto;
@@ -70,6 +72,7 @@ export class UpdateMemberDto extends PartialType(
 ) {
   @ApiProperty({ type: UpdateUserDto })
   @ValidateNested()
+  @Expose()
   @Type(() => UpdateUserDto)
   @FieldType("nested", true, UpdateUserDto)
   @IsOptional()
@@ -78,6 +81,7 @@ export class UpdateMemberDto extends PartialType(
 
 export class MemberPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [MemberDto] })
+  @Expose()
   @Type(() => MemberDto)
   data: MemberDto[];
 }
@@ -112,6 +116,14 @@ export class MemberListDto extends ListQueryDto<IMember> {
   @Equals()
   @FieldType("text", false)
   fitnessLevel?: string;
+
+  @ApiPropertyOptional({
+    example: "550e8400-e29b-41d4-a716-446655440000",
+    description: "Filter by location: members whose current membership has access to this location (or all doors)",
+  })
+  @IsOptional()
+  @IsUUID()
+  locationId?: string;
 }
 
 export class MemberDto {
@@ -163,6 +175,7 @@ export class MemberDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   @FieldType("nested", true, UserDto)
   user?: UserDto;

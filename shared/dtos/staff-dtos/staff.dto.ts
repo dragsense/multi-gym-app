@@ -8,17 +8,19 @@ import {
   MaxLength,
   IsNumber,
   Min,
+  ArrayMinSize,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OmitType, PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType } from "../../decorators/field.decorator";
 import { CreateUserDto, UpdateUserDto, UserDto } from "../user-dtos";
 import { LocationDto } from "../location-dtos/location.dto";
 import { Equals, TransformToBoolean } from "../../decorators/crud.dto.decorators";
-import { IUser } from "../../interfaces/user.interface";
+import type { IUser } from "../../interfaces/user.interface";
+import { PermissionDto, RoleDto } from "../role-dtos";
 
 export class CreateStaffDto {
   @ApiProperty({
@@ -36,6 +38,7 @@ export class CreateStaffDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => CreateUserDto)
   @FieldType("nested", false, CreateUserDto)
   user?: CreateUserDto;
@@ -54,6 +57,7 @@ export class CreateStaffDto {
   @IsNumber()
   @IsOptional()
   @Min(0)
+  @Expose()
   @Type(() => Number)
   @FieldType("number", true)
   experience?: number;
@@ -64,6 +68,7 @@ export class CreateStaffDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @FieldType("nested", false, LocationDto)
   location?: LocationDto;
@@ -75,6 +80,7 @@ export class UpdateStaffDto extends PartialType(
 ) {
   @ApiProperty({ type: UpdateUserDto })
   @ValidateNested()
+  @Expose()
   @Type(() => UpdateUserDto)
   @FieldType("nested", true, UpdateUserDto)
   @IsOptional()
@@ -84,6 +90,7 @@ export class UpdateStaffDto extends PartialType(
 
 export class StaffPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [UserDto] })
+  @Expose()
   @Type(() => UserDto)
   data: UserDto[];
 }
@@ -141,6 +148,7 @@ export class StaffDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @FieldType("nested", false, LocationDto)
   location?: LocationDto;

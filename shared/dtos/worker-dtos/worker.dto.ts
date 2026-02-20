@@ -1,10 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Type, Transform, Expose } from 'class-transformer';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { EWorkerStatus } from '../../enums/worker.enum';
 import { FieldOptions, FieldType } from '../../decorators';
 import { IsEnum, IsOptional, IsString, IsNumber, IsDateString } from 'class-validator';
-import { Transform } from 'class-transformer';
 import { ListQueryDto } from '../common/list-query.dto';
 
 export class WorkerDto {
@@ -45,6 +44,7 @@ export class WorkerListDto extends ListQueryDto {
 
 export class WorkerListPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [WorkerDto] })
+  @Expose()
   @Type(() => WorkerDto)
   data: WorkerDto[];
 }

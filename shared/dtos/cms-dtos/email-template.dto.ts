@@ -11,7 +11,7 @@ import { OmitType, PartialType } from '../../lib/dto-type-adapter';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { ListQueryDto } from '../common/list-query.dto';
 import { FieldType } from '../../decorators/field.decorator';
-import { Type, Transform } from 'class-transformer';
+import { Type, Transform, Expose } from 'class-transformer';
 
 export class CreateEmailTemplateDto {
   @ApiProperty({ example: 'Welcome Email', description: 'Template name' })
@@ -41,6 +41,7 @@ export class CreateEmailTemplateDto {
   @ApiProperty({
     description: 'PUCK editor content (JSON)',
   })
+  @Expose()
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {
@@ -137,6 +138,7 @@ export class EmailTemplateListDto extends ListQueryDto {
 
 export class EmailTemplatePaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [EmailTemplateDto] })
+  @Expose()
   @Type(() => EmailTemplateDto)
   data: EmailTemplateDto[];
 }

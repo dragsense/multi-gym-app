@@ -5,16 +5,19 @@ import { useId, useState } from "react";
 import { AppCard } from "@/components/layout-ui/app-card";
 import { ConfirmDialog } from "@/components/layout-ui/app-alert-dialog";
 import { AddCardModal } from "@/components/shared-ui/add-card-modal";
+import { AddPaysafeCardModal } from "@/components/shared-ui/add-paysafe-card-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Trash2, Star, Loader2, Plus } from "lucide-react";
 
 // Types
-import type { IStripeCard } from "@/@types/payment.types";
+import type { IPaymentCard } from "@shared/interfaces";
+import { EPaymentProcessorType } from "@shared/enums";
 
 interface IPaymentCardsManagerProps {
-  cards: IStripeCard[];
+  cards: IPaymentCard[];
   defaultPaymentMethodId: string | null;
+  processorType: EPaymentProcessorType;
   isLoading?: boolean;
   onSetDefault: (paymentMethodId: string) => void;
   onDelete: (paymentMethodId: string) => void;
@@ -57,6 +60,7 @@ const formatBrandName = (brand: string): string => {
 export function PaymentCardsManager({
   cards,
   defaultPaymentMethodId,
+  processorType,
   isLoading = false,
   onSetDefault,
   onDelete,
@@ -220,12 +224,21 @@ export function PaymentCardsManager({
       />
 
       {/* Add Card Modal */}
-      <AddCardModal
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-        onAddCard={handleAddCard}
-        isLoading={isAddingCard}
-      />
+      {processorType === EPaymentProcessorType.PAYSAFE ? (
+        <AddPaysafeCardModal
+          open={isAddModalOpen}
+          onOpenChange={setIsAddModalOpen}
+          onAddCard={handleAddCard}
+          isLoading={isAddingCard}
+        />
+      ) : (
+        <AddCardModal
+          open={isAddModalOpen}
+          onOpenChange={setIsAddModalOpen}
+          onAddCard={handleAddCard}
+          isLoading={isAddingCard}
+        />
+      )}
     </>
   );
 }

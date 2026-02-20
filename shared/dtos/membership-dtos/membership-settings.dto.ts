@@ -8,7 +8,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
 
 export class MembershipSettingsDto {
@@ -41,6 +41,7 @@ export class MembershipSettingsDto {
   @Min(0)
   @Max(30)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   maxGuestVisitsPerMonth?: number;
 
@@ -52,6 +53,7 @@ export class MembershipSettingsDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   memberLimits?: number;
 
@@ -63,6 +65,7 @@ export class MembershipSettingsDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   minAge?: number;
 
@@ -74,6 +77,7 @@ export class MembershipSettingsDto {
   @IsNumber()
   @Min(0)
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   maxAge?: number;
 }

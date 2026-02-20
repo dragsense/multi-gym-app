@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldOptions, FieldType } from "../../decorators/field.decorator";
@@ -115,6 +115,7 @@ export class ActivityLogDto {
 
 export class ActivityLogPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [ActivityLogDto] })
+  @Expose()
   @Type(() => ActivityLogDto)
   data: ActivityLogDto[];
 }

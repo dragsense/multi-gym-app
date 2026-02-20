@@ -7,6 +7,7 @@ import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 import { SearchableInputWrapper } from "@/components/shared-ui/searchable-input-wrapper";
 import { useSearchableLocations, useSearchableRoles, useSearchablePermissions } from "@/hooks/use-searchable";
+import { getSelectedLocation } from "@/utils/location-storage";
 import type { IRole, IPermission } from "@shared/interfaces";
 import type { IUser } from "@shared/interfaces/user.interface";
 import type { ILocation } from "@shared/interfaces/location.interface";
@@ -74,23 +75,40 @@ const PermissionsSelect = React.memo(
   }
 );
 
-// Custom component for location select
+// LocationSelect: same pattern as checkin-form-modal (default location from global selection)
 const LocationSelect = React.memo((props: TCustomInputWrapper) => {
+  const searchableLocations = useSearchableLocations({});
+  const { t } = useI18n();
+  const selectedLocation = getSelectedLocation();
+
+  React.useEffect(() => {
+    if (selectedLocation && !props.value && props.onChange) {
+      props.onChange({
+        id: selectedLocation.id,
+        name: selectedLocation.name,
+      } as ILocation);
+    }
+  }, [selectedLocation, props.value, props.onChange]);
+
   return (
     <SearchableInputWrapper<ILocation>
       {...props}
       modal={true}
-      useSearchable={() => useSearchableLocations({ initialParams: { limit: 100 } })}
+      useSearchable={() => searchableLocations}
       getLabel={(item) => {
-        if (!item) return 'Select Location';
+        if (!item) return buildSentence(t, 'select', 'location');
         return `${item.name}${item.address ? ` - ${item.address}` : ''}`;
       }}
       getKey={(item) => item.id.toString()}
       getValue={(item) => {
-        // Staff DTO expects LocationDto shape; include at least id + name.
-        return { id: item.id, name: item.name, address: item.address } as ILocation;
+        return {
+          id: item.id,
+          name: item.name,
+          address: item.address,
+        } as ILocation;
       }}
       shouldFilter={false}
+      disabled={!!selectedLocation || props.disabled}
     />
   );
 });
@@ -152,15 +170,11 @@ const StaffFormModal = React.memo(function StaffFormModal({
           ...(baseFields.user as any)?.subFields,
           roles: {
             ...(baseFields.user as any)?.subFields?.roles,
-            name: 'roles' as const,
-            id: 'roles' as const,
             type: 'custom' as const,
             Component: RolesSelect,
           },
           permissions: {
             ...(baseFields.user as any)?.subFields?.permissions,
-            name: 'permissions' as const,
-            id: 'permissions' as const,
             type: 'custom' as const,
             Component: PermissionsSelect,
           },
@@ -169,7 +183,7 @@ const StaffFormModal = React.memo(function StaffFormModal({
     } as TFieldConfigObject<TStaffData>;
 
     return fieldsWithVisibility;
-  }, [storeFields, isEditing]);
+  }, [storeFields, isEditing, t]);
 
   const inputs = useInput<TStaffData>({
     fields,

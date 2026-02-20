@@ -15,7 +15,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type, Transform } from "class-transformer";
+import { Type, Transform, Expose } from "class-transformer";
 import {
   EScheduleStatus,
   EScheduleFrequency,
@@ -25,7 +25,7 @@ import {
 } from "../../enums/schedule.enum";
 import { ListQueryDto } from "../common/list-query.dto";
 import { PaginationMetaDto } from "../common/pagination.dto";
-import { ISchedule } from "../../interfaces/schedule.interface";
+import type { ISchedule } from "../../interfaces/schedule.interface";
 import { FieldOptions, FieldType } from "../../decorators/field.decorator";
 
 export class CreateScheduleDto {
@@ -127,6 +127,7 @@ export class CreateScheduleDto {
   @IsInt()
   @Min(1)
   @IsOptional()
+  @Expose()
   @Type(() => Number)
   @FieldType("number")
   intervalValue?: number;
@@ -155,6 +156,7 @@ export class CreateScheduleDto {
   @IsInt()
   @Min(1)
   @IsOptional()
+  @Expose()
   @Type(() => Number)
   @Transform(
     ({ obj }) => {
@@ -196,6 +198,7 @@ export class CreateScheduleDto {
   @IsArray()
   @IsEnum(EDayOfWeek, { each: true })
   @IsOptional()
+  @Expose()
   @Type(() => Number)
   @FieldType("multiSelect")
   @FieldOptions(
@@ -218,6 +221,7 @@ export class CreateScheduleDto {
   @Min(1, { each: true })
   @Max(31, { each: true })
   @IsOptional()
+  @Expose()
   @Type(() => Number)
   @FieldType("multiSelect")
   @FieldOptions(
@@ -236,6 +240,7 @@ export class CreateScheduleDto {
   @IsArray()
   @IsEnum(EMonth, { each: true })
   @IsOptional()
+  @Expose()
   @Type(() => Number)
   @FieldType("multiSelect")
   @FieldOptions(
@@ -254,6 +259,7 @@ export class CreateScheduleDto {
   })
   @IsOptional()
   @IsBoolean()
+  @Expose()
   @Type(() => Boolean)
   @FieldType("switch")
   retryOnFailure?: boolean;
@@ -265,6 +271,7 @@ export class CreateScheduleDto {
   @IsOptional()
   @Min(1)
   @Max(10)
+  @Expose()
   @Type(() => Number)
   @FieldType("number")
   maxRetries?: number;
@@ -276,6 +283,7 @@ export class CreateScheduleDto {
   @IsOptional()
   @Min(1)
   @Max(60)
+  @Expose()
   @Type(() => Number)
   @FieldType("number")
   retryDelayMinutes?: number;
@@ -297,6 +305,7 @@ export class UpdateScheduleDto extends PartialType(CreateScheduleDto) {
 
 export class SchedulePaginationDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [ScheduleDto] })
+  @Expose()
   @Type(() => ScheduleDto)
   data: ScheduleDto[];
 }

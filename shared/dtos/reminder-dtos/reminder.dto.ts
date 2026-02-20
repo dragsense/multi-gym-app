@@ -4,7 +4,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Expose } from 'class-transformer';
 import { FieldType, FieldOptions } from '../../decorators/field.decorator';
 
 import { EReminderType } from '../../enums/reminder.enum';
@@ -17,6 +17,7 @@ export class ReminderDto {
   @IsEnum(EReminderSendBefore, { each: true })
   @IsNotEmpty()
   @FieldType("multiSelect")
+  @Expose()
   @Transform(({ value }) => value?.map((v: string) => parseInt(v, 10)))
   @FieldOptions([
     { value: EReminderSendBefore.ONE_MINUTE.toString(), label: '1 Minutes' },

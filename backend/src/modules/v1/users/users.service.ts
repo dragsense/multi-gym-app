@@ -111,11 +111,11 @@ export class UsersService {
           currentUserId: currentUser.id,
         });
 
-        // SUPER_ADMIN and ADMIN can see all users in their business
+        // SUPER_ADMIN, ADMIN and PLATFORM_OWNER can see all users in their business
         // STAFF and below can only see users they created
-        if (
-          currentUser.level !== (EUserLevels.ADMIN as number) &&
-          currentUser.level !== (EUserLevels.PLATFORM_OWNER as number)) {
+        if (currentUser.level !== (EUserLevels.PLATFORM_OWNER as number) &&
+          currentUser.level !== (EUserLevels.SUPER_ADMIN as number) &&
+          currentUser.level !== (EUserLevels.ADMIN as number)) {
           query.andWhere('entity.createdByUserId = :createdByUserId', {
             createdByUserId: currentUser.id,
           });
@@ -223,41 +223,41 @@ export class UsersService {
     const [roleIds, permissionIds] = await Promise.all([
       roles && roles.length > 0
         ? (async () => {
-            const ids = roles.map((r) => r.id).filter(Boolean);
-            if (ids.length === 0) return [];
+          const ids = roles.map((r) => r.id).filter(Boolean);
+          if (ids.length === 0) return [];
 
-            // Validate roles exist
-            const existingRoles = await roleRepo.find({
-              where: ids.map((id) => ({ id })),
-            });
+          // Validate roles exist
+          const existingRoles = await roleRepo.find({
+            where: ids.map((id) => ({ id })),
+          });
 
-            if (existingRoles.length !== ids.length) {
-              const foundIds = new Set(existingRoles.map((r) => r.id));
-              const missingIds = ids.filter((id) => !foundIds.has(id));
-              throw new ConflictException(`Roles not found: ${missingIds.join(', ')}`);
-            }
+          if (existingRoles.length !== ids.length) {
+            const foundIds = new Set(existingRoles.map((r) => r.id));
+            const missingIds = ids.filter((id) => !foundIds.has(id));
+            throw new ConflictException(`Roles not found: ${missingIds.join(', ')}`);
+          }
 
-            return ids;
-          })()
+          return ids;
+        })()
         : Promise.resolve([]),
       permissions && permissions.length > 0
         ? (async () => {
-            const ids = permissions.map((p) => p.id).filter(Boolean);
-            if (ids.length === 0) return [];
+          const ids = permissions.map((p) => p.id).filter(Boolean);
+          if (ids.length === 0) return [];
 
-            // Validate permissions exist
-            const existingPermissions = await permissionRepo.find({
-              where: ids.map((id) => ({ id })),
-            });
+          // Validate permissions exist
+          const existingPermissions = await permissionRepo.find({
+            where: ids.map((id) => ({ id })),
+          });
 
-            if (existingPermissions.length !== ids.length) {
-              const foundIds = new Set(existingPermissions.map((p) => p.id));
-              const missingIds = ids.filter((id) => !foundIds.has(id));
-              throw new ConflictException(`Permissions not found: ${missingIds.join(', ')}`);
-            }
+          if (existingPermissions.length !== ids.length) {
+            const foundIds = new Set(existingPermissions.map((p) => p.id));
+            const missingIds = ids.filter((id) => !foundIds.has(id));
+            throw new ConflictException(`Permissions not found: ${missingIds.join(', ')}`);
+          }
 
-            return ids;
-          })()
+          return ids;
+        })()
         : Promise.resolve([]),
     ]);
 
@@ -265,17 +265,17 @@ export class UsersService {
     await Promise.all([
       roleIds.length > 0
         ? userRoleRepo.save(
-            roleIds.map((roleId) =>
-              userRoleRepo.create({ userId, roleId }),
-            ),
-          )
+          roleIds.map((roleId) =>
+            userRoleRepo.create({ userId, roleId }),
+          ),
+        )
         : Promise.resolve(),
       permissionIds.length > 0
         ? userPermissionRepo.save(
-            permissionIds.map((permissionId) =>
-              userPermissionRepo.create({ userId, permissionId }),
-            ),
-          )
+          permissionIds.map((permissionId) =>
+            userPermissionRepo.create({ userId, permissionId }),
+          ),
+        )
         : Promise.resolve(),
     ]);
   }
@@ -300,19 +300,19 @@ export class UsersService {
     await Promise.all([
       roles !== undefined
         ? (async () => {
-            await userRoleRepo.delete({ userId });
-            if (roles.length > 0) {
-              await this.assignRolesAndPermissions(userId, roles, undefined, manager);
-            }
-          })()
+          await userRoleRepo.delete({ userId });
+          if (roles.length > 0) {
+            await this.assignRolesAndPermissions(userId, roles, undefined, manager);
+          }
+        })()
         : Promise.resolve(),
       permissions !== undefined
         ? (async () => {
-            await userPermissionRepo.delete({ userId });
-            if (permissions.length > 0) {
-              await this.assignRolesAndPermissions(userId, undefined, permissions, manager);
-            }
-          })()
+          await userPermissionRepo.delete({ userId });
+          if (permissions.length > 0) {
+            await this.assignRolesAndPermissions(userId, undefined, permissions, manager);
+          }
+        })()
         : Promise.resolve(),
     ]);
   }
@@ -355,7 +355,6 @@ export class UsersService {
         return {
           ...processedData,
           password: undefined,
-          isActive: undefined,
           isVerified: undefined,
           level: undefined,
         };

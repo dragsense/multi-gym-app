@@ -18,13 +18,13 @@ export function setupInterceptors(
   ];
 
   // Only use encryption in production
-/*   if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === 'production') {
     const encryptionInterceptor = app.get(ResponseEncryptionInterceptor);
     interceptors.push(encryptionInterceptor);
     loggerService.log('✅ Encryption interceptor enabled');
   } else {
     loggerService.warn('⚠️ Encryption disabled (development mode)');
-  } */
+  }
 
   // Note: ActivityLogInterceptor and LoggerInterceptor are registered globally
   // via APP_INTERCEPTOR in their respective modules, not here

@@ -15,7 +15,7 @@ import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType } from "../../decorators/field.decorator";
 import { UserDto, CreateUserDto, UpdateUserDto } from "../user-dtos/user.dto";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { OmitType } from "../../lib/dto-type-adapter";
 
 
@@ -24,8 +24,8 @@ export class CreateBusinessDto {
         example: "Business Name",
         description: "Business Name",
     })
-    @IsNotEmpty({message:"BusinessName should not be empty"})
-    @IsString()
+    @IsNotEmpty({ message: "Business name is required" })
+    @IsString({ message: "Business name must be a valid text" })
     @FieldType("text", true)
     name: string;
 
@@ -33,8 +33,8 @@ export class CreateBusinessDto {
         example: "mygym",
         description: "Subdomain",
     })
-    @IsNotEmpty()
-    @IsString()
+    @IsNotEmpty({ message: "Subdomain is required" })
+    @IsString({ message: "Subdomain must be a valid text" })
     @IsNotIn(["dev", "staging", "testing"], {
         message: "Subdomain cannot be a reserved name (dev, staging, testing).",
     })
@@ -59,8 +59,8 @@ export class CreateBusinessWithUserDto {
         example: "Business Name",
         description: "Business Name",
     })
-    @IsNotEmpty({message:"BusinessName should not be empty"})
-    @IsString()
+    @IsNotEmpty({ message: "Business name is required" })
+    @IsString({ message: "Business name must be a valid text" })
     @FieldType("text", true)
     name: string;
 
@@ -68,8 +68,8 @@ export class CreateBusinessWithUserDto {
         example: "mygym",
         description: "Subdomain",
     })
-    @IsNotEmpty()
-    @IsString()
+    @IsNotEmpty({ message: "Subdomain is required" })
+    @IsString({ message: "Subdomain must be a valid text" })
     @IsNotIn(["dev", "staging", "testing"], {
         message: "Subdomain cannot be a reserved name (dev, staging, testing).",
     })
@@ -102,6 +102,7 @@ export class UpdateBusinessWithUserDto extends PartialType(
 ) {
     @ApiProperty({ type: UpdateUserDto, description: "User details for business owner" })
     @ValidateNested()
+    @Expose()
     @Type(() => UpdateUserDto)
     @FieldType("nested", false, UpdateUserDto)
     @IsOptional()
@@ -150,6 +151,7 @@ export class BusinessDto {
         description: "Owner of the business",
     })
     @IsOptional()
+    @Expose()
     @Type(() => UserDto)
     user?: UserDto;
 

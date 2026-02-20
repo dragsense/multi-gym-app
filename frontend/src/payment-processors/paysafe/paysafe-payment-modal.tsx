@@ -8,8 +8,9 @@ import { useI18n } from "@/hooks/use-i18n";
 import { useUserSettings } from "@/hooks/use-user-settings";
 import { formatCurrency } from "@/lib/utils";
 import { getPaysafeSetup } from "@/services/paysafe.api";
+import { fetchPaymentCards } from "@/services/payment-adapter.api";
 import { toast } from "sonner";
-import type { PaymentModalProps } from "../types";
+import type { PaymentModalProps } from "@/@types/payment-processor.types";
 
 const PAYSAFE_SCRIPT_URL = "https://hosted.paysafe.com/js/v1/latest/paysafe.min.js";
 
@@ -54,6 +55,8 @@ export function PaysafePaymentModal({
 }: PaysafePaymentModalProps) {
   const { t } = useI18n();
   const { settings } = useUserSettings();
+  const [mode, setMode] = useState<"saved" | "new">("new");
+  const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [instanceReady, setInstanceReady] = useState(false);
@@ -70,12 +73,37 @@ export function PaysafePaymentModal({
   const { data: setup, isLoading: isLoadingSetup } = useQuery({
     queryKey: ["paysafe-setup"],
     queryFn: getPaysafeSetup,
+    enabled: open && mode === "new",
+    retry: false,
+  });
+
+  const {
+    data: savedCards,
+    isLoading: isLoadingSavedCards,
+  } = useQuery({
+    queryKey: ["paysafe-payment-cards"],
+    queryFn: fetchPaymentCards,
     enabled: open,
     retry: false,
   });
 
+  const savedPaymentMethods = savedCards?.paymentMethods ?? [];
+  const savedDefaultId = savedCards?.defaultPaymentMethodId ?? null;
+
   useEffect(() => {
     if (!open) return;
+    if (savedPaymentMethods.length > 0) {
+      setMode("saved");
+      setSelectedSavedId((prev) => prev ?? savedDefaultId ?? savedPaymentMethods[0]?.id ?? null);
+    } else {
+      setMode("new");
+      setSelectedSavedId(null);
+    }
+  }, [open, savedDefaultId, savedPaymentMethods]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (mode !== "new") return;
     if (document.querySelector(`script[src="${PAYSAFE_SCRIPT_URL}"]`)) {
       setScriptLoaded(!!window.paysafe);
       return;
@@ -111,7 +139,7 @@ export function PaysafePaymentModal({
   }, [setup]);
 
   useEffect(() => {
-    if (!open || !scriptLoaded || !setup) {
+    if (!open || mode !== "new" || !scriptLoaded || !setup) {
       setInstanceReady(false);
       instanceRef.current = null;
       return;
@@ -134,6 +162,21 @@ export function PaysafePaymentModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting || isLoading || !amount || amount <= 0) return;
+
+    if (mode === "saved") {
+      if (!selectedSavedId) {
+        toast.error("Please select a saved card");
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        await onPay(selectedSavedId);
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
     const instance = instanceRef.current;
     if (!instance) {
       toast.error("Payment form not ready");
@@ -166,7 +209,10 @@ export function PaysafePaymentModal({
     }
   };
 
-  const ready = scriptLoaded && setup && instanceReady;
+  const ready =
+    mode === "saved"
+      ? !!selectedSavedId
+      : scriptLoaded && setup && instanceReady;
 
   const titleNode = (
     <div className="flex items-center justify-between mt-2">
@@ -201,7 +247,104 @@ export function PaysafePaymentModal({
   );
 
   const content =
-    isLoadingSetup || (!scriptLoaded && open) ? (
+    isLoadingSavedCards ? (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    ) : savedPaymentMethods.length > 0 ? (
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant={mode === "saved" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setMode("saved")}
+          >
+            Saved card
+          </Button>
+          <Button
+            type="button"
+            variant={mode === "new" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setMode("new")}
+          >
+            New card
+          </Button>
+        </div>
+
+        {mode === "saved" ? (
+          <div className="space-y-3">
+            {savedPaymentMethods.map((pm) => (
+              <label
+                key={pm.id}
+                className="flex items-center justify-between p-3 rounded-md border cursor-pointer"
+              >
+                <div className="flex items-center gap-3">
+                  <input
+                    type="radio"
+                    name="paysafe-saved-card"
+                    checked={selectedSavedId === pm.id}
+                    onChange={() => setSelectedSavedId(pm.id)}
+                  />
+                  <div className="text-sm">
+                    <div className="font-medium">
+                      {pm.card?.brand ?? "Card"} •••• {pm.card?.last4 ?? "0000"}
+                    </div>
+                    <div className="text-muted-foreground text-xs">
+                      Expires {pm.card?.exp_month}/{pm.card?.exp_year}
+                      {pm.id === savedDefaultId ? " (default)" : ""}
+                    </div>
+                  </div>
+                </div>
+              </label>
+            ))}
+            <p className="text-xs text-muted-foreground">
+              Saved card payments may not require CVV. If your account requires CVV, you’ll be asked for it.
+            </p>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+        ) : isLoadingSetup || (!scriptLoaded && open) ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : !setup ? (
+          <p className="text-sm text-muted-foreground py-4">
+            Paysafe is not configured. Please contact support.
+          </p>
+        ) : (
+          <form
+            id="paysafe-payment-form"
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Card number</label>
+              <div
+                id="paysafe-card-number"
+                className="min-h-[40px] border rounded-md px-3 py-2 bg-background"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Expiry</label>
+                <div
+                  id="paysafe-expiry"
+                  className="min-h-[40px] border rounded-md px-3 py-2 bg-background"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">CVV</label>
+                <div
+                  id="paysafe-cvv"
+                  className="min-h-[40px] border rounded-md px-3 py-2 bg-background"
+                />
+              </div>
+            </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </form>
+        )}
+      </div>
+    ) : isLoadingSetup || (!scriptLoaded && open) ? (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>

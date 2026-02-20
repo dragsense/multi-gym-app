@@ -90,9 +90,9 @@ export function MemberDetailTabs({ member, storeKey }: IMemberDetailTabsProps) {
         <MemberCommunicationsTab member={member} />
       </TabsContent>
 
-        <TabsContent value="notes" className="mt-4">
+    {/*     <TabsContent value="notes" className="mt-4">
           <MemberNotesTab member={member} storeKey={storeKey} />
-        </TabsContent>
+        </TabsContent> */}
     </Tabs>
   );
 }

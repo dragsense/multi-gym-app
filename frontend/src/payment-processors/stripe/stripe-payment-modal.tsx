@@ -20,10 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useI18n } from "@/hooks/use-i18n";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useUserSettings } from "@/hooks/use-user-settings";
-import type {
-  StripePaymentCard,
-  StripeCardFormData,
-} from "@/@types/payment.types";
+import type { PaymentCard, PaymentCardFormData } from "@/@types/payment.types";
 import {
   CardElement,
   useStripe,
@@ -33,7 +30,7 @@ import {
 import { toast } from "sonner";
 import { AppCard } from "@/components/layout-ui/app-card";
 import { useStripeConnect } from "@/hooks/use-stripe-connect";
-import type { PaymentModalProps } from "../types";
+import type { PaymentModalProps } from "@/@types/payment-processor.types";
 
 function StripeCardsList({
   cards,
@@ -41,7 +38,7 @@ function StripeCardsList({
   onSelectCard,
   className,
 }: {
-  cards: StripePaymentCard[];
+  cards: PaymentCard[];
   selectedCardId?: string;
   onSelectCard: (id: string) => void;
   className?: string;
@@ -111,7 +108,7 @@ function StripeCardForm({
   const { t } = useI18n();
   const stripe = useStripe();
   const elements = useElements();
-  const { control, watch, setValue } = useFormContext<StripeCardFormData>();
+  const { control, watch, setValue } = useFormContext<PaymentCardFormData>();
   const saveForFutureUse = watch("saveForFutureUse");
 
   if (!stripe || !elements) {
@@ -179,18 +176,18 @@ function StripeCardForm({
 }
 
 interface StripePaymentModalContentProps {
-  stripeCards: StripePaymentCard[];
-  onPay: (paymentMethodId?: string, cardData?: StripeCardFormData) => void | Promise<void>;
+  cards: PaymentCard[];
+  onPay: (paymentMethodId?: string, cardData?: PaymentCardFormData) => void | Promise<void>;
   isLoading: boolean;
   amount?: number;
   onOpenChange: (open: boolean) => void;
-  formMethods: ReturnType<typeof useForm<StripeCardFormData>>;
+  formMethods: ReturnType<typeof useForm<PaymentCardFormData>>;
   error?: string;
   showSaveOptions?: boolean;
 }
 
 function StripePaymentModalContent({
-  stripeCards,
+  cards,
   onPay,
   isLoading,
   amount,
@@ -206,7 +203,7 @@ function StripePaymentModalContent({
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [accordionValue, setAccordionValue] = useState<string>(
-    stripeCards.length > 0 ? "saved-cards" : "new-card"
+    cards.length > 0 ? "saved-cards" : "new-card"
   );
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -283,7 +280,7 @@ function StripePaymentModalContent({
               setSelectedPaymentMethodId(undefined);
               if (value === undefined) {
                 setAccordionValue(
-                  accordionValue === "saved-cards" ? "new-card" : stripeCards.length > 0 ? "saved-cards" : "new-card"
+                  accordionValue === "saved-cards" ? "new-card" : cards.length > 0 ? "saved-cards" : "new-card"
                 );
               } else {
                 setAccordionValue(value);
@@ -299,14 +296,14 @@ function StripePaymentModalContent({
                 <StripeCardForm showSaveOptions={showSaveOptions} />
               </AccordionContent>
             </AccordionItem>
-            {stripeCards.length > 0 && (
+            {cards.length > 0 && (
               <AccordionItem value="saved-cards">
                 <AccordionTrigger>
-                  {t("saved")} {t("cards")} ({stripeCards.length})
+                  {t("saved")} {t("cards")} ({cards.length})
                 </AccordionTrigger>
                 <AccordionContent>
                   <StripeCardsList
-                    cards={stripeCards}
+                    cards={cards}
                     selectedCardId={selectedPaymentMethodId}
                     onSelectCard={setSelectedPaymentMethodId}
                   />
@@ -322,20 +319,20 @@ function StripePaymentModalContent({
 }
 
 export interface StripePaymentModalProps extends PaymentModalProps {
-  stripeCards: StripePaymentCard[];
+  cards: PaymentCard[];
 }
 
 export function StripePaymentModal({
   open,
   onOpenChange,
-  stripeCards,
+  cards,
   onPay,
   isLoading = false,
   amount,
   error,
   showSaveOptions = true,
 }: StripePaymentModalProps) {
-  const formMethods = useForm<StripeCardFormData>({
+  const formMethods = useForm<PaymentCardFormData>({
     defaultValues: { saveAsDefault: false, saveForFutureUse: false },
     mode: "onChange",
   });
@@ -356,7 +353,7 @@ export function StripePaymentModal({
         ) : stripePromise ? (
           <Elements stripe={stripePromise} options={{ appearance: { theme: "stripe" } }}>
             <StripePaymentModalContent
-              stripeCards={stripeCards}
+              cards={cards}
               onPay={onPay}
               isLoading={isLoading}
               amount={amount}

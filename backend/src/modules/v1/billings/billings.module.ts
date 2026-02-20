@@ -21,7 +21,6 @@ import { UsersModule } from '../users/users.module';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { getJwtConfig } from '@/config/jwt.config';
-import { StripeModule } from '../stripe/stripe.module';
 import { PaymentAdapterModule } from '../payment-adapter/payment-adapter.module';
 import { ProfilesModule } from '../users/profiles/profiles.module';
 import { NotificationModule } from '@/common/notification/notification.module';
@@ -41,7 +40,6 @@ import { MembersModule } from '../members/members.module';
     BullModule.registerQueue({ name: 'billing' }),
     UsersModule,
     MembersModule,
-    StripeModule,
     PaymentAdapterModule,
     NotificationModule,
     UserSettingsModule,

@@ -1,7 +1,7 @@
 import { CheckinDto, CreateCheckinDto, UpdateCheckinDto } from "../dtos/checkin-dtos";
-import { ICheckin } from "../interfaces/checkin.interface";
-import { IPaginatedResponse } from "../interfaces/api/response.interface";
-import { IListQueryParams } from "../interfaces/api/param.interface";
+import type { ICheckin } from "../interfaces/checkin.interface";
+import type { IPaginatedResponse } from "../interfaces/api/response.interface";
+import type { IListQueryParams } from "../interfaces/api/param.interface";
 
 export type TCheckinData = CreateCheckinDto | UpdateCheckinDto;
 export type TCheckinListData = CheckinDto;

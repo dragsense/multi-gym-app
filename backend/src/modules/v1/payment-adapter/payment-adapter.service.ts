@@ -20,39 +20,45 @@ export class PaymentAdapterService {
     private readonly paymentProcessorsService: PaymentProcessorsService,
     private readonly stripePaymentAdapter: StripePaymentAdapter,
     private readonly paysafePaymentAdapter: PaysafePaymentAdapter,
-  ) {}
+  ) { }
 
   /**
    * Get the payment adapter for the given tenant (business).
    * Uses business.paymentProcessorId to determine Stripe vs Paysafe.
    */
-  async getAdapterForTenant(tenantId: string): Promise<IPaymentAdapter> {
-    const business = await this.businessService.getSingle(
-      { tenantId },
-      { _relations: ['paymentProcessor'] },
-    );
+  async getAdapterForTenant(tenantId?: string): Promise<IPaymentAdapter> {
 
-    if (!business) {
-      this.logger.warn(`No business found for tenantId ${tenantId}`);
-      throw new BadRequestException('Business not found for this tenant');
-    }
+    let processorType: EPaymentProcessorType = EPaymentProcessorType.STRIPE;
 
-    const processor = business.paymentProcessor;
-    if (!processor) {
-      this.logger.warn(`Business ${business.id} has no payment processor set`);
-      throw new BadRequestException(
-        'Business has no payment processor configured. Please set one in Settings → Payment processor.',
+    if (tenantId) {
+      const business = await this.businessService.getSingle(
+        { tenantId },
+        { _relations: ['paymentProcessor'] },
       );
+
+      if (!business) {
+        this.logger.warn(`No business found for tenantId ${tenantId}`);
+        throw new BadRequestException('Business not found for this tenant');
+      }
+
+      const processor = business.paymentProcessor;
+      if (!processor) {
+        this.logger.warn(`Business ${business.id} has no payment processor set`);
+        throw new BadRequestException(
+          'Business has no payment processor configured. Please set one in Settings → Payment processor.',
+        );
+      }
+      processorType = processor.type;
     }
 
-    switch (processor.type) {
+    switch (processorType) {
       case EPaymentProcessorType.STRIPE:
         return this.stripePaymentAdapter;
       case EPaymentProcessorType.PAYSAFE:
         return this.paysafePaymentAdapter;
       default:
         this.logger.warn(
-          `Unknown payment processor type ${processor.type}; defaulting to Stripe`,
+          `Unknown payment processor type ${processorType}; defaulting to Stripe`,
         );
         return this.stripePaymentAdapter;
     }

@@ -1,6 +1,6 @@
 import "reflect-metadata";
 
-import { TFieldType } from "../types/form/field.type";
+import type { TFieldType } from "../types/form/field.type";
 
 export const FIELD_UI_TYPE = Symbol("field_ui_type");
 export const FIELD_OPTIONS = Symbol("field_options");

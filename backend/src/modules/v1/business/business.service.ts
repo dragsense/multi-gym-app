@@ -261,22 +261,22 @@ export class BusinessService extends CrudService<Business> {
         );
 
         // Find user in tenant DB where refUserId matches business owner and level is SUPER_ADMIN
-        const tenantSuperAdmin = await tenantUserRepo.findOne({
+        const tenantAdmin = await tenantUserRepo.findOne({
             where: {
                 refUserId: businessUser.id,
-                level: EUserLevels.SUPER_ADMIN,
+                level: EUserLevels.ADMIN
             },
         });
 
-        if (!tenantSuperAdmin) {
-            throw new NotFoundException('Super admin user not found in tenant database');
+        if (!tenantAdmin) {
+            throw new NotFoundException('admin user not found in tenant database');
         }
 
         // 4. Generate short-lived impersonation token (60 seconds)
         const impersonationToken = this.tokenService.generateImpersonationToken({
             userId: adminUser.id,
             tenantId: business.tenantId,
-            targetUserId: tenantSuperAdmin.id,
+            targetUserId: tenantAdmin.id,
             subdomain: business.subdomain,
             purpose: 'impersonation',
         }, '60s');
@@ -391,6 +391,38 @@ export class BusinessService extends CrudService<Business> {
         }
 
         return business;
+    }
+
+    /**
+     * Returns current user's business payment processor type for payment UI (Stripe vs Paysafe).
+     * Skips business lookup when user level is MEMBER (members have no business).
+     */
+    async getMyBusinessPaymentProcessorType(currentUser: User): Promise<{ type: string | null; paymentProcessorId: string | null }> {
+
+        try {
+            const business = await this.getMyBusiness(currentUser);
+            const type = business.paymentProcessor?.type ?? null;
+            return { type, paymentProcessorId: business.paymentProcessorId ?? null };
+        } catch {
+            return { type: null, paymentProcessorId: null };
+        }
+    }
+
+
+    /**
+   * Returns current user's business payment processor type for payment UI (Stripe vs Paysafe).
+   * Skips business lookup when user level is MEMBER (members have no business).
+   */
+    async getCurrentBusinessPaymentProcessorType(tenantId: string): Promise<{ type: string | null; paymentProcessorId: string | null }> {
+
+        const business = await this.getSingle({ tenantId }, { _relations: ['paymentProcessor'] });
+
+        if (!business) {
+            throw new NotFoundException('Business not found for tenant');
+        }
+
+        const type = business.paymentProcessor?.type ?? null;
+        return { type, paymentProcessorId: business.paymentProcessorId ?? null };
     }
 
     /**

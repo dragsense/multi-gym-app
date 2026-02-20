@@ -1,5 +1,7 @@
 // React & Hooks
 import { useEffect, useState, useId, useMemo, useTransition } from "react";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 
 // External libraries
 import { Filter, XIcon } from "lucide-react";
@@ -21,6 +23,8 @@ import { useInput } from "@/hooks/use-input";
 import { type TFieldConfigObject } from "@/@types/form/field-config.type";
 import type { TUserListData } from "@shared/types";
 
+
+
 interface IUserFiltersProps {
   store: TListHandlerStore<IUser, TUserListData, any>;
 }
@@ -33,13 +37,23 @@ export function UserFilters({
   // React 19: Essential IDs and transitions
   const componentId = useId();
   const [, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const filteredFields = store.getState().filteredFields;
   const filters = store(state => state.filters);
   const setFilters = store.getState().setFilters;
 
+  // Custom fields with placeholder for search
+  const fields = useMemo(() => ({
+    ...filteredFields,
+    search: {
+      ...filteredFields.search,
+      placeholder: buildSentence(t, 'searchbyemail'),
+    },
+  } as TFieldConfigObject<TUserListData>), [filteredFields, t]);
+
   const inputs = useInput<TUserListData>({
-    fields: filteredFields as TFieldConfigObject<TUserListData>,
+    fields: fields as TFieldConfigObject<TUserListData>,
   });
 
   // React 19: Memoized active filters check for better performance

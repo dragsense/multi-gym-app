@@ -4,6 +4,8 @@ import { Loader2, Eye, EyeOff } from "lucide-react";
 
 // Custom Hooks
 import { type FormInputs, useInput } from "@/hooks/use-input";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 
 // Types
 import type { TFormHandlerStore } from "@/stores";
@@ -29,6 +31,7 @@ const PasswordResetForm = React.memo(function PasswordResetForm({
   // React 19: Essential IDs
   const componentId = useId();
   const [, startTransition] = useTransition();
+  const { t } = useI18n();
 
   // Password visibility states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -38,7 +41,7 @@ const PasswordResetForm = React.memo(function PasswordResetForm({
   if (!store) {
     return (
       <div>
-        Form store "{storeKey}" not found. Did you forget to register it?
+        {buildSentence(t, 'form', 'store')} "{storeKey}" {buildSentence(t, 'not', 'found')}. {buildSentence(t, 'did', 'you', 'forget', 'to', 'register', 'it')}?
       </div>
     );
   }
@@ -52,6 +55,8 @@ const PasswordResetForm = React.memo(function PasswordResetForm({
       ...originalFields,
       currentPassword: {
         ...originalFields.currentPassword,
+        label: t('CurrentPassword'),
+        placeholder: t('enterCurrentPassword'),
         type: showCurrentPassword ? "text" : "password",
         endAdornment: (
           <button
@@ -73,6 +78,8 @@ const PasswordResetForm = React.memo(function PasswordResetForm({
       },
       password: {
         ...originalFields.password,
+        label: t('NewPassword'),
+        placeholder: t('enterNewPassword'),
         type: showPassword ? "text" : "password",
         endAdornment: (
           <button
@@ -92,6 +99,8 @@ const PasswordResetForm = React.memo(function PasswordResetForm({
       },
       confirmPassword: {
         ...originalFields.confirmPassword,
+        label: t('ConfirmNewPassword'),
+        placeholder: t('enterConfirmNewPassword'),
         type: showConfirmPassword ? "text" : "password",
         endAdornment: (
           <button
@@ -133,9 +142,9 @@ const PasswordResetForm = React.memo(function PasswordResetForm({
         <AppCard
           header={
             <>
-              <h2 className="text-md font-semibold">Password Reset</h2>
+              <h2 className="text-md font-semibold">{t('passwordReset')}</h2>
               <p className="text-sm text-muted-foreground">
-                Change your account password
+                {t('changeYourAccountPassword')}
               </p>
             </>
           }
@@ -145,7 +154,7 @@ const PasswordResetForm = React.memo(function PasswordResetForm({
                 {isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Update Password
+                {t('updatePassword')}
               </Button>
             </div>
           }
@@ -154,7 +163,7 @@ const PasswordResetForm = React.memo(function PasswordResetForm({
             {/* Password Fields */}
             <div>
               <h3 className="text-sm font-semibold mb-3">
-                Password Information
+                {t('passwordInformation')}
               </h3>
               <div className="grid grid-cols-1 gap-6 items-start max-w-lg">
                 {inputs.currentPassword}

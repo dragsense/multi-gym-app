@@ -6,7 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
 const PDFDocument = require('pdfkit');
 
 import { Billing } from '../entities/billing.entity';
@@ -334,8 +333,8 @@ export class BillingInvoiceService {
       throw new NotFoundException('Billing not found');
     }
 
-    const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
+    const isSuperAdmin = currentUser.level === (EUserLevels.PLATFORM_OWNER as number) ||
+      currentUser.level === (EUserLevels.SUPER_ADMIN as number) || currentUser.level === (EUserLevels.ADMIN as number);
     const isOwner =
       billing.recipientUser?.id === currentUser.id ||
       billing.createdByUserId === currentUser.id;

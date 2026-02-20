@@ -18,6 +18,8 @@ import { ProfilesService } from '../users/profiles/profiles.service';
 import { LocationsService } from '../locations/services/locations.service';
 import { DoorsService } from '../locations/doors/services/doors.service';
 import { DeviceReadersService } from '../device-readers/services/device-readers.service';
+import { MembersService } from '../members/members.service';
+import { MemberMembershipService } from '../memberships/services/member-membership.service';
 
 import { FileUploadService } from '@/common/file-upload/file-upload.service';
 import { RequestContext } from '@/common/context/request-context';
@@ -39,6 +41,8 @@ export class CheckinsService extends CrudService<Checkin> {
     private readonly locationsService: LocationsService,
     private readonly doorsService: DoorsService,
     private readonly deviceReadersService: DeviceReadersService,
+    private readonly membersService: MembersService,
+    private readonly memberMembershipService: MemberMembershipService,
     private readonly fileUploadService: FileUploadService,
     private readonly configService: ConfigService,
     @InjectQueue('camera-snapshot') private cameraSnapshotQueue: Queue,
@@ -397,25 +401,64 @@ export class CheckinsService extends CrudService<Checkin> {
       // Find DeviceReader by macAddress, then find Door linked to that DeviceReader
       let door: Door | null = null;
       let deviceReader: any = null;
-      
+
       if (macAddress) {
         try {
-          // Find DeviceReader by macAddress
           deviceReader = await this.deviceReadersService.getSingle(
             { macAddress: macAddress },
             { _relations: ['door'] }
           );
-          
+
           if (deviceReader && deviceReader.door) {
-            // Get full door details with location
             door = await this.doorsService.getSingle(
               deviceReader.door.id,
               { _relations: ['location'] }
             ) as Door | null;
           }
         } catch (error) {
-          // DeviceReader or Door lookup failed, but continue with checkin creation
           this.logger.warn(`Failed to find device reader with macAddress ${macAddress} or linked door: ${error.message}`);
+        }
+      }
+
+      // When check-in is at a specific door, require member to have active membership with access to that door
+      if (door?.id) {
+        const member = await this.membersService.getSingle(
+          { userId: user.id },
+          { _relations: ['user'] }
+        );
+        if (!member) {
+          return {
+            ResultCode: '0',
+            ActIndex: '1',
+            Audio: '04',
+            Msg: 'No member profile',
+          };
+        }
+        const activeMemberMembership = await this.memberMembershipService.getSingle(
+          { memberId: member.id, isActive: true },
+          { _relations: ['membership', 'membership.doors'] }
+        );
+        if (!activeMemberMembership) {
+          return {
+            ResultCode: '0',
+            ActIndex: '1',
+            Audio: '04',
+            Msg: 'No active membership',
+          };
+        }
+        const membership = activeMemberMembership.membership;
+        const doors = membership?.doors;
+        const hasAllDoors = !doors || (Array.isArray(doors) && doors.length === 0);
+        const hasAccessToDoor =
+          hasAllDoors ||
+          (Array.isArray(doors) && doors.some((d: any) => d?.id === door?.id));
+        if (!hasAccessToDoor) {
+          return {
+            ResultCode: '0',
+            ActIndex: '1',
+            Audio: '04',
+            Msg: 'No access to this door',
+          };
         }
       }
 

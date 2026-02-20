@@ -7,7 +7,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -56,6 +56,7 @@ export class CreateDeviceReaderDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @FieldType("nested", true, LocationDto)
   location: LocationDto;
@@ -67,6 +68,7 @@ export * from "./device-reader-status.dto";
 
 export class DeviceReaderPaginationDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [DeviceReaderDto] })
+  @Expose()
   @Type(() => DeviceReaderDto)
   data: DeviceReaderDto[];
 }
@@ -123,6 +125,7 @@ export class DeviceReaderDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   location?: LocationDto;
 

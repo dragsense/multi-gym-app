@@ -8,7 +8,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../../common/pagination.dto";
 import { ListQueryDto } from "../../common/list-query.dto";
 import { FieldType } from "../../../decorators/field.decorator";
@@ -38,6 +38,7 @@ export class AccessFeatureListDto extends ListQueryDto {
 
 export class AccessFeaturePaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [AccessFeatureDto] })
+  @Expose()
   @Type(() => AccessFeatureDto)
   data: AccessFeatureDto[];
 }

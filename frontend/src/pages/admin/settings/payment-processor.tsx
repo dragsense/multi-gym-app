@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DollarSign, CreditCard, Loader2, Wallet } from "lucide-react";
+import { CreditCard, Loader2, Wallet } from "lucide-react";
 import { usePaymentProcessors } from "@/hooks/use-payment-processors";
 import { getMyBusiness, updateMyBusiness } from "@/services/business/business.api";
 import { PageInnerLayout } from "@/layouts";
@@ -50,7 +50,6 @@ export default function PaymentProcessorSettingsPage() {
   const icons: Partial<Record<EPaymentProcessorType, React.ReactNode>> = {
     [EPaymentProcessorType.STRIPE]: <CreditCard className="h-5 w-5" />,
     [EPaymentProcessorType.PAYSAFE]: <Wallet className="h-5 w-5" />,
-    [EPaymentProcessorType.CASH]: <DollarSign className="h-5 w-5" />,
   };
 
   return (

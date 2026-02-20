@@ -41,7 +41,7 @@ export class UerPermissionGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const resource = request.user;
 
-    if (resource.level <= EUserLevels.ADMIN) {
+    if(resource.level <= EUserLevels.ADMIN) {
       return true;
     }
 
@@ -64,15 +64,15 @@ export class UerPermissionGuard implements CanActivate {
 
     // Get permission requirements from decorators
     const requiredPermissions = this.reflector.getAllAndOverride<string[]>(
-      PERMISSION_KEY, [
+      PERMISSION_KEY,[
       context.getHandler(),
       context.getClass(),
     ]);
     const requiredRoles = this.reflector.getAllAndOverride<string[]>(
-      ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+      ROLES_KEY,[
+        context.getHandler(),
+        context.getClass(),
+      ]);
 
     // Get resource and action from decorators (for backward compatibility)
     const resourceName = this.reflector.getAllAndOverride<string>(

@@ -7,7 +7,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { UserDto } from "../user-dtos";
 
 export class TaskActivityLogDto {
@@ -55,6 +55,7 @@ export class TaskActivityLogDto {
   @ApiPropertyOptional({ type: UserDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   user?: UserDto;
 

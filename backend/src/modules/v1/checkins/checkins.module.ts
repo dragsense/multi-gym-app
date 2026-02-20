@@ -18,6 +18,8 @@ import { DoorsModule } from '../locations/doors/doors.module';
 import { FileUploadModule } from '@/common/file-upload/file-upload.module';
 import { DeviceReadersModule } from '../device-readers/device-readers.module';
 import { CamerasModule } from '../cameras/cameras.module';
+import { MembersModule } from '../members/members.module';
+import { MembershipsModule } from '../memberships/memberships.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { CamerasModule } from '../cameras/cameras.module';
     FileUploadModule,
     DeviceReadersModule,
     CamerasModule,
+    MembersModule,
+    MembershipsModule,
     BullModule.registerQueue({ name: 'camera-snapshot' }),
   ],
   exports: [CheckinsService, CheckinSnapshotsService],

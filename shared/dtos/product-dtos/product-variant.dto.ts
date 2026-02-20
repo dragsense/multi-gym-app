@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OmitType, PartialType } from '../../lib/dto-type-adapter';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { FieldType } from '../../decorators/field.decorator';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { ListQueryDto } from '../common/list-query.dto';
@@ -30,6 +30,7 @@ export class CreateProductVariantDto {
   @ApiProperty({ example: 34.99, description: 'Variant price' })
   @IsNumber()
   @Min(0)
+  @Expose()
   @Type(() => Number)
   @FieldType('number', true)
   price: number;
@@ -37,6 +38,7 @@ export class CreateProductVariantDto {
   @ApiProperty({ example: 50, description: 'Variant quantity' })
   @IsNumber()
   @Min(1)
+  @Expose()
   @Type(() => Number)
   @FieldType('number', true)
   quantity: number;
@@ -49,6 +51,7 @@ export class CreateProductVariantDto {
   @IsArray()
   @FieldType('custom', false)
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => AttributeValueDto)
   attributeValues?: AttributeValueDto[];
 
@@ -74,6 +77,7 @@ export class UpdateProductVariantDto extends PartialType(
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => AttributeValueDto)
   @FieldType('custom', false)
   attributeValues?: AttributeValueDto[];
@@ -85,6 +89,7 @@ export class ProductVariantListDto extends ListQueryDto<ProductVariantDto> {
 
 export class ProductVariantPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [ProductVariantDto] })
+  @Expose()
   @Type(() => ProductVariantDto)
   data: ProductVariantDto[];
 }
@@ -103,10 +108,12 @@ export class ProductVariantDto {
   quantity: number;
 
   @ApiPropertyOptional({ type: () => ProductDto })
+  @Expose()
   @Type(() => ProductDto)
   product?: ProductDto;
 
   @ApiPropertyOptional({ type: () => [AttributeValueDto] })
+  @Expose()
   @Type(() => AttributeValueDto)
   attributeValues?: AttributeValueDto[];
 

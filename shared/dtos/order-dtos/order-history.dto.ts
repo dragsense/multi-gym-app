@@ -7,7 +7,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { ListQueryDto } from '../common/list-query.dto';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { FieldType } from '../../decorators/field.decorator';
@@ -99,6 +99,7 @@ export class OrderHistoryDto {
 
   @ApiProperty({ type: () => OrderDto })
   @ValidateNested()
+  @Expose()
   @Type(() => OrderDto)
   order: OrderDto;
 
@@ -126,6 +127,7 @@ export class OrderHistoryDto {
   @ApiPropertyOptional({ type: () => UserDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   changedBy?: UserDto;
 

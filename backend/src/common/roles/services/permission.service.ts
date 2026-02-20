@@ -142,10 +142,10 @@ export class PermissionService {
     action: EPermissionAction[],
   ): Promise<boolean> {
     const context = await this.getEntityPermissionContext(entityId);
-    const permissionStrings = action.map(a => `${resourceName}:${a}`).join(',');
+    const permissionStrings = action.map(action => `${resourceName}:${action}`).join(',');
 
     // Check direct permissions
-    if (context.permissions.some(name => permissionStrings.includes(name))) {
+    if (context.permissions.some(permission => permissionStrings.includes(permission))) {
       return true;
     }
 

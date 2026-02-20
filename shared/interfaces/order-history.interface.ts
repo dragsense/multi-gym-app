@@ -1,5 +1,5 @@
 import { EOrderStatus } from '../enums/order.enum';
-import { IUser } from './user.interface';
+import type { IUser } from './user.interface';
 
 export interface IOrderHistory {
   id: string;

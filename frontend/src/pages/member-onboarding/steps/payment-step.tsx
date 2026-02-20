@@ -4,14 +4,14 @@ import { useMutation } from "@tanstack/react-query";
 
 // Types
 import type { IMembership } from "@shared/interfaces";
-import type { StripeCardFormData } from "@/@types/payment.types";
+import type { PaymentCardFormData } from "@/@types/payment.types";
 import { EPaymentPreference } from "@shared/enums/membership.enum";
 
 // Components
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { AppCard } from "@/components/layout-ui/app-card";
-import { StripePaymentModal } from "@/components/shared-ui/stripe-payment-modal";
+import { PaymentModalAdapter } from "@/payment-processors";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import {
@@ -28,7 +28,7 @@ import { CreateMemberMembershipPaymentIntentDto } from "@shared/dtos";
 
 // Hooks
 import { useI18n } from "@/hooks/use-i18n";
-import { useStripePaymentCards } from "@/hooks/use-stripe-payment-cards";
+import { usePaymentCards } from "@/hooks/use-payment-cards";
 import { buildSentence } from "@/locales/translations";
 
 interface IPaymentStepProps {
@@ -64,7 +64,7 @@ export function PaymentStep({
   // Check if terms and conditions exist
   const hasTermsAndConditions = !!selectedMembership?.termsAndConditions;
   
-  const { stripeCards, isLoadingPaymentCards } = useStripePaymentCards();
+  const { cards, isLoadingPaymentCards } = usePaymentCards();
 
   const { mutate: processPayment, isPending: isProcessingPayment } = useMutation({
     mutationFn: (data: CreateMemberMembershipPaymentIntentDto) => createMemberMembershipBillingPaymentIntent(data),
@@ -84,7 +84,7 @@ export function PaymentStep({
   const isContinueDisabled = isLoadingPaymentCards || isProcessingPayment;
 
   const handlePayClick = useCallback(
-    async (paymentMethodId?: string, cardData?: StripeCardFormData) => {
+    async (paymentMethodId?: string, cardData?: PaymentCardFormData) => {
       if (!selectedMembership) {
         setErrorMessage("Please select a membership first");
         setShowErrorDialog(true);
@@ -230,10 +230,10 @@ export function PaymentStep({
         </div>
       </AppCard>
 
-      <StripePaymentModal
+      <PaymentModalAdapter
         open={showPaymentModal}
         onOpenChange={setShowPaymentModal}
-        stripeCards={stripeCards}
+        cards={cards}
         onPay={handlePayClick}
         isLoading={isProcessingPayment}
         amount={totalAmount}

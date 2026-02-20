@@ -12,7 +12,7 @@ export function setupApiDocumentation(
   const port = configService.get<number>('app.port', 3000);
 
   // API documentation with Scalar
-  //if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Customer App Web API')
       .setDescription(
@@ -69,5 +69,5 @@ export function setupApiDocumentation(
     loggerService.log(
       `📄 OpenAPI JSON available at: http://localhost:${port}/api/docs-json`,
     );
-  //}
+  }
 }

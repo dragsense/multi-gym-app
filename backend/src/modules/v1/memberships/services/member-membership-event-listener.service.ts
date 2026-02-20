@@ -21,7 +21,7 @@ import { DateTime } from 'luxon';
 import { EBillingFrequency, EMembershipExpiry, EMembershipStatus, EPaymentPreference } from '@shared/enums/membership.enum';
 import { EBillingStatus } from '@shared/enums/billing.enum';
 import { BillingsService } from '@/modules/v1/billings/billings.service';
-import { StripeCustomerService } from '@/modules/v1/stripe/services/stripe-customer.service';
+import { PaymentAdapterCardsService } from '@/modules/v1/payment-adapter/services/payment-adapter-cards.service';
 import { EBillingType } from '@shared/enums/billing.enum';
 import { MemberMembershipBilling } from '../entities/member-membership-billing.entity';
 import { EntityRouterService } from '@/common/database/entity-router.service';
@@ -41,7 +41,7 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
     private readonly memberMembershipBillingService: MemberMembershipBillingService,
     private readonly membersService: MembersService,
     private readonly billingsService: BillingsService,
-    private readonly stripeCustomerService: StripeCustomerService,
+    private readonly paymentAdapterCardsService: PaymentAdapterCardsService,
     private readonly entityRouterService: EntityRouterService,
     private readonly membershipNotificationService: MembershipNotificationService,
   ) { }
@@ -335,18 +335,18 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
       timezone: string;
       isNew: boolean;
       paymentPreference: EPaymentPreference;
+      tenantId?: string;
     },
   ): Promise<void> {
-    const { memberMembershipId, currentUser, timezone, isNew, paymentPreference } = data;
+    const { memberMembershipId, currentUser, timezone, isNew, paymentPreference, tenantId } = data;
 
     try {
       this.logger.log(`Activating member membership: ${memberMembershipId}`);
 
-
-      // Get default payment method from Stripe customer
-      const defaultPaymentMethod = await this.stripeCustomerService.getDefaultPaymentMethod(
-        currentUser,
-      );
+      const defaultPaymentMethod =  await this.paymentAdapterCardsService.getDefaultPaymentMethod(
+              currentUser,
+            );
+      
 
       if (!defaultPaymentMethod) {
         this.logger.warn(
@@ -359,7 +359,6 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
         paymentMethodId: defaultPaymentMethod?.id,
         paymentPreference: paymentPreference,
       }, currentUser, timezone, Boolean(isNew));
-
 
       this.logger.log(`Successfully activated member membership: ${memberMembershipId}`);
     } catch (error) {
@@ -708,9 +707,10 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
       membershipId: string;
       billingFrequency?: EBillingFrequency;
       lastBillingDate?: string;
+      tenantId?: string;
     },
   ): Promise<void> {
-    const { memberMembershipId, memberId, membershipId, billingFrequency, lastBillingDate } = data;
+    const { memberMembershipId, memberId, membershipId, billingFrequency, lastBillingDate, tenantId } = data;
 
     try {
       // Get member membership with relations
@@ -788,21 +788,25 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
         memberMembership: { id: memberMembershipId },
       });
 
-      // Get default payment method from Stripe customer
-      const defaultPaymentMethod = await this.stripeCustomerService.getDefaultPaymentMethod(
+      // Get default payment method via payment adapter (context already has tenantId)
+      if (!tenantId) {
+        this.logger.warn(
+          `No tenantId in schedule data for member membership ${memberMembershipId}, skipping billing`,
+        );
+        return;
+      }
+
+      const defaultPaymentMethod = await this.paymentAdapterCardsService.getDefaultPaymentMethod(
         member.user,
       );
 
-
-      if (!defaultPaymentMethod) {
+      if (!defaultPaymentMethod?.id) {
         this.logger.warn(
           `No default payment method found for member ${memberId}, skipping billing`,
         );
         return;
       }
 
-
-      // Create payment intent with default payment method
       await this.billingsService.createBillingPaymentIntent(
         {
           billingId: newBilling.id,
@@ -816,6 +820,7 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
           memberMembershipId,
           memberId,
         },
+        tenantId,
       );
 
       this.logger.log(
@@ -841,6 +846,7 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
       memberMembershipId: string;
       memberId: string;
       membershipId: string;
+      tenantId?: string;
     },
   ): Promise<void> {
     const { memberMembershipId, memberId, membershipId } = data;
@@ -925,19 +931,26 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
       });
 
 
-      // Get default payment method from Stripe customer
-      const defaultPaymentMethod = await this.stripeCustomerService.getDefaultPaymentMethod(
+      // Get default payment method via payment adapter (context already has tenantId)
+      const feeTenantId = (data as { tenantId?: string }).tenantId;
+      if (!feeTenantId) {
+        this.logger.warn(
+          `No tenantId in schedule data for annual fee ${memberMembershipId}, skipping`,
+        );
+        return;
+      }
+
+      const defaultPaymentMethod = await this.paymentAdapterCardsService.getDefaultPaymentMethod(
         member.user,
       );
 
-      if (!defaultPaymentMethod) {
+      if (!defaultPaymentMethod?.id) {
         this.logger.warn(
           `No default payment method found for member ${memberId}, skipping annual fee billing`,
         );
         return;
       }
 
-      // Create payment intent with default payment method
       await this.billingsService.createBillingPaymentIntent(
         {
           billingId: newBilling.id,
@@ -951,6 +964,7 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
           memberMembershipId,
           memberId,
         },
+        feeTenantId,
       );
 
       this.logger.log(

@@ -1,31 +1,55 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  fetchStripePaymentCards,
+  fetchPaymentCards,
   setDefaultPaymentMethod,
   deletePaymentMethod,
   addPaymentMethod,
   fetchUserDefaultPaymentMethod,
-} from "@/services/stripe.api";
+} from "@/services/payment-adapter.api";
 import { toast } from "sonner";
-import type { IStripeCard } from "@/@types/payment.types";
+import type { PaymentCard } from "@/@types/payment.types";
+import type { IPaymentCard, IPaymentCardsResponse } from "@shared/interfaces";
 
 export const PAYMENT_CARDS_KEY = "payment-cards";
 export const DEFAULT_PAYMENT_METHOD_KEY = "default-payment-method";
 
-/**
- * Hook for fetching just the default card - use in detail pages where you only need to display the default card
- */
-export const useDefaultCard = (userId: string) => {
-  // Fetch all payment cards
+/** Saved cards for payment modal (payment-adapter API: Stripe or Paysafe by tenant). */
+export function usePaymentCards() {
   const {
-    data: defaultPaymentMethod,
-    isLoading: isLoadingDefaultPaymentMethod,
-  } = useQuery<IStripeCard, Error>({
-    queryKey: [DEFAULT_PAYMENT_METHOD_KEY],
-    queryFn: () => fetchUserDefaultPaymentMethod(userId),
+    data,
+    isLoading: isLoadingPaymentCards,
+    error: errorPaymentCards,
+  } = useQuery<IPaymentCardsResponse, Error>({
+    queryKey: [PAYMENT_CARDS_KEY],
+    queryFn: fetchPaymentCards,
     retry: false,
   });
 
+  const cards: PaymentCard[] = (data?.paymentMethods ?? []).map((pm) => ({
+    id: pm.id,
+    last4: pm.card?.last4 ?? "0000",
+    brand: pm.card?.brand ?? "card",
+    expiryMonth: pm.card?.exp_month ?? 12,
+    expiryYear: pm.card?.exp_year ?? new Date().getFullYear(),
+    cardholderName: pm.billing_details?.name ?? "",
+    isDefault: data?.defaultPaymentMethodId === pm.id,
+  }));
+
+  return { cards, isLoadingPaymentCards, errorPaymentCards };
+}
+
+/**
+ * Hook for fetching just the default card - use in detail pages (member, staff, business, account)
+ */
+export const useDefaultCard = (userId: string) => {
+  const {
+    data: defaultPaymentMethod,
+    isLoading: isLoadingDefaultPaymentMethod,
+  } = useQuery<IPaymentCard | null, Error>({
+    queryKey: [DEFAULT_PAYMENT_METHOD_KEY, userId],
+    queryFn: () => fetchUserDefaultPaymentMethod(userId),
+    retry: false,
+  });
 
   return {
     defaultPaymentMethod,
@@ -34,24 +58,26 @@ export const useDefaultCard = (userId: string) => {
 };
 
 /**
- * Hook for full payment cards management - use in account settings for managing all cards
+ * Hook for full payment cards management - use in account settings Payment Cards tab.
+ * Uses unified payment-adapter API (Stripe or Paysafe by tenant).
  */
 export const usePaymentCardsManager = () => {
   const queryClient = useQueryClient();
 
-  // Fetch all payment cards
   const {
-    data: { paymentMethods, defaultPaymentMethodId } = { paymentMethods: [], defaultPaymentMethodId: null },
+    data: { paymentMethods, defaultPaymentMethodId } = {
+      paymentMethods: [],
+      defaultPaymentMethodId: null,
+    },
     isLoading: isLoadingCards,
     error: cardsError,
     refetch: refetchCards,
-  } = useQuery<{ paymentMethods: IStripeCard[], defaultPaymentMethodId: string | null }, Error>({
+  } = useQuery<IPaymentCardsResponse, Error>({
     queryKey: [PAYMENT_CARDS_KEY],
-    queryFn: fetchStripePaymentCards,
+    queryFn: fetchPaymentCards,
     retry: false,
   });
 
-  // Set default payment method mutation
   const setDefaultMutation = useMutation({
     mutationFn: setDefaultPaymentMethod,
     onSuccess: () => {
@@ -64,7 +90,6 @@ export const usePaymentCardsManager = () => {
     },
   });
 
-  // Delete payment method mutation
   const deleteMutation = useMutation({
     mutationFn: deletePaymentMethod,
     onSuccess: () => {
@@ -76,10 +101,14 @@ export const usePaymentCardsManager = () => {
     },
   });
 
-  // Add payment method mutation
   const addCardMutation = useMutation({
-    mutationFn: ({ paymentMethodId, setAsDefault }: { paymentMethodId: string; setAsDefault?: boolean }) =>
-      addPaymentMethod(paymentMethodId, setAsDefault),
+    mutationFn: ({
+      paymentMethodId,
+      setAsDefault,
+    }: {
+      paymentMethodId: string;
+      setAsDefault?: boolean;
+    }) => addPaymentMethod(paymentMethodId, setAsDefault ?? false),
     onSuccess: () => {
       toast.success("Payment method added successfully");
       queryClient.invalidateQueries({ queryKey: [PAYMENT_CARDS_KEY] });

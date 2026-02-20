@@ -75,11 +75,40 @@ export const BusinessFormModal = React.memo(function BusinessFormModal({
       ...storeFields,
       name: {
         ...storeFields.name,
-        placeholder: 'Enter business name',
+        placeholder: buildSentence(t, "Enter", "business", "name"),
       },
       subdomain: {
         ...storeFields.subdomain,
-        placeholder: 'Enter subdomain (e.g., mygym)',
+        placeholder: buildSentence(t, "Enter", "subdomain", "(e.g., mygym)"),
+      },
+      user: {
+        ...storeFields.user,
+        label: "",
+        subFields: {
+          ...(storeFields.user as any).subFields,
+          email: {
+            ...(storeFields.user as any).subFields.email,
+            placeholder: buildSentence(t, "Enter", "email"),
+          },
+          isActive: {
+            ...(storeFields.user as any).subFields?.isActive,
+            label: t("isActive"),
+          },
+          firstName: {
+            ...(storeFields.user as any).subFields.firstName,
+            label: t("FirstName"),
+            placeholder: buildSentence(t, "Enter", "first", "name"),
+          },
+          lastName: {
+            ...(storeFields.user as any).subFields.lastName,
+            label: t("LastName"),
+            placeholder: buildSentence(t, "Enter", "last", "name"),
+          },
+          dateOfBirth: {
+            ...(storeFields.user as any).subFields.dateOfBirth,
+            label: t("DateofBirth"),
+          },
+        },
       },
     };
 
@@ -120,7 +149,6 @@ export const BusinessFormModal = React.memo(function BusinessFormModal({
     [componentId, isEditing, onClose, t]
   );
 
-  const userInputs = (inputs as any).user as FormInputs<TUserData> | undefined;
 
   return (
     <ModalForm<
@@ -129,7 +157,6 @@ export const BusinessFormModal = React.memo(function BusinessFormModal({
       IBusinessFormModalExtraProps
     >
       title={buildSentence(t, isEditing ? "Edit" : "Add", "Business")}
-      description={buildSentence(t, isEditing ? "Edit" : "Add", "a", "new", "business")}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -138,14 +165,13 @@ export const BusinessFormModal = React.memo(function BusinessFormModal({
     >
       <div className="space-y-8">
         {/* User Information */}
-        {userInputs && (
           <div>
             <h3 className="text-sm font-semibold mb-3">
               {buildSentence(t, "User", "Information")}
             </h3>
-            {userInputs as ReactNode}
+            {inputs.user as ReactNode}
           </div>
-        )}
+        
 
         {/* Business Information */}
         <div>

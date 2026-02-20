@@ -142,7 +142,7 @@ export default function BusinessOnboardingPage() {
             selectedSubscription={selectedSubscription}
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentFailed={handlePaymentFailed}
-          />
+          />  
         )}
       </div>
     </div>

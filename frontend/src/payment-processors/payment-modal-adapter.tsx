@@ -1,22 +1,20 @@
 import { EPaymentProcessorType } from "@shared/enums";
-import type { PaymentModalProps, PaymentProcessorType } from "./types";
+import type { PaymentModalProps } from "@/@types/payment-processor.types";
+import { useCurrentBusinessPaymentProcessor } from "@/hooks/use-current-business-payment-processor";
 import { StripePaymentModal } from "./stripe";
 import { PaysafePaymentModal } from "./paysafe";
 
 export interface PaymentModalAdapterProps extends PaymentModalProps {
-  /** Resolved from backend (usePaymentProcessor). Renders nothing if null. */
-  processorType: PaymentProcessorType | null;
-  /** Required for Stripe: list of saved cards. */
-  stripeCards?: PaymentModalProps["stripeCards"];
+  /** Saved cards when processor supports them (from usePaymentCards). */
+  cards?: PaymentModalProps["cards"];
 }
 
 /**
  * Renders the correct payment modal (Stripe or Paysafe) based on processor type from backend.
- * Use with usePaymentProcessor to get processorType from paymentProcessorId.
+ * When processorType is omitted, uses current business payment processor (useCurrentBusinessPaymentProcessor).
  */
 export function PaymentModalAdapter({
-  processorType,
-  stripeCards = [],
+  cards = [],
   open,
   onOpenChange,
   onPay,
@@ -25,6 +23,8 @@ export function PaymentModalAdapter({
   error,
   showSaveOptions = true,
 }: PaymentModalAdapterProps) {
+  const { processorType } = useCurrentBusinessPaymentProcessor();
+
   if (!processorType) return null;
 
   if (processorType === EPaymentProcessorType.PAYSAFE) {
@@ -45,7 +45,7 @@ export function PaymentModalAdapter({
       <StripePaymentModal
         open={open}
         onOpenChange={onOpenChange}
-        stripeCards={stripeCards}
+        cards={cards}
         onPay={onPay}
         isLoading={isLoading}
         amount={amount}

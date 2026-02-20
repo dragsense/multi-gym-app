@@ -32,7 +32,7 @@ import { BillingsModule } from '../billings/billings.module';
 import { PaymentProcessorsModule } from '@/common/payment-processors/payment-processors.module';
 import { ScheduleModule } from '@/common/schedule/schedule.module';
 import { ActionModule } from '@/common/helper/action.module';
-import { StripeModule } from '../stripe/stripe.module';
+import { PaymentAdapterModule } from '../payment-adapter/payment-adapter.module';
 import { SubscriptionsModule } from './subscription/subscriptions.module';
 import { Profile } from '../users/profiles/entities/profile.entity';
 import { BaseUsersService } from '@/common/base-user/base-users.service';
@@ -59,7 +59,7 @@ import { FileUploadModule } from '@/common/file-upload/file-upload.module';
     CrudModule,
     BillingsModule,
     PaymentProcessorsModule,
-    StripeModule,
+    PaymentAdapterModule,
     SubscriptionsModule,
     ScheduleModule,
     ActionModule,

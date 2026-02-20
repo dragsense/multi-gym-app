@@ -7,6 +7,7 @@ import {
     Body,
     Param,
     Query,
+    Req,
 } from '@nestjs/common';
 import {
     ApiOperation,
@@ -35,6 +36,7 @@ import { EUserLevels } from '@shared/enums';
 import { MinUserLevel } from '@/decorators/level.decorator';
 import { Timezone } from '@/decorators/timezone.decorator';
 import { Business } from './entities/business.entity';
+import { Public } from '@/decorators/access.decorator';
 
 @ApiTags('Business')
 @MinUserLevel(EUserLevels.PLATFORM_OWNER)
@@ -55,6 +57,22 @@ export class BusinessController {
         return this.businessService.get(query, BusinessListDto);
     }
 
+    @ApiOperation({
+        summary: 'Get all Business list',
+    })
+    @ApiResponse({
+        status: 200,
+        description: 'Returns paginated list of Business',
+        type: BusinessPaginatedDto,
+    })
+    @Get('list')
+    @Public()
+    findAllList() {
+        return this.businessService.get({
+            _select: ['id', 'name', 'subdomain'],
+        }, BusinessListDto);
+    }
+
     @ApiOperation({ summary: 'Check if current user has a business' })
     @ApiResponse({
         status: 200,
@@ -65,8 +83,27 @@ export class BusinessController {
     @MinUserLevel(EUserLevels.SUPER_ADMIN)
     @SkipBusinessCheck()
     async getMyBusiness(@AuthUser() currentUser: User) {
-     return this.businessService.getMyBusiness(currentUser);     
+        return this.businessService.getMyBusiness(currentUser);
     }
+
+    @ApiOperation({
+        summary: 'Get current business payment processor type',
+        description: 'Returns Stripe/Paysafe type for payment UI. Skips business check when user level is MEMBER (returns null).',
+    })
+    @ApiResponse({ status: 200, description: 'Returns { type: "stripe" | "paysafe" | null, paymentProcessorId: string | null }' })
+    @Get('me/payment-processor-type')
+    @MinUserLevel(EUserLevels.MEMBER)
+    @SkipBusinessCheck()
+    async getMyBusinessPaymentProcessorType(@AuthUser() currentUser: User, @Req() req: any) {
+        const tenantId = req.tenantId as string;
+        if (tenantId) {
+            return this.businessService.getCurrentBusinessPaymentProcessorType(tenantId);
+        }
+
+        return this.businessService.getMyBusinessPaymentProcessorType(currentUser);
+    }
+
+
 
     @ApiOperation({ summary: 'Get a Business by ID' })
     @ApiParam({ name: 'id', description: 'Business ID' })
@@ -181,7 +218,7 @@ export class BusinessController {
         await this.businessService.delete(id);
     }
 
-    @ApiOperation({ 
+    @ApiOperation({
         summary: 'Login to current user\'s business',
         description: 'Gets the current user\'s business and generates a redirect URL to login to the business portal'
     })
@@ -200,7 +237,7 @@ export class BusinessController {
         return this.businessService.loginToMyBusiness(currentUser);
     }
 
-    @ApiOperation({ 
+    @ApiOperation({
         summary: 'Login to business as admin (impersonation)',
         description: 'Generates a short-lived token to login to a business subdomain as the super admin user'
     })
@@ -212,7 +249,7 @@ export class BusinessController {
     })
     @ApiResponse({ status: 404, description: 'Business not found' })
     @ApiResponse({ status: 400, description: 'Business does not have tenant database or subdomain' })
-    @MinUserLevel(EUserLevels.SUPER_ADMIN)
+    @MinUserLevel(EUserLevels.PLATFORM_OWNER)
     @Post(':id/login-as')
     async loginToBusiness(
         @Param('id') id: string,

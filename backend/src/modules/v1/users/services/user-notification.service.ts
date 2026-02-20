@@ -138,6 +138,14 @@ export class UserNotificationService {
    */
   async notifyAdminsUserUpdated(user: User, updatedBy?: string): Promise<void> {
     try {
+      // Don't notify admins about platform owner updates - platform owner outranks all admins
+      if (user.level === EUserLevels.PLATFORM_OWNER) {
+        this.logger.log(
+          `Skipping admin notifications for platform owner ${user.email}`,
+        );
+        return;
+      }
+
       // Find all admin users (PLATFORM_OWNER = 0, SUPER_ADMIN = 1, ADMIN = 2)
       const userRepo = this.entityRouterService.getRepository<User>(User);
       const adminUsers = await userRepo.find({

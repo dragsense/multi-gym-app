@@ -46,10 +46,10 @@ export function hasPermission(
   if (!user) return false;
 
   const permissionNames = getUserPermissionNames(user);
-  const requiredPermissions = action.map(a => `${resource}:${a}`).join(',');
+  const requiredPermission = action.map(action => `${resource}:${action}`).join(',');
 
   // Check for exact permission
-  if (permissionNames.some(name => requiredPermissions.includes(name))) {
+  if (permissionNames.includes(requiredPermission)) {
     return true;
   }
 

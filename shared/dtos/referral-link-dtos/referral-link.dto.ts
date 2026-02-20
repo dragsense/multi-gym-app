@@ -15,7 +15,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type, Transform } from "class-transformer";
+import { Type, Transform, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -26,7 +26,7 @@ import {
   EReferralLinkStatus,
   EReferralLinkType,
 } from "../../enums/referral-link.enum";
-import { IReferralLink } from "../../interfaces/referral-link.interface";
+import type { IReferralLink } from "../../interfaces/referral-link.interface";
 
 export class CreateReferralLinkDto {
   @ApiProperty({
@@ -68,10 +68,10 @@ export class CreateReferralLinkDto {
     description: "Commission percentage for referrals",
   })
   @IsNumber()
-  @IsNotEmpty()
   @Min(0)
   @Max(100)
   @FieldType("number", true)
+  @Expose()
   @Type(() => Number)
   commissionPercentage: number;
 
@@ -92,6 +92,7 @@ export class CreateReferralLinkDto {
   @Min(1)
   @IsOptional()
   @FieldType("number", false)
+  @Expose()
   @Type(() => Number)
   maxUses?: number;
 }
@@ -192,6 +193,7 @@ export class ReferralLinkDto {
 
   @ApiProperty({ type: UserDto })
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   createdBy: UserDto;
 

@@ -12,7 +12,7 @@ import { ListQueryDto, SingleQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
 import { OmitType } from "../../lib/dto-type-adapter";
 import { EPaymentProcessorType } from "../../enums/payment-processors.enum";
-import { IPaymentProcessor } from "../../interfaces/payment-processors.interface";
+import type { IPaymentProcessor } from "../../interfaces/payment-processors.interface";
 
 export class CreatePaymentProcessorDto {
   @ApiProperty({

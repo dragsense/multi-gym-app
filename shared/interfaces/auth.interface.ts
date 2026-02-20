@@ -1,4 +1,4 @@
-import { IUser } from './user.interface';
+import type { IUser } from './user.interface';
 import { LoginResponseDto, SignupResponseDto } from '../dtos';
 
 export interface IAuthUser extends IUser { }

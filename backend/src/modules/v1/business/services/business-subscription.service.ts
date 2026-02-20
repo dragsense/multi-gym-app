@@ -479,7 +479,6 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
     }
 
     const businessFeatures = await this.getBusinessFeatures(businessId);
-
     // Check if business has ALL required modules
     return requiredModules.every(module => businessFeatures.includes(module));
   }
@@ -496,7 +495,6 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
     }
 
     const businessFeatures = await this.getBusinessFeatures(businessId);
-
     return requiredModules.filter(module => !businessFeatures.includes(module));
   }
 }

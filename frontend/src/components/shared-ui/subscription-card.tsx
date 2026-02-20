@@ -1,5 +1,5 @@
 // React
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 
 // Types
 import type { ISubscription } from "@shared/interfaces";
@@ -40,6 +40,7 @@ export function SubscriptionCard({
   showSelection = true,
 }: ISubscriptionCardProps) {
   const componentId = useId();
+  const [isExpanded, setIsExpanded] = useState(false);
   const basePrice = Number(subscription.price) || 0;
   const discountPercentage = Number(subscription.discountPercentage) || 0;
 
@@ -66,11 +67,11 @@ export function SubscriptionCard({
     return undefined;
   }, [subscription.color]);
 
-  const frequencyLabel = frequency === ESubscriptionFrequency.WEEKLY 
-    ? 'week' 
-    : frequency === ESubscriptionFrequency.YEARLY 
-    ? 'year' 
-    : 'month';
+  const frequencyLabel = frequency === ESubscriptionFrequency.WEEKLY
+    ? 'week'
+    : frequency === ESubscriptionFrequency.YEARLY
+      ? 'year'
+      : 'month';
 
   return (
     <div
@@ -80,7 +81,7 @@ export function SubscriptionCard({
         isSelected
           ? "ring-2 ring-primary shadow-lg"
           : "hover:border-primary/50"
-      }`}
+        }`}
     >
       {/* Top Colored Bar */}
       {cardColor && (
@@ -165,7 +166,7 @@ export function SubscriptionCard({
                 What's Included:
               </div>
               <ul className="text-sm space-y-2.5">
-                {subscription.features.slice(0, 5).map((feature: any, idx: number) => (
+                {subscription.features.slice(0, isExpanded ? undefined : 5).map((feature: any, idx: number) => (
                   <li key={idx} className="flex items-start gap-3 bg-muted/20 rounded-md p-2.5">
                     <Check
                       className="h-4 w-4 mt-0.5 flex-shrink-0 rounded-full text-primary"
@@ -182,7 +183,16 @@ export function SubscriptionCard({
                 ))}
                 {subscription.features.length > 5 && (
                   <li className="text-xs text-muted-foreground">
-                    +{subscription.features.length - 5} more features
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsExpanded(!isExpanded);
+                      }}
+                      className="text-primary hover:underline hover:text-primary/80 font-medium focus:outline-none"
+                    >
+                      {isExpanded ? "Show less" : `+${subscription.features.length - 5} more features`}
+                    </button>
                   </li>
                 )}
               </ul>

@@ -20,7 +20,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { OmitType, PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -37,7 +37,7 @@ import {
   ESessionType,
   EUpdateSessionScope,
 } from "../../enums/session.enum";
-import { ISession } from "../../interfaces/session.interface";
+import type { ISession } from "../../interfaces/session.interface";
 import { ReminderDto } from "../reminder-dtos";
 import { RecurrenceConfigDto } from "../recurrence-dtos";
 import { MemberDto } from "../member-dtos";
@@ -127,11 +127,13 @@ export class CreateSessionDto {
   @IsNumber()
   @Min(1)
   @FieldType("number")
+  @Expose()
   @Type(() => Number)
   duration: number;
 
   @ApiProperty({ type: StaffDto })
   @ValidateNested()
+  @Expose()
   @Type(() => StaffDto)
   @FieldType("nested", true, StaffDto)
   @IsOptional()
@@ -142,6 +144,7 @@ export class CreateSessionDto {
     description: "Associated members (at least one required)",
   })
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => MemberDto)
   @FieldType("nested", true, MemberDto)
   @IsArray()
@@ -170,6 +173,7 @@ export class CreateSessionDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => LocationDto)
   @FieldType("nested", false, LocationDto)
   location?: LocationDto;
@@ -193,6 +197,7 @@ export class CreateSessionDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => ServiceOfferDto)
   @FieldType("nested", false, ServiceOfferDto)
   serviceOffer?: ServiceOfferDto;
@@ -214,6 +219,7 @@ export class CreateSessionDto {
   @IsNumber()
   @Min(0)
   @FieldType("number")
+  @Expose()
   @Type(() => Number)
   @ValidateIf((o) => o.useCustomPrice === true)
   customPrice?: number;
@@ -230,6 +236,7 @@ export class CreateSessionDto {
   @ApiPropertyOptional({ type: ReminderDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => ReminderDto)
   @FieldType("nested", false, ReminderDto)
   @ValidateIf((o) => o.enableReminder === true)
@@ -268,6 +275,7 @@ export class CreateSessionDto {
   @ApiPropertyOptional({ type: RecurrenceConfigDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => RecurrenceConfigDto)
   @FieldType("nested", false, RecurrenceConfigDto)
   @ValidateIf((o) => o.enableRecurrence === true)
@@ -373,6 +381,7 @@ export class AvailableSlotsRequestDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @Expose()
   @Type(() => Number)
   duration?: number;
 }
@@ -460,12 +469,14 @@ export class AvailableDatesResponseDto {
     ],
     description: "List of unavailable date ranges",
   })
+  @Expose()
   @Type(() => UnavailableDateRangeDto)
   unavailableRanges: UnavailableDateRangeDto[];
 }
 
 export class SessionPaginatedDto extends PaginationMetaDto {
   @ApiProperty({ type: () => [SessionDto] })
+  @Expose()
   @Type(() => SessionDto)
   data: SessionDto[];
 }
@@ -592,6 +603,7 @@ export class SessionDto {
   })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => ServiceOfferDto)
   serviceOffer?: ServiceOfferDto;
 
@@ -633,11 +645,13 @@ export class SessionDto {
 
   @ApiProperty({ type: StaffDto })
   @ValidateNested()
+  @Expose()
   @Type(() => StaffDto)
   trainer: StaffDto;
 
   @ApiProperty({ type: [MemberDto] })
   @ValidateNested()
+  @Expose()
   @Type(() => MemberDto)
   @IsArray()
   members: MemberDto[];
@@ -645,6 +659,7 @@ export class SessionDto {
   @ApiProperty({ example: 1, description: "Number of members" })
   @IsOptional()
   @IsNumber()
+  @Expose()
   @Type(() => Number)
   @FieldType("number", true)
   @Min(0)
@@ -653,6 +668,7 @@ export class SessionDto {
   @ApiProperty({ example: 1, description: "Count of members" })
   @IsOptional()
   @IsNumber()
+  @Expose()
   @Type(() => Number)
   @Min(0)
   membersCount?: number;
@@ -668,6 +684,7 @@ export class SessionDto {
   @ApiPropertyOptional({ type: ReminderDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => ReminderDto)
   @FieldType("nested", false, ReminderDto)
   @ValidateIf((o) => o.enableReminder === true)
@@ -676,6 +693,7 @@ export class SessionDto {
   @ApiPropertyOptional({ type: RecurrenceConfigDto })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => RecurrenceConfigDto)
   @FieldType("nested", false, RecurrenceConfigDto)
   @ValidateIf((o) => o.enableRecurrence === true)
@@ -746,6 +764,7 @@ export class CalendarEventsRequestDto {
   @IsOptional()
   @IsNumber()
   @Min(1)
+  @Expose()
   @Type(() => Number)
   limit?: number;
 }

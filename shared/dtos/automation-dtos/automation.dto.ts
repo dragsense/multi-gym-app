@@ -10,7 +10,7 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PartialType } from "../../lib/dto-type-adapter";
-import { Type } from "class-transformer";
+import { Type, Expose } from "class-transformer";
 import { PaginationMetaDto } from "../common/pagination.dto";
 import { ListQueryDto } from "../common/list-query.dto";
 import { FieldType, FieldOptions } from "../../decorators/field.decorator";
@@ -156,6 +156,7 @@ export class AutomationListDto extends ListQueryDto {
 
 export class AutomationPaginatedDto extends PaginationMetaDto {
     @ApiProperty({ type: () => [AutomationDto] })
+    @Expose()
     @Type(() => AutomationDto)
     data: AutomationDto[];
 }
@@ -182,6 +183,7 @@ export class AutomationDto {
     })
     @IsOptional()
     @ValidateNested()
+    @Expose()
     @Type(() => EmailTemplateDto)
     emailTemplate?: EmailTemplateDto;
 

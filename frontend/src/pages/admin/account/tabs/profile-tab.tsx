@@ -1,6 +1,7 @@
 // External Libraries
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useTransition } from "react";
+import { toast } from "sonner";
 
 // Handlers
 import { FormHandler } from "@/handlers";
@@ -62,8 +63,10 @@ export default function ProfileTab() {
   }, [profile]);
 
   const handleProfileSuccess = () => {
+    toast.success("Profile updated successfully");
     startTransition(() => {
       queryClient.invalidateQueries({ queryKey: [PROFILE_STORE_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["me"] });
     });
   };
 

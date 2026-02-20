@@ -63,29 +63,28 @@ export class StaffService extends CrudService<Staff> {
       level: EUserLevels.STAFF,
     };
 
-    let savedUser: User | undefined = undefined;
-    // Create staff entity
-    await this.create({
-      ...staffData,
-      ...(location?.id ? {
-        location: {
-          id: location.id,
-        },
-      } : {}),
-    }, {
-      afterCreate: async (savedEntity, manager) => {
-        const privilegeName = createStaffDto.isTrainer ? 'trainer' : 'staff';
-        const userResult = await this.usersService.createUser(userData as CreateUserDto, privilegeName);
-        savedUser = userResult.user;
-        await manager.update(Staff, savedEntity.id, {
-          user: savedUser,
-        });
+    let createdUser: User | null = null;
+
+    await this.create(
+      {
+        ...staffData,
+        ...(location?.id ? { location: { id: location.id } } : {}),
       },
-    });
+      {
+        afterCreate: async (savedEntity, manager) => {
+          const privilegeName = createStaffDto.isTrainer ? 'trainer' : 'staff';
+          const userResult = await this.usersService.createUser(userData as CreateUserDto, privilegeName);
+          createdUser = userResult.user;
+          await manager.update(Staff, savedEntity.id, {
+            user: userResult.user,
+          });
+        },
+      },
+    );
 
     return {
       message: 'Staff member created successfully',
-      user: savedUser,
+      user: createdUser!,
     };
   }
 

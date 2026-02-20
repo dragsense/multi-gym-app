@@ -28,13 +28,13 @@ import { type TListHandlerStore, type TSingleHandlerStore } from "@/stores";
 // Config
 import { type TListHandlerComponentProps } from "@/@types/handler-types";
 
-export interface IFaqListExtraProps {}
+export interface IFaqListExtraProps { }
 
 interface IFaqListProps
   extends TListHandlerComponentProps<
     TListHandlerStore<IFaq, any, IFaqListExtraProps>,
     TSingleHandlerStore<IFaq, any>
-  > {}
+  > { }
 
 export default function FaqList({
   storeKey,
@@ -84,7 +84,7 @@ export default function FaqList({
     });
   }, [setAction, startTransition]);
 
-  const isAdmin = user?.level === EUserLevels.ADMIN || user?.level === EUserLevels.PLATFORM_OWNER;
+  const isAdmin = user?.level === EUserLevels.PLATFORM_OWNER || user?.level === EUserLevels.ADMIN;
 
   const { listItem } = faqItemViews({
     handleEdit: isAdmin ? handleEdit : undefined,
@@ -107,6 +107,7 @@ export default function FaqList({
         )}
       </div>
 
+
       <TList<IFaq>
         listStore={store}
         emptyMessage={buildSentence(t, 'no', 'faqs', 'found')}
@@ -117,8 +118,8 @@ export default function FaqList({
           isAdmin ? handleDelete : undefined,
           isAdmin ? handleToggleEnabled : undefined
         )}
-        rowClassName="grid grid-cols-1"
       />
+
     </div>
   );
 }

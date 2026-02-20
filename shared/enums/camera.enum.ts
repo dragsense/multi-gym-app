@@ -3,5 +3,6 @@ export enum ECameraProtocol {
   RTMP = 'rtmp',
   SRT = 'srt',
   HTTP_MJPEG = 'http_mjpeg',
+  HTTP_MPEGTS = 'http_mpegts',
   HLS = 'hls',
 }

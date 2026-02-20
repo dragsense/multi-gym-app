@@ -52,16 +52,18 @@ export function BusinessFilters({
 
   return (
     <div className="flex-1 flex items-end gap-2 flex-wrap" data-component-id={componentId}>
-      {inputs.search}
+      <div className="flex items-end gap-2">
+        {inputs.search}
+        {hasActiveFilters && (
+          <Button variant="outline" onClick={handleClearFilters} className="flex shrink-0">
+            <XIcon className="h-4 w-4 mr-2" />
+            Clear Filters
+          </Button>
+        )}
+      </div>
       <div className="min-w-xs">
         {inputs.status}
       </div>
-      {hasActiveFilters && (
-        <Button variant="outline" onClick={handleClearFilters} className="hidden lg:flex">
-          <XIcon className="h-4 w-4 mr-2" />
-          Clear Filters
-        </Button>
-      )}
     </div>
   );
 }

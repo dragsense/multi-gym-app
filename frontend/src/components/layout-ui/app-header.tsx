@@ -18,6 +18,7 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 
 // Hooks
 import { useAuthUser } from "@/hooks/use-auth-user";
+import { useUserProfile } from "@/hooks/use-user-profile"; // Import useUserProfile
 import { useLogout } from "@/hooks/use-logout";
 import { useUserRewardPoints } from "@/hooks/use-user-rewards";
 import { useI18n } from "@/hooks/use-i18n";
@@ -46,6 +47,8 @@ export function AppHeader() {
   const settingsRef = useRef<HTMLDivElement>(null);
 
   const { user } = useAuthUser();
+  const { profile } = useUserProfile(user?.id); // Fetch user profile
+
   const { logout, isLoading } = useLogout();
   const { t, direction } = useI18n();
 
@@ -157,7 +160,7 @@ export function AppHeader() {
               >
                 <Avatar className="h-8 w-8 rounded-lg">
                   {/* User image */}
-                  <AvatarImage src={undefined} alt={memoizedUserData.firstName} />
+                  <AvatarImage src={profile?.image?.url} alt={memoizedUserData.firstName} crossOrigin="anonymous" />
 
                   {/* Fallback: initials or icon */}
                   <AvatarFallback className="rounded-lg bg-foreground/2 flex items-center justify-center">
@@ -183,7 +186,7 @@ export function AppHeader() {
               {/* Mobile User Info Header */}
               <div className="md:hidden flex items-center gap-3 p-4 border-b border-border/50">
                 <Avatar className="h-10 w-10 rounded-lg">
-                  <AvatarImage src={undefined} alt={memoizedUserData.firstName} />
+                  <AvatarImage src={profile?.image?.url} alt={memoizedUserData.firstName} crossOrigin="anonymous"/>
                   <AvatarFallback className="rounded-lg bg-foreground/2 flex items-center justify-center">
                     {memoizedUserData.firstName ? (
                       memoizedUserData.firstName.substring(0, 2).toUpperCase()

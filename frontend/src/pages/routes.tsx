@@ -1,6 +1,4 @@
-
-
-import { lazy, Suspense, useId } from "react";
+import React, { lazy, Suspense, useId } from "react";
 import { COMMON_ROUTES, PUBLIC_ROUTES } from "@/config/routes.config";
 import { AppLoader } from "@/components/layout-ui/app-loader";
 

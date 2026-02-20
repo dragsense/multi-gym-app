@@ -161,7 +161,12 @@ export class ProfilesController {
   async findOne(@Param('userId') userId: string) {
     let profile: Profile | null = null;
 
-    profile = await this.profilesService.getSingle({ userId });
+    profile = await this.profilesService.getSingle(
+      { userId },
+      {
+        _relations: ['image', 'documents'],
+      },
+    );
 
     if (!profile) {
       profile = await this.profilesService.create({ userId });

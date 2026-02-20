@@ -1,6 +1,6 @@
 import { OrderDto } from '../dtos';
 import { EPaymentPreference } from '../enums/membership.enum';
-import { IMessageResponse } from './api/response.interface';
+import type { IMessageResponse } from './api/response.interface';
 
 export interface IOrder extends OrderDto {}
 

@@ -13,13 +13,13 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { OmitType, PartialType } from '../../lib/dto-type-adapter';
-import { Type, Transform } from 'class-transformer';
+import { Type, Transform, Expose } from 'class-transformer';
 import { PaginationMetaDto } from '../common/pagination.dto';
 import { ListQueryDto } from '../common/list-query.dto';
 import { FieldType, FieldOptions } from '../../decorators/field.decorator';
 import { EOrderStatus } from '../../enums/order.enum';
 import { EPaymentPreference } from '../../enums/membership.enum';
-import { IOrder } from '../../interfaces/order.interface';
+import type { IOrder } from '../../interfaces/order.interface';
 import { UserDto } from '../user-dtos/user.dto';
 import {
   CreateOrderLineItemDto,
@@ -51,6 +51,7 @@ export class CreateOrderDto {
   @ApiProperty({ type: () => UserDto, description: 'Buyer (user who placed the order)' })
   @IsNotEmpty({ message: 'Buyer user is required' })
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   @FieldType('nested', true, UserDto)
   buyerUser: UserDto;
@@ -62,6 +63,7 @@ export class CreateOrderDto {
   @IsArray()
   @ArrayMinSize(1, { message: 'At least one line item is required' })
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => CreateOrderLineItemDto)
   @FieldType('nestedArray', true, CreateOrderLineItemDto)
   lineItems: CreateOrderLineItemDto[];
@@ -171,6 +173,7 @@ export class OrderDto {
 
   @ApiProperty({ type: () => UserDto, description: 'Buyer' })
   @ValidateNested()
+  @Expose()
   @Type(() => UserDto)
   buyerUser: UserDto;
 
@@ -184,6 +187,7 @@ export class OrderDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => OrderLineItemDto)
   lineItems?: OrderLineItemDto[];
 
@@ -225,6 +229,7 @@ export class OrderDto {
   @ApiPropertyOptional({ type: () => BillingDto, description: 'Associated billing/invoice' })
   @IsOptional()
   @ValidateNested()
+  @Expose()
   @Type(() => BillingDto)
   billing?: BillingDto;
 
@@ -232,6 +237,7 @@ export class OrderDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => OrderHistoryDto)
   history?: OrderHistoryDto[];
 
@@ -280,6 +286,7 @@ export class CheckoutDto {
     example: 'pm_xxx',
     description: 'Stripe payment method ID (optional - payment is processed separately via billing payment intent API)',
   })
+  @Expose()
   @Transform(({ value }) => (value === '' || value === null ? undefined : value))
   @IsOptional()
   @IsString()

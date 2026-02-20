@@ -24,12 +24,10 @@ import { LoggerService } from '@/common/logger/logger.service';
 import { CrudService } from '@/common/crud/crud.service';
 import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
 import { UsersService } from '../users/users.service';
-import { StripeBillingService } from '../stripe/services/stripe-billing.service';
 import { EBillingStatus } from '@shared/enums/billing.enum';
 import { EUserLevels } from '@shared/enums';
 import { BillingNotificationService } from './services/billing-notification.service';
 import { UserSettingsService } from '../user-settings/user-settings.service';
-import { StripeCustomerService } from '../stripe/services/stripe-customer.service';
 import { PaymentAdapterService } from '../payment-adapter/payment-adapter.service';
 import { User } from '@/common/base-user/entities/user.entity';
 import { DateTime } from 'luxon';
@@ -47,10 +45,8 @@ export class BillingsService extends CrudService<Billing> {
     @InjectRepository(Billing)
     private readonly billingRepo: Repository<Billing>,
     private readonly usersService: UsersService,
-    private readonly stripeBillingService: StripeBillingService,
     private readonly billingNotificationService: BillingNotificationService,
     private readonly userSettingsService: UserSettingsService,
-    private readonly stripeCustomerService: StripeCustomerService,
     private readonly paymentAdapterService: PaymentAdapterService,
     @Inject(forwardRef(() => BillingEmailService))
     private readonly billingEmailService: BillingEmailService,
@@ -165,6 +161,23 @@ export class BillingsService extends CrudService<Billing> {
 
     if (existingBilling.recipientUser?.id !== currentUser.id) {
       throw new ForbiddenException('You are not authorized to update this billing');
+    }
+
+    // Financial compliance: do not allow updating amount once billing is paid
+    const { status } = await this.getBillingStatus(id);
+    if (status === EBillingStatus.PAID) {
+      const hasLineItemChanges =
+        updateBillingDto.lineItems !== undefined &&
+        Array.isArray(updateBillingDto.lineItems) &&
+        updateBillingDto.lineItems.length > 0;
+      if (hasLineItemChanges) {
+        throw new ForbiddenException(
+          'Cannot update billing amount or line items once the billing is paid. This is required for financial compliance.',
+        );
+      }
+      // Strip line items so the rest of the update can proceed 
+      const { lineItems, ...rest } = updateBillingDto;
+      Object.assign(updateBillingDto, rest);
     }
 
     if (updateBillingDto.recipientUser && updateBillingDto.recipientUser.id) {
@@ -349,120 +362,28 @@ export class BillingsService extends CrudService<Billing> {
       throw new BadRequestException('Billing is already paid');
     }
 
-    // Use payment adapter when tenant is set (business has a payment processor)
-    if (tenantId) {
-      const adapter = await this.paymentAdapterService.getAdapterForTenant(tenantId);
-      const customer = await adapter.createOrGetCustomer(currentUser, tenantId);
-
-      if (paymentMethodId && (saveForFutureUse || setAsDefault)) {
-        await adapter.attachPaymentMethod(
-          customer.customerId,
-          paymentMethodId,
-          setAsDefault ?? false,
-          tenantId,
-        ).then(() => {
-          this.customLogger.log('Payment method attached successfully');
-        });
-      }
-
-      const cardInfo = await adapter.getCardInfoFromPaymentMethod(paymentMethodId, tenantId);
-      if (!cardInfo) {
-        throw new BadRequestException('No card information found for the payment method');
-      }
-
-      const paymentIntent = await adapter.createPaymentIntent({
-        amountCents: Math.round(billing.amount * 100),
-        customerId: customer.customerId,
-        paymentMethodId,
-        confirm: true,
-        metadata: {
-          billingId,
-          createdBy: currentUser.id,
-          ...metadata,
-        },
-        tenantId,
-      });
-
-      if (paymentIntent.status === 'succeeded') {
-        await this.update(billingId, {
-          paymentIntentId: paymentIntent.id,
-        });
-
-        const attemptedAt = DateTime.now().setZone(timezone).toJSDate();
-
-        await this.billingHistoryService.create({
-          billing: { id: billingId },
-          status: EBillingStatus.PAID,
-          source: 'BILLING_PAYMENT_INTENT',
-          message: 'Payment intent succeeded',
-          metadata: {
-            paymentIntentId: paymentIntent.id,
-            timezone,
-            cardInfo,
-          },
-          attemptedAt,
-          paidBy: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email || 'Unknown',
-        }).then(() => {
-          return { message: 'Payment intent created successfully', paymentIntentId: paymentIntent.id };
-        }).catch((error: Error) => {
-          this.customLogger.error(`Failed to create billing history: ${error.message}`, error.stack);
-        });
-
-        const tenantIdForEvent = RequestContext.get<string>('tenantId');
-        this.emitEvent('status.paid', billing, undefined, { tenantId: tenantIdForEvent });
-      } else {
-        const attemptedAt = DateTime.now().setZone(timezone).toJSDate();
-        const failureReason = `Payment intent not successful (status=${paymentIntent.status})`;
-
-        await this.billingHistoryService.create({
-          billing: { id: billingId },
-          status: EBillingStatus.FAILED,
-          source: 'BILLING_PAYMENT_INTENT',
-          message: failureReason,
-          metadata: {
-            paymentIntentId: paymentIntent.id,
-            stripeStatus: paymentIntent.status,
-            cardInfo,
-          },
-          attemptedAt,
-        }).catch((error: Error) => {
-          this.customLogger.error(`Failed to create billing history: ${error.message}`, error.stack);
-        });
-
-        this.emitEvent('status.failed', billing, undefined, {
-          tenantId,
-          reason: failureReason,
-        });
-
-        throw new BadRequestException('Failed to create payment intent');
-      }
-
-      return { message: 'Payment intent created successfully', paymentIntentId: paymentIntent.id };
-    }
-
-    // Fallback: no tenant (platform context) – use Stripe directly
-    const stripeCustomer =
-      await this.stripeCustomerService.createOrGetStripeCustomer(currentUser, tenantId);
+    const adapter = await this.paymentAdapterService.getAdapterForTenant(tenantId);
+    const customer = await adapter.createOrGetCustomer(currentUser, tenantId);
 
     if (paymentMethodId && (saveForFutureUse || setAsDefault)) {
-      await this.stripeCustomerService.attachPaymentMethod(
-        stripeCustomer.stripeCustomerId,
+      await adapter.attachPaymentMethod(
+        customer.customerId,
         paymentMethodId,
-        setAsDefault,
+        setAsDefault ?? false,
         tenantId,
       ).then(() => {
         this.customLogger.log('Payment method attached successfully');
       });
     }
 
-    const cardInfo = await this.stripeCustomerService.getCardInfoFromPaymentMethod(paymentMethodId, tenantId);
+    const cardInfo = await adapter.getCardInfoFromPaymentMethod(paymentMethodId, tenantId);
     if (!cardInfo) {
       throw new BadRequestException('No card information found for the payment method');
     }
 
-    const paymentIntent = await this.stripeBillingService.createPaymentIntent({
+    const paymentIntent = await adapter.createPaymentIntent({
       amountCents: Math.round(billing.amount * 100),
-      customerId: stripeCustomer.stripeCustomerId,
+      customerId: customer.customerId,
       paymentMethodId,
       confirm: true,
       metadata: {
@@ -498,7 +419,6 @@ export class BillingsService extends CrudService<Billing> {
         this.customLogger.error(`Failed to create billing history: ${error.message}`, error.stack);
       });
 
-      // Include tenantId for multi-tenant database routing in event handlers
       const tenantIdForEvent = RequestContext.get<string>('tenantId');
       this.emitEvent('status.paid', billing, undefined, { tenantId: tenantIdForEvent });
     } else {
@@ -512,7 +432,7 @@ export class BillingsService extends CrudService<Billing> {
         message: failureReason,
         metadata: {
           paymentIntentId: paymentIntent.id,
-          stripeStatus: paymentIntent.status,
+          paymentStatus: paymentIntent.status,
           cardInfo,
         },
         attemptedAt,
@@ -527,7 +447,6 @@ export class BillingsService extends CrudService<Billing> {
 
       throw new BadRequestException('Failed to create payment intent');
     }
-
 
     return { message: 'Payment intent created successfully', paymentIntentId: paymentIntent.id };
   }
@@ -550,25 +469,7 @@ export class BillingsService extends CrudService<Billing> {
     // Check if the associated billing is paid based on history
     const { status, paidAt } =
       await this.getBillingStatus(billingId, tenantId);
-    const hasPaidInDb = status === EBillingStatus.PAID;
-
-    // Also verify with Stripe using the stored payment intent ID
-    let hasPaidInStripe = false;
-    if (billing.paymentIntentId) {
-      try {
-        const paymentIntent = await this.stripeBillingService.getPaymentIntent(
-          billing.paymentIntentId,
-        );
-        hasPaidInStripe = paymentIntent.status === 'succeeded';
-      } catch (error: unknown) {
-        this.customLogger.warn(
-          `Failed to verify payment with Stripe: ${error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      }
-    }
-
-    const hasPaid = hasPaidInStripe || hasPaidInDb;
+    const hasPaid = status === EBillingStatus.PAID;
 
     return {
       hasPaid,

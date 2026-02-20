@@ -160,9 +160,10 @@ export function useNotifications(): UseNotificationsReturn {
       // This ensures backward compatibility - if setting doesn't exist, show toasts
       // Check explicitly: only hide if it's exactly boolean false
       const shouldShowToast = inAppEnabled !== false;
-      
+
       if (shouldShowToast) {
         toast.info(notification.title, {
+          id: `notification-${notification.id}`,
           description: notification.message,
           duration: 5000,
         });

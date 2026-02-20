@@ -9,7 +9,7 @@ import {
   Min,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 
 /** Single cart line (product or variant + quantity + price snapshot) */
 export class CartLineItemDto {
@@ -34,12 +34,14 @@ export class CartLineItemDto {
   @ApiProperty({ example: 1, description: 'Quantity' })
   @IsNumber()
   @Min(1)
+  @Expose()
   @Type(() => Number)
   quantity: number;
 
   @ApiProperty({ example: 29.99, description: 'Unit price (snapshot)' })
   @IsNumber()
   @Min(0)
+  @Expose()
   @Type(() => Number)
   unitPrice: number;
 }
@@ -50,6 +52,7 @@ export class CartDto {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
+  @Expose()
   @Type(() => CartLineItemDto)
   items?: CartLineItemDto[];
 }
@@ -68,6 +71,7 @@ export class AddToCartDto {
   @ApiProperty({ example: 1, description: 'Quantity to add' })
   @IsNumber()
   @Min(1)
+  @Expose()
   @Type(() => Number)
   quantity: number;
 }

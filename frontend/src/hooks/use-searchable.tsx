@@ -298,12 +298,12 @@ export function useSearchableDoors({ locationId, initialParams }: { locationId?:
   // React 19: Memoized fetcher for better performance
   const memoizedFetcher = useMemo(() =>
     (params: IListQueryParams) => {
+      const withLocation = { ...params, _relations: 'location' };
       if (locationId) {
-        return fetchDoorsByLocation(locationId, params);
+        return fetchDoorsByLocation(locationId, withLocation);
       }
-      // When no locationId, fetch all doors (useful for multiple locations)
       return fetchDoors({
-        ...params,
+        ...withLocation,
         _select: 'id, name, description, locationId'
       });
     },

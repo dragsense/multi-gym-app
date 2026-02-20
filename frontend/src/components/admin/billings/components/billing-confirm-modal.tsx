@@ -39,11 +39,13 @@ export const BillingConfirmModal = React.memo(function BillingConfirmModal({
   const { watch } = useFormContext<TBillingData>();
   const formValues = watch() as TBillingData | null;
 
-  // Calculate subtotal from line items if they exist
+  // Calculate subtotal from line items (coerce to number in case form stores strings)
   const subtotal = React.useMemo(() => {
     if (formValues?.lineItems && formValues.lineItems.length > 0) {
       return formValues.lineItems.reduce(
-        (sum, item) => sum + (item.quantity || 0) * (item.unitPrice || 0),
+        (sum, item) =>
+          sum +
+          Number(item.quantity || 0) * Number(item.unitPrice || 0),
         0
       );
     }
@@ -140,7 +142,7 @@ export const BillingConfirmModal = React.memo(function BillingConfirmModal({
               <div className="space-y-2">
                 {formValues.lineItems.map((item, index) => {
                   const itemTotal =
-                    (item.quantity || 0) * (item.unitPrice || 0);
+                    Number(item.quantity || 0) * Number(item.unitPrice || 0);
                   return (
                     <div
                       key={index}

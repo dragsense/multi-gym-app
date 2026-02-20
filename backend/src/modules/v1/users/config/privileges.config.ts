@@ -44,6 +44,8 @@ export const privilegesConfig: PrivilegesConfigFile = {
         `${EResource.CHAT}:${EPermissionAction.READ}`,
         `${EResource.CHECKINS}:${EPermissionAction.READ}`,
         `${EResource.FAQS}:${EPermissionAction.READ}`,
+        `${EResource.MEMBERS}:${EPermissionAction.READ}`,
+        `${EResource.STAFF}:${EPermissionAction.READ}`,
 
       ],
     },

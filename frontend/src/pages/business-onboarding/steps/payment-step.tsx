@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 
 // Types
 import type { ISubscription } from "@shared/interfaces";
-import type { StripeCardFormData } from "@/@types/payment.types";
+import type { PaymentCardFormData } from "@/@types/payment.types";
 import { ESubscriptionFrequency } from "@shared/enums";
 
 // Components
@@ -28,7 +28,7 @@ import { CreateBusinessSubscriptionPaymentIntentDto } from "@shared/dtos";
 
 // Hooks
 import { useI18n } from "@/hooks/use-i18n";
-import { useStripePaymentCards } from "@/hooks/use-stripe-payment-cards";
+import { usePaymentCards } from "@/hooks/use-payment-cards";
 import { buildSentence } from "@/locales/translations";
 // Calculate normalized price helper
 const normalizeSubscriptionPrice = (
@@ -85,9 +85,6 @@ export function PaymentStep({
   onPaymentSuccess,
   onPaymentFailed,
 }: IPaymentStepProps) {
-  const { processorType, isLoading: isLoadingProcessor } = usePaymentProcessor({
-    paymentProcessorId: businessData?.paymentProcessorId ?? undefined,
-  });
   const { t } = useI18n();
 
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -95,7 +92,7 @@ export function PaymentStep({
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const { stripeCards, isLoadingPaymentCards } = useStripePaymentCards();
+  const { cards, isLoadingPaymentCards } = usePaymentCards();
 
   const { mutate: processPayment, isPending: isProcessingPayment } = useMutation({
     mutationFn: (data: CreateBusinessSubscriptionPaymentIntentDto) =>
@@ -116,7 +113,7 @@ export function PaymentStep({
   });
 
   const handlePayClick = useCallback(
-    async (paymentMethodId?: string, cardData?: StripeCardFormData) => {
+    async (paymentMethodId?: string, cardData?: PaymentCardFormData) => {
       if (!selectedSubscription || !businessData) {
         setErrorMessage("Please complete previous steps first");
         setShowErrorDialog(true);
@@ -198,9 +195,7 @@ export function PaymentStep({
           continueLabel="Proceed to Payment"
           continueDisabled={
             isLoadingPaymentCards ||
-            isProcessingPayment ||
-            isLoadingProcessor ||
-            !processorType
+            isProcessingPayment
           }
           continueLoading={isProcessingPayment}
           showBack={!!onBack}
@@ -235,8 +230,7 @@ export function PaymentStep({
       </AppCard>
 
       <PaymentModalAdapter
-        processorType={processorType}
-        stripeCards={stripeCards}
+        cards={cards}
         open={showPaymentModal}
         onOpenChange={setShowPaymentModal}
         onPay={handlePayClick}

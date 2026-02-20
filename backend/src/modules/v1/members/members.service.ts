@@ -25,8 +25,8 @@ export class MembersService extends CrudService<Member> {
       restrictedFields: ['user.password'],
       searchableFields: [
         'user.email',
-        'user.profile.firstName',
-        'user.profile.lastName',
+        'user.firstName',
+        'user.lastName',
       ],
     };
     super(memberRepo, moduleRef, crudOptions);
