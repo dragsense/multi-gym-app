@@ -36,17 +36,17 @@ module.exports = {
   ],
   deploy: {
     prod: {
-      user: "ubuntu",
+      user: "root",
       host: "66.103.211.113",
       ref: "origin/main",
       repo: "git@octa_github.com:Octathorn/formance.git",
       path: "/var/www/formance_dig_usr/data/www/formance.digital.st",
-      key: "~/.ssh/fds-server",
+      key: "~/.ssh/ds-server",
       "post-setup": "touch ../shared/.env ../shared/.env.prod ../shared/.env.dev ../shared/.env.shared",
       "post-deploy": "sh ./deploy.sh",
     },
     staging: {
-      user: "ubuntu",
+      user: "root",
       host: "66.103.211.113",
       ref: "origin/testing",
       repo: "git@octa_github.com:Octathorn/formance.git",
