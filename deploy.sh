@@ -17,6 +17,6 @@ cp -f ../shared/.env.shared ./shared/.env
 make safe-setup-prod
 
 # Show last 15 lines of logs from formance-app container
-docker logs --tail 15 payback-app-staging
+docker logs --tail 15 formance-app-staging
 
 echo "✅ Backend server started!"
