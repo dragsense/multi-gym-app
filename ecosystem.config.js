@@ -48,7 +48,7 @@ module.exports = {
     staging: {
       user: "root",
       host: "66.103.211.113",
-      ref: "origin/testing",
+      ref: "origin/staging",
       repo: "git@github.com:dragsense/formance.git",
       path: "/var/www/formance_dig_usr/data/www/formance.digital.st",
       key: "~/.ssh/ds-server",
