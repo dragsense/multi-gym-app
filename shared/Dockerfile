@@ -95,6 +95,7 @@ RUN npm install -g pnpm pm2
 # Copy package files for production dependencies
 COPY backend/package.json ./backend/
 COPY shared/package.json ./shared/
+COPY frontend/package.json ./frontend/
 
 # Install production dependencies
 WORKDIR /app/shared
