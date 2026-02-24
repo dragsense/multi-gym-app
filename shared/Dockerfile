@@ -1,7 +1,6 @@
 # Single Container Dockerfile - Both Frontend and Backend
 FROM node:22 AS base
 
-
 # 1️⃣ Install basic tools
 RUN apt-get update && apt-get install -y \
     git \
@@ -9,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
     rsync \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # 2️⃣ Fix DNS (Google DNS)
@@ -20,9 +20,9 @@ ENV NODE_OPTIONS="--dns-result-order=ipv4first"
 RUN mkdir -p /root/.ssh && chmod 700 /root/.ssh
 # If you plan to mount your host SSH keys, they’ll be placed here at runtime
 
-
-# 4️⃣ Improve npm/pnpm performance
-RUN npm config set fetch-retries 5 \
+# 4️⃣ Improve npm/pnpm performance (fast mirror)
+RUN npm config set registry https://registry.npmmirror.com \
+    && npm config set fetch-retries 5 \
     && npm config set fetch-retry-mintimeout 20000 \
     && npm config set fetch-retry-maxtimeout 120000 \
     && npm config set prefer-offline true \
@@ -34,9 +34,11 @@ RUN mkdir -p /app && chown -R node:node /app
 WORKDIR /app
 
 # Install pnpm, NestJS CLI, PM2, and Git
-RUN npm install -g pnpm @nestjs/cli pm2 \
- && pnpm config set registry https://registry.npmjs.org/ \
- && npm config set registry https://registry.npmjs.org/
+RUN npm install -g pnpm @nestjs/cli pm2
+
+# 6️⃣ Optional: set pnpm mirror + persistent cache
+RUN pnpm config set registry https://registry.npmmirror.com \
+    && pnpm config set store-dir /root/.pnpm-store
 
 
 
@@ -115,6 +117,7 @@ COPY backend/.env* ./backend/
 # Create logs directory
 RUN mkdir -p ./backend/logs
 
+# Copy PM2 config into /app
 COPY ecosystem.config.js ./
 
 # Start with PM2 (can be restarted via deploy script)
