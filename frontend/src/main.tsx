@@ -10,7 +10,5 @@ import 'react-phone-number-input/style.css'
 import 'react-quill/dist/quill.snow.css'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
     <App />
-  </StrictMode>,
 ) 

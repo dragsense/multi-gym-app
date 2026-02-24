@@ -1,5 +1,7 @@
 // React & Hooks
 import { useId, useMemo, useTransition } from "react";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 
 // External libraries
 import { XIcon } from "lucide-react";
@@ -28,9 +30,16 @@ export function StaffFilters({
   const filteredFields = store.getState().filteredFields;
   const filters = store(state => state.filters);
   const setFilters = store.getState().setFilters;
+  const { t } = useI18n();
 
   const inputs = useInput<StaffListDto>({
-    fields: filteredFields as TFieldConfigObject<StaffListDto>,
+    fields: {
+      ...filteredFields,
+      search: {
+        ...(filteredFields.search as any),
+        placeholder: buildSentence(t, 'search', 'staff'),
+      }
+    } as TFieldConfigObject<StaffListDto>,
   });
 
   // React 19: Memoized active filters check for better performance

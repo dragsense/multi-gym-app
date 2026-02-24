@@ -7,6 +7,7 @@ import {
   ENotificationType,
 } from '@shared/enums/notification.enum';
 import { EUserLevels } from '@shared/enums/user.enum';
+import { formatCurrency } from '@shared/lib/format.utils';
 import { Billing } from '../entities/billing.entity';
 import { EntityRouterService } from '@/common/database/entity-router.service';
 
@@ -29,7 +30,7 @@ export class BillingNotificationService {
     try {
       await this.notificationService.createNotification({
         title: 'New Billing Created',
-        message: `A new billing "${billing.title}" for $${billing.amount} has been created. Due date: ${new Date(billing.dueDate).toLocaleDateString()}`,
+        message: `A new billing "${billing.title}" for ${formatCurrency(billing.amount, 'USD')} has been created. Due date: ${new Date(billing.dueDate).toLocaleDateString()}`,
         type: ENotificationType.INFO,
         priority: ENotificationPriority.NORMAL,
         entityId: billing.recipientUser.id,
@@ -200,10 +201,10 @@ export class BillingNotificationService {
       const notificationPromises = adminUsers.map((admin) =>
         this.notificationService.createNotification({
           title: 'New Billing Created',
-          message: `A new billing "${billing.title}" for $${billing.amount} has been created. Due date: ${new Date(billing.dueDate).toLocaleDateString()}`,
-          type: ENotificationType.INFO,
-          priority: ENotificationPriority.NORMAL,
-          entityId: admin.id,
+message: `A new billing "${billing.title}" for ${formatCurrency(billing.amount, 'USD')} has been created. Due date: ${new Date(billing.dueDate).toLocaleDateString()}`,
+        type: ENotificationType.INFO,
+        priority: ENotificationPriority.NORMAL,
+        entityId: admin.id,
           entityType: 'billing',
           metadata: {
             action: 'billing_created',

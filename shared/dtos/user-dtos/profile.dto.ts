@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsArray,
+  IsBoolean,
   IsDate,
   IsEnum,
   Min,
@@ -15,6 +16,7 @@ import {
 } from "class-validator";
 import { EUserGender } from "../../enums/user.enum";
 import { FieldOptions, FieldType } from "../../decorators/field.decorator";
+import { TransformToBoolean } from "../../decorators/crud.dto.decorators";
 import { FileUploadDto } from "../file-upload-dtos";
 
 export class CreateProfileDto {
@@ -117,6 +119,15 @@ export class UpdateProfileDto extends PartialType(CreateProfileDto) {
   @IsArray()
   @IsString({ each: true })
   removedDocumentIds?: string[];
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description: "When true, removes the profile image",
+  })
+  @IsOptional()
+  @IsBoolean()
+  @TransformToBoolean()
+  removeImage?: boolean;
 }
 
 export class ProfileDto {

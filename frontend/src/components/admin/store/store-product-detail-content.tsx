@@ -15,6 +15,8 @@ import { useI18n } from "@/hooks/use-i18n";
 import { SEGMENTS, ADMIN_ROUTES } from "@/config/routes.config";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { EAttributeType } from "@shared/enums";
+import { formatCurrency } from "@/lib/utils";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 interface IStoreProductDetailContentProps {
     product: IProduct | undefined;
@@ -31,6 +33,7 @@ export default function StoreProductDetailContent({
     const { t } = useI18n();
     const { user } = useAuthUser();
     const segment = SEGMENTS[user?.level ?? -1] ?? "/admin";
+    const { settings } = useUserSettings();
 
     // State for selected variant attributes and quantity
     const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
@@ -250,7 +253,14 @@ export default function StoreProductDetailContent({
 
                     {/* Price */}
                     <div className="text-3xl lg:text-4xl font-bold text-primary">
-                        ${currentPrice.toFixed(2)}
+                        {formatCurrency(
+                          currentPrice,
+                          undefined,
+                          undefined,
+                          2,
+                          2,
+                          settings
+                        )}
                     </div>
 
                     {/* Stock & SKU */}
@@ -381,7 +391,15 @@ export default function StoreProductDetailContent({
                         disabled={currentStock === 0}
                     >
                         <ShoppingCart className="w-5 h-5 mr-2" />
-                        {t("addToCart") || "Add to Cart"} - ${(currentPrice * quantity).toFixed(2)}
+                        {t("addToCart") || "Add to Cart"} -{" "}
+                        {formatCurrency(
+                          currentPrice * quantity,
+                          undefined,
+                          undefined,
+                          2,
+                          2,
+                          settings
+                        )}
                     </Button>
 
                     {/* Description */}

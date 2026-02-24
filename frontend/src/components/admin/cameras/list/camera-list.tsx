@@ -29,17 +29,17 @@ import type { TCameraListData } from "@shared/types/camera.type";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { EUserLevels } from "@shared/enums";
 
-export interface ICameraListExtraProps { }
+export interface ICameraListExtraProps {}
 
 interface ICameraListProps extends TListHandlerComponentProps<
   TListHandlerStore<ICamera, TCameraListData, ICameraListExtraProps>,
   TSingleHandlerStore<ICamera, any>
-> { }
+> {}
 
 export default function CameraList({
   storeKey,
   store,
-  singleStore
+  singleStore,
 }: ICameraListProps) {
   // React 19: Essential IDs and transitions
   const componentId = useId();
@@ -49,76 +49,94 @@ export default function CameraList({
   const queryClient = useQueryClient();
 
   if (!store) {
-    return `${buildSentence(t, 'list', 'store')} "${storeKey}" ${buildSentence(t, 'not', 'found')}. ${buildSentence(t, 'did', 'you', 'forget', 'to', 'register', 'it')}?`;
+    return `${buildSentence(t, "list", "store")} "${storeKey}" ${buildSentence(t, "not", "found")}. ${buildSentence(t, "did", "you", "forget", "to", "register", "it")}?`;
   }
 
   if (!singleStore) {
-    return `${buildSentence(t, 'single', 'store')} "${storeKey}" ${buildSentence(t, 'not', 'found')}. ${buildSentence(t, 'did', 'you', 'forget', 'to', 'register', 'it')}?`;
+    return `${buildSentence(t, "single", "store")} "${storeKey}" ${buildSentence(t, "not", "found")}. ${buildSentence(t, "did", "you", "forget", "to", "register", "it")}?`;
   }
 
-  const setAction = singleStore(state => state.setAction);
-  const setListAction = store(state => state.setAction);
+  const setAction = singleStore((state) => state.setAction);
+  const setListAction = store((state) => state.setAction);
 
   // React 19: Smooth action transitions - memoized to prevent infinite loops
   const handleCreate = useCallback(() => {
     startTransition(() => {
-      setAction('createOrUpdate');
+      setAction("createOrUpdate");
     });
   }, [setAction, startTransition]);
 
-  const handleEdit = useCallback((id: string) => {
-    startTransition(() => {
-      setAction('createOrUpdate', id);
-    });
-  }, [setAction, startTransition]);
+  const handleEdit = useCallback(
+    (id: string) => {
+      startTransition(() => {
+        setAction("createOrUpdate", id);
+      });
+    },
+    [setAction, startTransition],
+  );
 
-  const handleDelete = useCallback((id: string) => {
-    startTransition(() => {
-      setListAction('delete', id);
-    });
-  }, [setListAction, startTransition]);
+  const handleDelete = useCallback(
+    (id: string) => {
+      startTransition(() => {
+        setListAction("delete", id);
+      });
+    },
+    [setListAction, startTransition],
+  );
 
-  const handleView = useCallback((id: string) => {
-    startTransition(() => {
-      setAction('view', id);
-    });
-  }, [setAction, startTransition]);
+  const handleView = useCallback(
+    (id: string) => {
+      startTransition(() => {
+        setAction("view", id);
+      });
+    },
+    [setAction, startTransition],
+  );
 
-  const handleUpdateStatus = useCallback((id: string) => {
-    startTransition(() => {
-      setAction('updateStatus', id);
-    });
-  }, [setAction, startTransition]);
+  const handleUpdateStatus = useCallback(
+    (id: string) => {
+      startTransition(() => {
+        setAction("updateStatus", id);
+      });
+    },
+    [setAction, startTransition],
+  );
 
-  const { listItem } = useMemo(() => cameraItemViews({
-    handleEdit,
-    handleDelete,
-    handleView,
-    handleUpdateStatus,
-    componentId,
-  }), [handleEdit, handleDelete, handleView, handleUpdateStatus, componentId]);
+  const { listItem } = useMemo(
+    () =>
+      cameraItemViews({
+        handleEdit,
+        handleDelete,
+        handleView,
+        handleUpdateStatus,
+        componentId,
+      }),
+    [handleEdit, handleDelete, handleView, handleUpdateStatus, componentId],
+  );
 
   return (
     <div data-component-id={componentId}>
       <div className="flex flex-1 justify-between items-start md:items-center gap-2 flex-wrap mb-4">
         <CameraFilters store={store} />
         <div className="flex items-center gap-2">
-          {user?.level <= EUserLevels.ADMIN && <Button
-            onClick={handleCreate}
-            data-component-id={componentId}
-          >
-            <Plus /> <span className="hidden sm:inline capitalize">{buildSentence(t, 'add', 'camera')}</span>
-          </Button>}
+          {user?.level <= EUserLevels.ADMIN && (
+            <Button onClick={handleCreate} data-component-id={componentId}>
+              <Plus />{" "}
+              <span className="hidden sm:inline capitalize">
+                {buildSentence(t, "add", "camera")}
+              </span>
+            </Button>
+          )}
         </div>
       </div>
 
       <div>
         <TList<ICamera>
           listStore={store}
-          emptyMessage={buildSentence(t, 'no', 'cameras', 'found')}
+          emptyMessage={buildSentence(t, "no", "cameras", "found")}
           showPagination={true}
           renderItem={(camera) => listItem(camera, user)}
-          rowClassName="grid grid-cols-1 lg:grid-cols-2 gap-4"
+          rowClassName="grid grid-cols-1 lg:grid-cols-2 gap-4 "
         />
       </div>
     </div>

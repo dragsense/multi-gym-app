@@ -3,9 +3,10 @@ import {
   BadRequestException,
   Inject,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository, MoreThanOrEqual } from 'typeorm';
+import { EntityManager, Repository, MoreThanOrEqual, IsNull } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { Schedule } from './entities/schedule.entity';
 import {
@@ -18,15 +19,47 @@ import {
 } from '@shared/enums/schedule.enum';
 import { ScheduleUtils } from './utils/schedule.utils';
 import { CrudService } from '@/common/crud/crud.service';
+import { ScheduleExecutorService } from './services/schedule-executor.service';
 
 @Injectable()
-export class ScheduleService extends CrudService<Schedule> {
+export class ScheduleService extends CrudService<Schedule> implements OnModuleInit {
+
+
+  private executorService!: ScheduleExecutorService;
   constructor(
     @InjectRepository(Schedule)
     private scheduleRepo: Repository<Schedule>,
     moduleRef: ModuleRef,
   ) {
     super(scheduleRepo, moduleRef);
+  }
+
+  async onModuleInit(): Promise<void> {
+    await super.onModuleInit();
+    this.executorService = this.moduleRef.get(ScheduleExecutorService, { strict: false });
+  }
+
+  /**
+   * Trigger executor setup when a schedule is saved (insert/update).
+   * Needed because TypeORM subscribers only run on the default DataSource;
+   * when schedules are created via tenant DataSource (e.g. from event listeners),
+   * the subscriber never runs, so we call the executor explicitly here.
+   */
+  private triggerSetupIfActive(schedule: Schedule): void {
+    if (schedule?.status !== EScheduleStatus.ACTIVE) return;
+    setImmediate(() => {
+      try {
+        if (this.executorService) {
+          this.executorService.setupSchedule(schedule).catch((err: Error) => {
+            this.logger.error(
+              `Failed to setup schedule "${schedule.title}": ${err.message}`,
+            );
+          });
+        }
+      } catch {
+        // ModuleRef may throw if ScheduleExecutorService not available (e.g. in tests)
+      }
+    });
   }
 
   /**
@@ -81,13 +114,15 @@ export class ScheduleService extends CrudService<Schedule> {
             ...createDto.data,
           };
         }
-        return manager
+        const saved = manager
           ? await manager.save(existingSchedule)
           : await repository.save(existingSchedule);
+        this.triggerSetupIfActive(saved as Schedule);
+        return saved;
       }
     }
 
-    // Validate frequency-specific fields
+    // Validate frequency-specific fields 
     this.validateScheduleConfig(createDto);
 
     // Keep dates with timezone info as sent from frontend
@@ -97,31 +132,23 @@ export class ScheduleService extends CrudService<Schedule> {
       : undefined;
     const selectedTimezone = createDto.timezone || timezone || 'UTC';
     // Generate cron expression
-    const cronExpression = ScheduleUtils.generateCronExpression(
-      {
-        frequency: createDto.frequency || EScheduleFrequency.ONCE,
-        weekDays: createDto.weekDays,
-        monthDays: createDto.monthDays,
-        months: createDto.months,
-      },
-      createDto.timeOfDay || '00:00',
-      0, // No delay for first run
-    );
+    const cronExpression =
+      createDto.frequency === EScheduleFrequency.ONCE ? undefined :
+        ScheduleUtils.generateCronExpression(
+          {
+            frequency: createDto.frequency as EScheduleFrequency,
+            weekDays: createDto.weekDays,
+            monthDays: createDto.monthDays,
+            months: createDto.months,
+          },
+          createDto.timeOfDay || '00:00',
+          0, // No delay for first run
+        );
 
-    // Calculate next run date using cron-parser
-    const { nextRunAt, isActive } = ScheduleUtils.calculateNextRun(
-      cronExpression,
-      startDate,
-      endDate || null,
-      selectedTimezone,
-    );
+    let nextRunAt: Date = startDate;
+    let isActive = !endDate || startDate <= endDate;
 
-    const overrideNextRunDate = createDto.nextRunDate
-      ? new Date(createDto.nextRunDate)
-      : undefined;
-    if (overrideNextRunDate && Number.isNaN(overrideNextRunDate.getTime())) {
-      throw new BadRequestException('nextRunDate must be a valid date');
-    }
+
 
     const repository = this.getRepository();
     const schedule = repository.create({
@@ -132,15 +159,17 @@ export class ScheduleService extends CrudService<Schedule> {
       endDate,
       cronExpression,
       status: isActive ? EScheduleStatus.ACTIVE : EScheduleStatus.COMPLETED,
-      nextRunDate: overrideNextRunDate || nextRunAt,
+      nextRunDate: nextRunAt,
       executionCount: 0,
       successCount: 0,
       failureCount: 0,
     });
 
-    return manager
+    const saved = manager
       ? await manager.save(schedule)
       : await repository.save(schedule);
+    this.triggerSetupIfActive(saved as Schedule);
+    return saved;
   }
 
   /**
@@ -236,6 +265,7 @@ export class ScheduleService extends CrudService<Schedule> {
       where: {
         status: EScheduleStatus.ACTIVE,
         nextRunDate: MoreThanOrEqual(today),
+        deletedAt: IsNull(),
       },
       order: { timeOfDay: 'ASC' },
     });

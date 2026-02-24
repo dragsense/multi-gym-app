@@ -23,8 +23,8 @@ export class CreateAdvertisementDto {
     example: "Summer Sale 2024",
     description: "Advertisement title",
   })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty({ message: "Title is required" })
   @FieldType("text", true)
   title: string;
 
@@ -33,8 +33,8 @@ export class CreateAdvertisementDto {
     example: EAdvertisementStatus.ACTIVE,
     description: "Advertisement status",
   })
-  @IsNotEmpty()
   @IsEnum(EAdvertisementStatus)
+  @IsNotEmpty({ message: "Status is required" })
   @FieldType("select", true)
   @FieldOptions([
     { value: EAdvertisementStatus.DRAFT, label: "Draft" },
@@ -48,8 +48,8 @@ export class CreateAdvertisementDto {
     example: "2024-01-01T00:00:00.000Z",
     description: "Start date of the advertisement",
   })
-  @IsNotEmpty()
   @IsDateString()
+  @IsNotEmpty({ message: "Start date is required" })
   @FieldType("datetime", true)
   startDate: string | Date;
 
@@ -57,8 +57,8 @@ export class CreateAdvertisementDto {
     example: "2024-12-31T23:59:59.000Z",
     description: "End date of the advertisement",
   })
-  @IsNotEmpty()
   @IsDateString()
+  @IsNotEmpty({ message: "End date is required" })
   @FieldType("datetime", true)
   endDate: string | Date;
 

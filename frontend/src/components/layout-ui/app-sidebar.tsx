@@ -85,8 +85,8 @@ export function AppSidebar({ themeClass = "", ...props }: AppSidebarProps) {
   // Get logo based on theme
   const themeLogo =
     resolvedTheme === "dark"
-      ? theme?.logoDark?.url || theme?.logoDark
-      : theme?.logoLight?.url || theme?.logoLight;
+      ? theme?.logoDark?.url || theme?.logoLight?.url
+      : theme?.logoLight?.url || theme?.logoDark?.url;
   const displayLogo = themeLogo || logo;
   const displayBrandName = theme?.title || t("appName");
 

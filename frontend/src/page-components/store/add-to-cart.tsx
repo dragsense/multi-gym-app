@@ -15,6 +15,8 @@ import { buildSentence } from "@/locales/translations";
 import { toast } from "sonner";
 import { fetchStoreProduct } from "@/services/store.api";
 import { addToCart } from "@/services/cart.api";
+import { formatCurrency } from "@/lib/utils";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 export type TAddToCartExtraProps = Record<string, unknown>;
 
@@ -27,6 +29,7 @@ export default function AddToCart({ storeKey, store }: IAddToCartProps) {
   const [, startTransition] = useTransition();
   const queryClient = useQueryClient();
   const { t } = useI18n();
+  const { settings } = useUserSettings();
   const [quantity, setQuantity] = useState(1);
   const [variantId, setVariantId] = useState<string | undefined>();
 
@@ -113,7 +116,14 @@ export default function AddToCart({ storeKey, store }: IAddToCartProps) {
                         <option value="">{t("default")}</option>
                         {(p.variants as any[]).map((v: any) => (
                           <option key={v.id} value={v.id}>
-                            {v.sku} - ${Number(v.price ?? 0).toFixed(2)}
+                            {v.sku} - {formatCurrency(
+                              Number(v.price ?? 0),
+                              undefined,
+                              undefined,
+                              2,
+                              2,
+                              settings
+                            )}
                           </option>
                         ))}
                       </select>

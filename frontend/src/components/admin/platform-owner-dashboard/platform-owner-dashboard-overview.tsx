@@ -3,6 +3,7 @@ import { AppCard } from '@/components/layout-ui/app-card';
 import { formatCurrency } from '@/lib/utils';
 import type { IPlatformOwnerDashboardStats } from '@shared/interfaces/platform-owner-dashboard.interface';
 import { useI18n } from '@/hooks/use-i18n';
+import { useUserSettings } from '@/hooks/use-user-settings';
 import { buildSentence } from '@/locales/translations';
 
 interface IPlatformOwnerDashboardOverviewProps {
@@ -13,6 +14,7 @@ interface IPlatformOwnerDashboardOverviewProps {
 
 export const PlatformOwnerDashboardOverview: React.FC<IPlatformOwnerDashboardOverviewProps> = ({ data }) => {
   const { t } = useI18n();
+  const { settings } = useUserSettings();
   const overview = data?.overview;
 
   const stats = [
@@ -23,7 +25,7 @@ export const PlatformOwnerDashboardOverview: React.FC<IPlatformOwnerDashboardOve
     },
    /*  {
       title: buildSentence(t, 'total', 'revenue'),
-      value: formatCurrency(overview?.totalRevenue || 0),
+      value: formatCurrency(overview?.totalRevenue || 0, undefined, undefined, 2, 2, settings),
       description: t('fromPaidSubscriptions'),
     }, */
   ];

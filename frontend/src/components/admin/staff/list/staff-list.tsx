@@ -73,6 +73,7 @@ export default function StaffList({
 
   const handleEdit = (id: string) => {
     startTransition(() => {
+      setListAction('', null);
       setAction('createOrUpdate', id);
     });
   }
@@ -91,6 +92,7 @@ export default function StaffList({
 
   const handleView = (id: string | number) => {
     startTransition(() => {
+      setListAction('', null);
       setAction('view', id);
     });
   }

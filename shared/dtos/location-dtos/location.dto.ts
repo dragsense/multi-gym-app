@@ -16,8 +16,8 @@ export class CreateLocationDto {
     example: "Main Gym",
     description: "Location name",
   })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty({message: "Location name is required"})
   @FieldType("text", true)
   name: string;
 
@@ -25,8 +25,8 @@ export class CreateLocationDto {
     example: "123 Main St, City, State 12345",
     description: "Location address",
   })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty({message: "Location address is required"})
   @FieldType("text", true)
   address: string;
 

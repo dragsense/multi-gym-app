@@ -2,6 +2,8 @@ import React, { memo } from 'react'
 import { AppCard } from '@/components/layout-ui/app-card'
 import { DollarSign } from 'lucide-react'
 import { useI18n } from '@/hooks/use-i18n'
+import { useUserSettings } from '@/hooks/use-user-settings'
+import { formatCurrency } from '@/lib/utils'
 import { buildSentence } from '@/locales/translations'
 import type { IRevenueAnalytics } from '@shared/interfaces/dashboard.interface'
 
@@ -13,6 +15,7 @@ interface RevenueHeaderProps {
 
 function RevenueHeader({ data, isLoading, error }: RevenueHeaderProps) {
   const { t } = useI18n();
+  const { settings } = useUserSettings();
 
   // Calculate totals from summary data
   const summary = React.useMemo(() => {
@@ -38,22 +41,8 @@ function RevenueHeader({ data, isLoading, error }: RevenueHeaderProps) {
     };
   }, [data?.summary]);
 
-  // Format currency
-  // const formatCurrency = (amount: number | undefined | null) => {
-  //   const numAmount = typeof amount === 'number' ? amount : 0;
-  //   return `${numAmount.toFixed(2)} $`;
-  // };
-  const formatCurrency = (amount: number | undefined | null) => {
-    const numAmount = typeof amount === 'number' ? amount : 0;
-    const absAmount = Math.abs(numAmount);
-
-    if (absAmount >= 1000000) {
-      return `${(numAmount / 1000000).toFixed(1)}M $`;
-    } else if (absAmount >= 1000) {
-      return `${(numAmount / 1000).toFixed(1)}K $`;
-    }
-    return `${numAmount.toFixed(2)} $`;
-  };
+  const formatAmount = (amount: number | undefined | null) =>
+    formatCurrency(typeof amount === 'number' ? amount : 0, undefined, undefined, 2, 2, settings);
 
   if (isLoading) {
     return (
@@ -88,13 +77,13 @@ function RevenueHeader({ data, isLoading, error }: RevenueHeaderProps) {
 
         <div className="text-sm text-muted-foreground flex items-center gap-6">
           <div className="text-[14px]">
-            {buildSentence(t, 'total', 'revenue')}: <span className="font-semibold text-[18px] ml-2">{formatCurrency(summary.totalRevenue)}</span>
+            {buildSentence(t, 'total', 'revenue')}: <span className="font-semibold text-[18px] ml-2">{formatAmount(summary.totalRevenue)}</span>
           </div>
           <div className="text-[14px]">
-            {buildSentence(t, 'from', 'memberships')}: <span className="font-semibold text-[18px] ml-2">{formatCurrency(summary.fromMemberships)}</span>
+            {buildSentence(t, 'from', 'memberships')}: <span className="font-semibold text-[18px] ml-2">{formatAmount(summary.fromMemberships)}</span>
           </div>
           <div className="text-[14px]">
-            {buildSentence(t, 'from', 'sessions')}: <span className="font-semibold text-[18px] ml-2">{formatCurrency(summary.fromSessions)}</span>
+            {buildSentence(t, 'from', 'sessions')}: <span className="font-semibold text-[18px] ml-2">{formatAmount(summary.fromSessions)}</span>
           </div>
         </div>
       </div>

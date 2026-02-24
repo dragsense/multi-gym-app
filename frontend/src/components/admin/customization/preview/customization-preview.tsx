@@ -28,12 +28,13 @@ export function CustomizationPreview({ store }: ICustomizationPreviewProps) {
 
   // Watch form values for live preview
   const formValues = watch();
+
   
   const logoLight = formValues.logoLight as IFileUpload | File | null;
   const logoDark = formValues.logoDark as IFileUpload | File | null;
   const favicon = formValues.favicon as IFileUpload | File | null;
-  const primaryColorLight = formValues.primaryColorLight || '#3b82f6';
-  const primaryColorDark = formValues.primaryColorDark || '#60a5fa';
+  const primaryColorLight = formValues.primaryColorLight || formValues.primaryColorDark || '#3b82f6';
+  const primaryColorDark = formValues.primaryColorDark || formValues.primaryColorLight || '#60a5fa';
   const fontFamily = formValues.fontFamily || 'Inter';
   // Get fontUrl from form or find it from FONT_OPTIONS if not set - memoized
   const fontUrl = useMemo(() => {
@@ -86,8 +87,8 @@ export function CustomizationPreview({ store }: ICustomizationPreviewProps) {
 
   // For sidebar, always use dark logo - memoized to prevent infinite loops
   const sidebarLogo = useMemo(() => {
-    return logoDarkUrl || logoLightUrl || logo;
-  }, [logoDarkUrl, logoLightUrl, logo]);
+    return (isDark ? logoDarkUrl || logoLightUrl : logoLightUrl || logoDarkUrl) || logo;
+  }, [logoDarkUrl, logoLightUrl, isDark, logo]);
   
   const faviconUrl = faviconUrlMemo;
 

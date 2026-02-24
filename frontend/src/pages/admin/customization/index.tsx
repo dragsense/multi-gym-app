@@ -36,7 +36,7 @@ export default function CustomizationPage() {
     const INITIAL_VALUES: CreateBusinessThemeDto = {
       title: "",
       primaryColorLight: "#c10320",
-      primaryColorDark: "#c10320",
+      primaryColorDark: "",
       fontFamily: FONT_OPTIONS[2].family,
       fontUrl: FONT_OPTIONS[2].url,
       logoLight: null,

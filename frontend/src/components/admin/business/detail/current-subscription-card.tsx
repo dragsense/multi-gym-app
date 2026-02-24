@@ -4,10 +4,12 @@ import { ESubscriptionStatus } from "@shared/enums";
 
 // Hooks
 import { useCurrentBusinessSubscriptionSummary } from "@/hooks/use-current-business-subscription-summary";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 // Components
 import { CurrentPlanSummaryCard, type IPlanSummaryDetail } from "@/components/shared-ui/current-plan-summary-card";
 import { Calendar, DollarSign } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 interface ICurrentSubscriptionCardProps {
     business: IBusiness;
@@ -18,6 +20,7 @@ export function CurrentSubscriptionCard({ business }: ICurrentSubscriptionCardPr
     const { data: summary, isLoading } = useCurrentBusinessSubscriptionSummary({
         businessId: business.id,
     });
+    const { settings } = useUserSettings();
 
     const hasActiveSubscription = summary?.status === ESubscriptionStatus.ACTIVE;
 
@@ -28,7 +31,14 @@ export function CurrentSubscriptionCard({ business }: ICurrentSubscriptionCardPr
         details.push({
             icon: DollarSign,
             label: "Price",
-            value: `$${Number(summary.price).toFixed(2)}`,
+            value: formatCurrency(
+                Number(summary.price ?? 0),
+                undefined,
+                undefined,
+                2,
+                2,
+                settings
+            ),
         });
     }
 

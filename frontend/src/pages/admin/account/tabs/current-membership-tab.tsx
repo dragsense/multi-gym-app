@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 // Hooks
 import { useMyMembershipSummary } from "@/hooks/use-my-membership-summary";
 import { useI18n } from "@/hooks/use-i18n";
+import { useUserSettings } from "@/hooks/use-user-settings";
 import { buildSentence } from "@/locales/translations";
 
 // Components
@@ -22,10 +23,12 @@ import { cancelMyMembership } from "@/services/member-membership.api";
 
 // Toast
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 import { EMembershipStatus } from "@shared/enums";
 
 export default function CurrentMembershipTab() {
   const { t } = useI18n();
+  const { settings } = useUserSettings();
   const queryClient = useQueryClient();
   const { summary, isActive, isLoading } = useMyMembershipSummary();
 
@@ -61,7 +64,14 @@ export default function CurrentMembershipTab() {
     details.push({
       icon: DollarSign,
       label: "Price",
-      value: `$${summary.price.toFixed(2)}`,
+      value: formatCurrency(
+        summary.price || 0,
+        undefined,
+        undefined,
+        2,
+        2,
+        settings
+      ),
       subValue: summary.billingFrequency ? `/ ${formatBillingFrequency(summary.billingFrequency)}` : undefined,
     });
   }

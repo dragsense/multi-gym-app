@@ -11,7 +11,7 @@ import { Tag, DollarSign, Percent, User, Briefcase, Pencil, Trash2, RefreshCw } 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { buildSentence } from "@/locales/translations";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 // Types
 import { type IServiceOffer } from "@shared/interfaces/service-offer.interface";
@@ -164,14 +164,14 @@ function ServiceOfferDetailContent({ serviceOffer, onEdit, onDelete, onUpdateSta
                           {serviceOffer.discount > 0 ? (
                             <>
                               <span className="line-through text-muted-foreground mr-2">
-                                ${serviceOffer.offerPrice}
+                                {formatCurrency(serviceOffer.offerPrice)}
                               </span>
                               <span className="text-primary">
-                                ${finalPrice.toFixed(2)}
+                                {formatCurrency(finalPrice)}
                               </span>
                             </>
                           ) : (
-                            <span>${serviceOffer.offerPrice}</span>
+                            <span>{formatCurrency(serviceOffer.offerPrice)}</span>
                           )}
                         </span>
                     </div>
@@ -201,7 +201,9 @@ function ServiceOfferDetailContent({ serviceOffer, onEdit, onDelete, onUpdateSta
                             <DollarSign className="w-4 h-4 text-muted-foreground shrink-0" />
                             <div>
                                 <div className="text-xs text-muted-foreground">{t('offerPrice')}</div>
-                                <div className="font-medium">${serviceOffer.offerPrice}</div>
+                                <div className="font-medium">
+                                  {formatCurrency(serviceOffer.offerPrice)}
+                                </div>
                             </div>
                         </div>
                         {serviceOffer.discount > 0 && (
@@ -217,7 +219,9 @@ function ServiceOfferDetailContent({ serviceOffer, onEdit, onDelete, onUpdateSta
                             <DollarSign className="w-4 h-4 text-muted-foreground shrink-0" />
                             <div>
                                 <div className="text-xs text-muted-foreground">{t('finalPrice')}</div>
-                                <div className="font-medium text-primary">${finalPrice.toFixed(2)}</div>
+                                <div className="font-medium text-primary">
+                                  {formatCurrency(finalPrice)}
+                                </div>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">

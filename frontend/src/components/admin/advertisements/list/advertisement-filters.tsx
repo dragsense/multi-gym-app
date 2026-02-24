@@ -25,19 +25,35 @@ export function AdvertisementFilters({ store }: IAdvertisementFiltersProps) {
   const filters = store((state) => state.filters);
   const setFilters = store.getState().setFilters;
 
+  const fields = useMemo(() => {
+    return {
+      ...filteredFields,
+      search: {
+        ...filteredFields.search,
+        placeholder: "Search by title",
+      },
+    } as TFieldConfigObject<AdvertisementListDto>;
+  }, [filteredFields]);
+
   const inputs = useInput<any>({
-    fields: filteredFields as TFieldConfigObject<AdvertisementListDto>,
+    fields,
   });
 
   // React 19: Memoized active filters check for better performance
-  const hasActiveFilters = useMemo(() => Object.keys(filters).length > 0, [filters]);
+  const hasActiveFilters = useMemo(
+    () => Object.keys(filters).length > 0,
+    [filters],
+  );
 
   const handleClearFilters = () => {
     startTransition(() => setFilters({}));
   };
 
   return (
-    <div className="flex-1 flex items-end gap-2 flex-wrap" data-component-id={componentId}>
+    <div
+      className="flex-1 flex items-end gap-2 flex-wrap"
+      data-component-id={componentId}
+    >
       {inputs.search}
       {inputs.status}
       {inputs.createdAfter}
@@ -56,4 +72,3 @@ export function AdvertisementFilters({ store }: IAdvertisementFiltersProps) {
     </div>
   );
 }
-

@@ -379,12 +379,17 @@ export class SessionEventListenerService implements OnModuleInit {
         return;
       }
 
+      
+      const timeOfDay = reminderDate.toISOString().substring(11, 16);
+
       const scheduleData = {
         title: `Session Reminder - ${session.title}`,
         description: `Reminder for ${session.title} starting at ${session.startDateTime}`,
         action: 'send-session-reminder',
         entityId: session.id,
-        nextRunDate: reminderDate.toISOString(),
+        startDate: reminderDate.toISOString(),
+        timeOfDay: timeOfDay,
+        frequency: EScheduleFrequency.ONCE,
         status: EScheduleStatus.ACTIVE,
         retryOnFailure: false,
         tenantId, // Include tenant context for multi-tenant database routing

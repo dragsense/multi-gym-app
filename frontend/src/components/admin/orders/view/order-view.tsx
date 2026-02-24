@@ -12,7 +12,7 @@ import type { THandlerComponentProps } from "@/@types/handler-types";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 import { useUserSettings } from "@/hooks/use-user-settings";
-import { formatDateTime } from "@/lib/utils";
+import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { EUserLevels } from "@shared/enums/user.enum";
 
@@ -138,7 +138,14 @@ function OrderDetailContent({ order, onEdit, onDelete, onUpdateStatus }: IOrderD
           <div className="flex items-center gap-1.5">
             <DollarSign className="w-4 h-4" />
             <span className="font-semibold text-foreground">
-              ${Number(order.totalAmount ?? 0).toFixed(2)}
+              {formatCurrency(
+                Number(order.totalAmount ?? 0),
+                undefined,
+                undefined,
+                2,
+                2,
+                settings
+              )}
             </span>
           </div>
           <span>•</span>
@@ -205,14 +212,30 @@ function OrderDetailContent({ order, onEdit, onDelete, onUpdateStatus }: IOrderD
                     {item.description} × {item.quantity}
                   </span>
                   <span>
-                    ${((item.quantity ?? 0) * Number(item.unitPrice ?? 0)).toFixed(2)}
+                    {formatCurrency(
+                      (item.quantity ?? 0) * Number(item.unitPrice ?? 0),
+                      undefined,
+                      undefined,
+                      2,
+                      2,
+                      settings
+                    )}
                   </span>
                 </li>
               ))}
             </ul>
             <div className="flex justify-between font-semibold mt-4 pt-4 border-t">
               <span>{t("total")}</span>
-              <span>${Number(order.totalAmount ?? 0).toFixed(2)}</span>
+              <span>
+                {formatCurrency(
+                  Number(order.totalAmount ?? 0),
+                  undefined,
+                  undefined,
+                  2,
+                  2,
+                  settings
+                )}
+              </span>
             </div>
           </AppCard>
         </div>

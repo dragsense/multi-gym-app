@@ -11,10 +11,19 @@ import { ListHandler, SingleHandler } from "@/handlers";
 import { DeviceReaderList, DeviceReaderView } from "@/components/admin";
 
 // Page Components
-import { DeviceReaderForm, DeviceReaderDelete, DeviceReaderStatusUpdate, type TDeviceReaderExtraProps } from "@/page-components";
+import {
+  DeviceReaderForm,
+  DeviceReaderDelete,
+  DeviceReaderStatusUpdate,
+  type TDeviceReaderExtraProps,
+} from "@/page-components";
 
 // API
-import { deleteDeviceReader, fetchDeviceReader, fetchDeviceReaders } from "@/services/device-reader.api";
+import {
+  deleteDeviceReader,
+  fetchDeviceReader,
+  fetchDeviceReaders,
+} from "@/services/device-reader.api";
 
 // Layouts
 import { PageInnerLayout } from "@/layouts";
@@ -36,6 +45,10 @@ export default function DeviceReadersPage() {
       <div data-component-id={componentId}>
         <SingleHandler<IDeviceReader, TDeviceReaderExtraProps>
           queryFn={fetchDeviceReader}
+          initialParams={{
+            _relations: "location",
+            _select: "id,macAddress,deviceName,status,location",
+          }}
           storeKey={STORE_KEY}
           SingleComponent={DeviceReaderView}
           actionComponents={[
@@ -56,11 +69,16 @@ export default function DeviceReadersPage() {
 
         <ListHandler<IDeviceReader, any, any, IDeviceReader, any>
           queryFn={(params) => fetchDeviceReaders(params, location?.id)}
+          initialParams={{
+            _relations: "location",
+          }}
           ListComponent={DeviceReaderList}
           deleteFn={deleteDeviceReader}
           onDeleteSuccess={() => {
             startTransition(() => {
-              queryClient.invalidateQueries({ queryKey: [STORE_KEY + "-list"] });
+              queryClient.invalidateQueries({
+                queryKey: [STORE_KEY + "-list"],
+              });
             });
           }}
           dto={DeviceReaderListDto}
@@ -72,4 +90,3 @@ export default function DeviceReadersPage() {
 }
 
 const Header = () => null;
-

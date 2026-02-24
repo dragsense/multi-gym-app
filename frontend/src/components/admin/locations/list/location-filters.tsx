@@ -11,6 +11,8 @@ import { type TListHandlerStore } from "@/stores/list/list-handler-store";
 import { useInput } from "@/hooks/use-input";
 import { type TFieldConfigObject } from "@/@types/form/field-config.type";
 import type { LocationListDto } from "@shared/dtos";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 
 interface ILocationFiltersProps {
   store: TListHandlerStore<ILocation, any, any>;
@@ -20,24 +22,42 @@ export function LocationFilters({ store }: ILocationFiltersProps) {
   // React 19: Essential IDs and transitions
   const componentId = useId();
   const [, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const filteredFields = store.getState().filteredFields;
   const filters = store((state) => state.filters);
   const setFilters = store.getState().setFilters;
 
-  const inputs = useInput<any>({
-    fields: filteredFields as TFieldConfigObject<LocationListDto>,
+  const fields = useMemo(
+    () => ({
+      ...filteredFields,
+      search: {
+        ...filteredFields.search,
+        placeholder: buildSentence(t, "Search", "by", "name"),
+      },
+    }),
+    [filteredFields, t],
+  );
+
+  const inputs = useInput<LocationListDto>({
+    fields: fields as TFieldConfigObject<LocationListDto>,
   });
 
   // React 19: Memoized active filters check for better performance
-  const hasActiveFilters = useMemo(() => Object.keys(filters).length > 0, [filters]);
+  const hasActiveFilters = useMemo(
+    () => Object.keys(filters).length > 0,
+    [filters],
+  );
 
   const handleClearFilters = () => {
     startTransition(() => setFilters({}));
   };
 
   return (
-    <div className="flex-1 flex items-end gap-2 flex-wrap" data-component-id={componentId}>
+    <div
+      className="flex-1 flex items-end gap-2 flex-wrap"
+      data-component-id={componentId}
+    >
       {inputs.search}
       {inputs.name}
       {inputs.createdAfter}
@@ -56,4 +76,3 @@ export function LocationFilters({ store }: ILocationFiltersProps) {
     </div>
   );
 }
-

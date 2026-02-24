@@ -89,8 +89,8 @@ export class RoleListDto extends ListQueryDto {
 export class CreateRoleDto {
   @ApiProperty({ example: "Administrator", description: "Role name" })
   @IsString()
-  @IsNotEmpty()
-  @FieldType("text", false)
+  @IsNotEmpty({message: 'Role name is required'})
+  @FieldType("text", true)
   name: string;
 
   @ApiProperty({ example: "admin", description: "Role code/slug" })

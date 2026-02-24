@@ -18,8 +18,8 @@ export class CreateFacilityInfoDto {
     example: "info@example.com",
     description: "Facility email",
   })
-  @IsNotEmpty()
-  @IsEmail()
+  @IsEmail({},{ message: "Email must be in a valid email format" })
+  @IsNotEmpty({ message: "Email is required" })
   @FieldType("email", true)
   email: string;
 
@@ -27,8 +27,8 @@ export class CreateFacilityInfoDto {
     example: "+1234567890",
     description: "Facility phone",
   })
-  @IsNotEmpty()
-  @IsString()
+  @IsString({ message: "Phone must be a string" })
+  @IsNotEmpty({ message: "Phone is required" })
   @FieldType("text", true)
   phone: string;
 
@@ -36,8 +36,8 @@ export class CreateFacilityInfoDto {
     example: "123 Main St, City, State 12345",
     description: "Facility address",
   })
-  @IsNotEmpty()
-  @IsString()
+  @IsString({ message: "Address must be a string" })
+  @IsNotEmpty({ message: "Address is required" })
   @FieldType("text", true)
   address: string;
 

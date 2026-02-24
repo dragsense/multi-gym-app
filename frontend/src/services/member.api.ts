@@ -17,8 +17,8 @@ const memberService = new BaseService<
 >(MEMBERS_API_PATH);
 
 // Re-export common CRUD operations
-export const fetchMembers = (params: IListQueryParams) =>
-  memberService.get(params);
+export const fetchMembers = (params: IListQueryParams, locationId?: string) =>
+  memberService.get({ ...params, filters: { ...(params.filters || {}), locationId } });
 export const fetchMember = (id: string, params: IListQueryParams) =>
   memberService.getSingle(id, params);
 export const createMember = (data: TMemberData) => memberService.post(data);

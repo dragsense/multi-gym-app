@@ -15,7 +15,7 @@ interface IBusinessThemeLoaderProps {
 
 export function BusinessThemeComponent({ storeKey, store, children }: IBusinessThemeLoaderProps) {
   const { resolvedTheme } = useTheme();
-  
+
   const theme = store(useShallow((state) => state.response));
   const isLoading = store(useShallow((state) => state.isLoading));
 
@@ -25,20 +25,27 @@ export function BusinessThemeComponent({ storeKey, store, children }: IBusinessT
 
     const root = document.documentElement;
     const isDark = resolvedTheme === 'dark';
-    
+
     // Apply document title
     if (theme.title) {
       document.title = theme.title;
     }
-    
+
     // Apply colors based on current theme mode
     if (isDark) {
       if (theme.primaryColorDark) {
         root.style.setProperty('--primary', theme.primaryColorDark);
+      } else if (theme.primaryColorLight) {
+        root.style.setProperty('--primary', theme.primaryColorLight);
+
       }
     } else {
       if (theme.primaryColorLight) {
         root.style.setProperty('--primary', theme.primaryColorLight);
+      } else {
+        if (theme.primaryColorDark)
+          root.style.setProperty('--primary', theme.primaryColorDark);
+
       }
     }
 
@@ -63,7 +70,7 @@ export function BusinessThemeComponent({ storeKey, store, children }: IBusinessT
       if (existingFavicon) {
         existingFavicon.remove();
       }
-      
+
       // Create new favicon link with cache-busting to force reload
       const faviconUrl = theme.favicon.url;
       const separator = faviconUrl.includes('?') ? '&' : '?';
@@ -74,7 +81,7 @@ export function BusinessThemeComponent({ storeKey, store, children }: IBusinessT
       newFaviconLink.href = `${faviconUrl}${separator}`;
       newFaviconLink.crossOrigin = 'anonymous';
       document.head.appendChild(newFaviconLink);
-    } 
+    }
   }, [theme, resolvedTheme]);
 
   // This component doesn't render anything, it just applies the theme

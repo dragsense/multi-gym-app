@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useI18n } from "@/hooks/use-i18n";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useUserSettings } from "@/hooks/use-user-settings";
+import { useTheme } from "@/hooks/use-theme";
 import type { PaymentCard, PaymentCardFormData } from "@/@types/payment.types";
 import {
   CardElement,
@@ -98,6 +99,24 @@ function StripeCardsList({
   );
 }
 
+const CARD_ELEMENT_STYLE_LIGHT = {
+  base: {
+    fontSize: "16px",
+    color: "#424770",
+    "::placeholder": { color: "#aab7c4" },
+  },
+  invalid: { color: "#9e2146" },
+} as const;
+
+const CARD_ELEMENT_STYLE_DARK = {
+  base: {
+    fontSize: "16px",
+    color: "#ffffff",
+    "::placeholder": { color: "rgba(255, 255, 255, 0.6)" },
+  },
+  invalid: { color: "#f87171" },
+} as const;
+
 function StripeCardForm({
   showSaveOptions = true,
   className,
@@ -108,8 +127,11 @@ function StripeCardForm({
   const { t } = useI18n();
   const stripe = useStripe();
   const elements = useElements();
+  const { resolvedTheme } = useTheme();
   const { control, watch, setValue } = useFormContext<PaymentCardFormData>();
   const saveForFutureUse = watch("saveForFutureUse");
+  const isDark = resolvedTheme === "dark";
+  const cardStyle = isDark ? CARD_ELEMENT_STYLE_DARK : CARD_ELEMENT_STYLE_LIGHT;
 
   if (!stripe || !elements) {
     return (
@@ -122,7 +144,7 @@ function StripeCardForm({
   return (
     <div className={cn("space-y-4", className)}>
       <div className="p-4 border rounded-md">
-        <CardElement />
+        <CardElement options={{ style: cardStyle }} />
       </div>
       {showSaveOptions && (
         <div className="space-y-3 pt-2">
@@ -360,7 +382,7 @@ export function StripePaymentModal({
               onOpenChange={onOpenChange}
               formMethods={formMethods}
               error={error}
-              showSaveOptions={showSaveOptions}
+              showSaveOptions={showSaveOptions}   
             />
           </Elements>
         ) : null}

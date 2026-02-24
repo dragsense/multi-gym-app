@@ -17,8 +17,8 @@ import { EAttributeType } from '../../enums/products/attribute-type.enum';
 export class CreateAttributeDto {
   @ApiProperty({ example: 'Color', description: 'Attribute name (e.g. Color, Size)' })
   @IsString()
-  @IsNotEmpty()
   @MaxLength(255)
+  @IsNotEmpty({ message: 'Name is required' })
   @FieldType('text', true)
   name: string;
 

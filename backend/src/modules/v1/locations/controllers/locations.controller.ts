@@ -12,6 +12,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { QueryBuilder, SelectQueryBuilder } from 'typeorm';
 import {
   ApiBearerAuth,
   ApiTags,
@@ -40,6 +41,8 @@ import { MinUserLevel } from '@/decorators/level.decorator';
 import { EUserLevels } from '@shared/enums';
 import { Resource } from '@/decorators';
 import { EResource } from '@shared/enums';
+import { AuthUser } from '@/decorators/user.decorator';
+import { User } from '@/common/base-user/entities/user.entity';
 
 @ApiBearerAuth('access-token')
 @ApiTags('Locations')
@@ -48,13 +51,44 @@ import { EResource } from '@shared/enums';
 @Resource(EResource.LOCATIONS)
 @Controller('locations')
 export class LocationsController {
-  constructor(private readonly locationsService: LocationsService) {}
+  constructor(private readonly locationsService: LocationsService) { }
 
   @Get()
   @ApiOperation({ summary: 'Get all locations with pagination and filters' })
   @ApiResponse({ status: 200, type: LocationPaginationDto })
-  findAll(@Query() query: LocationListDto) {
-    return this.locationsService.get(query, LocationListDto);
+  @MinUserLevel(EUserLevels.MEMBER)
+  findAll(@Query() query: LocationListDto, @AuthUser() currentUser: User) {
+    return this.locationsService.get(query, LocationListDto, {
+      beforeQuery: async (query: SelectQueryBuilder<Location>) => {
+        const isStaff = currentUser.level === EUserLevels.STAFF;
+        const isMember = currentUser.level === EUserLevels.MEMBER;
+
+        if (isStaff) {
+          query.innerJoin('entity.staff', 'staff', 'staff.userId = :userId', {
+            userId: currentUser.id,
+          });
+        } else if (isMember) {
+          // Join memberships → doors → location
+          query
+            .innerJoin('entity.doors', '_door')
+            .innerJoin('_door.memberships', 'membership')
+
+            // 🔥 Join Member table using current user
+            .innerJoin('members', 'member', 'member.userId = :userId', {
+              userId: currentUser.id,
+            })
+
+            // 🔥 Now connect member to member_memberships
+            .innerJoin(
+              'member_memberships',
+              'mm',
+              'mm.membershipId = membership.id AND mm.memberId = member.id AND mm.isActive = true'
+            );
+        }
+
+        return query;
+      }
+    });
   }
 
   @Get(':id')

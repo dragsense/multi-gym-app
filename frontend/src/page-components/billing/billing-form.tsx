@@ -3,6 +3,7 @@ import { useShallow } from "zustand/shallow";
 import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useCallback, useId, useTransition } from "react";
+import { toast } from "sonner";
 
 // Handlers
 import { FormHandler } from "@/handlers";
@@ -32,7 +33,7 @@ import {
   UpdateBillingDto,
 } from "@shared/dtos/billing-dtos";
 import type { IBillingFormModalExtraProps } from "@/components/admin/billings/form/billing-form-modal";
-import { EReminderType, EScheduleFrequency } from "@shared/enums";
+import { EReminderSendBefore, EReminderType, EScheduleFrequency } from "@shared/enums";
 import type { ReminderDto } from "@shared/dtos/reminder-dtos";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
@@ -93,7 +94,7 @@ export default function BillingForm({ storeKey, store }: IBillingFormProps) {
     } : null,
     type: EBillingType.SESSION,
     notes: "",
-    reminderConfig: { reminderTypes: [EReminderType.EMAIL] } as ReminderDto,
+    reminderConfig: { reminderTypes: [EReminderType.EMAIL], sendBefore: [EReminderSendBefore.ONE_DAY] } as ReminderDto,
     enableReminder: false,
     lineItems: [] as CreateBillingLineItemDto[],
     isCashable: false,
@@ -144,6 +145,7 @@ export default function BillingForm({ storeKey, store }: IBillingFormProps) {
           startTransition(() => {
             queryClient.invalidateQueries({ queryKey: [storeKey + "-list"] });
             handleClose();
+            toast.success(buildSentence(t, "billing", isEditing ? "updated" : "added", "successfully"));
           });
         }}
         formProps={{

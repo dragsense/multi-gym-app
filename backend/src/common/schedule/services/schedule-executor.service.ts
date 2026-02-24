@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Inject, forwardRef, Injectable, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -6,15 +6,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, Not } from 'typeorm';
 import { ScheduleService } from '../schedule.service';
 import { Schedule } from '../entities/schedule.entity';
-import { LoggerService } from '../../logger/logger.service';
+import { LoggerService } from '@/common/logger/logger.service';
 import { RequestContext } from '@/common/context/request-context';
 import { Business } from '@/modules/v1/business/entities/business.entity';
-
 @Injectable()
 export class ScheduleExecutorService implements OnModuleInit {
   private readonly logger = new LoggerService(ScheduleExecutorService.name);
 
   constructor(
+    @Inject(forwardRef(() => ScheduleService))
     private readonly scheduleService: ScheduleService,
     @InjectQueue('schedule') private scheduleQueue: Queue,
     @InjectRepository(Business)
@@ -50,7 +50,7 @@ export class ScheduleExecutorService implements OnModuleInit {
 
     // Get all businesses with tenantId from main database
     const businesses = await this.businessRepository.find({
-      where: { tenantId: Not(IsNull()) },
+      where: { tenantId: Not(IsNull()), deletedAt: IsNull() },
       select: ['id', 'tenantId', 'name'],
     });
 
@@ -167,7 +167,7 @@ export class ScheduleExecutorService implements OnModuleInit {
 
       const nextRunDate = new Date(schedule.nextRunDate);
       nextRunDate.setHours(0, 0, 0, 0);
-
+      
       if (nextRunDate.getTime() === today.getTime()) {
         await this.scheduleJob(schedule);
       }
@@ -182,6 +182,7 @@ export class ScheduleExecutorService implements OnModuleInit {
    * Unified job scheduling using Bull Queue repeat functionality
    */
   private async scheduleJob(schedule: Schedule): Promise<void> {
+
     const timeOfDay = schedule.timeOfDay || '00:00';
     const [startHour, startMinute] = timeOfDay.split(':').map(Number);
 

@@ -21,8 +21,8 @@ export class CreateDeviceReaderDto {
     example: "RFID Reader 001",
     description: "Device name",
   })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty({message: 'Device name is required'})
   @FieldType("text", true)
   deviceName: string;
 
@@ -30,8 +30,8 @@ export class CreateDeviceReaderDto {
     example: "00:1B:44:11:3A:B7",
     description: "MAC address",
   })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty({message: 'MAC address is required'})
   @FieldType("text", true)
   macAddress: string;
 
@@ -54,7 +54,7 @@ export class CreateDeviceReaderDto {
     type: LocationDto,
     description: "Location that this device reader belongs to",
   })
-  @IsOptional()
+  @IsNotEmpty({message: 'Location is required'})
   @ValidateNested()
   @Expose()
   @Type(() => LocationDto)

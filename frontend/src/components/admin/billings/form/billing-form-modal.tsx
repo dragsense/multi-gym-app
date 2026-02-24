@@ -12,12 +12,14 @@ import React, {
 import { type FormInputs, useInput } from "@/hooks/use-input";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
+import { useAuthUser } from "@/hooks/use-auth-user";
 
 // Types
 import type { TFormHandlerStore } from "@/stores";
 import type { TBillingData } from "@shared/types/billing.type";
 import type { IBillingResponse } from "@shared/interfaces/billing.interface";
-import { EBillingStatus } from "@shared/enums/billing.enum";
+import { EBillingStatus, EBillingType } from "@shared/enums/billing.enum";
+import { EUserLevels } from "@shared/enums/user.enum";
 
 // Components
 import { ModalForm } from "@/components/form-ui/modal-form";
@@ -95,7 +97,11 @@ const BillingFormModal = React.memo(function BillingFormModal({
   const user = store ? store((state) => state.extra.user) : undefined;
   const billingStatus = store ? store((state) => state.extra.billingStatus) : undefined;
   const storeFields = store ? store((state) => state.fields) : {};
+  const values = store ? store((state) => state.values) : undefined;
   const isPaidBilling = billingStatus === EBillingStatus.PAID;
+  const { user: authUser } = useAuthUser();
+  const isPlatformOwner = authUser?.level === EUserLevels.PLATFORM_OWNER;
+  const isBusinessPaymentType = values?.type === EBillingType.BUSINESS;
 
   // Reset stepper when modal opens/closes
   useEffect(() => {
@@ -108,99 +114,100 @@ const BillingFormModal = React.memo(function BillingFormModal({
   // React 19: Memoized fields for better performance
   const fields = useMemo(
     () =>
-      ({
-        ...(storeFields as TFieldConfigObject<TBillingData>),
-        title: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).title,
-          label: buildSentence(t, "title"),
-          placeholder: t("title"),
-        },
-        description: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).description,
-          label: buildSentence(t, "description"),
+    ({
+      ...(storeFields as TFieldConfigObject<TBillingData>),
+      title: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).title,
+        label: buildSentence(t, "title"),
+        placeholder: t("title"),
+      },
+      description: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).description,
+        label: buildSentence(t, "description"),
           placeholder: buildSentence(t,"enter","description"),
-        },
-        issueDate: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).issueDate,
-          label: buildSentence(t, "issue", "date"),
-        },
-        dueDate: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).dueDate,
-          label: buildSentence(t, "due", "date"),
-        },
-        type: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).type,
-          label: buildSentence(t, "type"),
-        },
-        recurrence: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).recurrence,
-          label: buildSentence(t, "recurrence"),
-        },
-        notes: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).notes,
-          label: buildSentence(t, "notes"),
+      },
+      issueDate: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).issueDate,
+        label: buildSentence(t, "issue", "date"),
+      },
+      dueDate: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).dueDate,
+        label: buildSentence(t, "due", "date"),
+      },
+      type: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).type,
+        label: buildSentence(t, "type"),
+        disabled: isEditing && isPlatformOwner && isBusinessPaymentType,
+      },
+      recurrence: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).recurrence,
+        label: buildSentence(t, "recurrence"),
+      },
+      notes: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).notes,
+        label: buildSentence(t, "notes"),
           placeholder:buildSentence(t,"notes")
-        },
-        recipientUser: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).recipientUser,
-          type: "custom" as const,
-          label: buildSentence(t, "recipient", "user"),
-          Component: RecipientUserSelect,
-          disabled: !!user,
-        },
-        enableReminder: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).enableReminder,
-          label: buildSentence(t, "enable", "reminder"),
-        },
-        isCashable: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).isCashable,
-          label: buildSentence(t, "allow", "cash", "payment"),
-        },
-        lineItems: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).lineItems,
-          label: "",
-          disabled: isPaidBilling,
-          subFields: {
-            ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
-              .subFields,
+      },
+      recipientUser: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).recipientUser,
+        type: "custom" as const,
+        label: buildSentence(t, "recipient", "user"),
+        Component: RecipientUserSelect,
+        disabled: !!user,
+      },
+      enableReminder: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).enableReminder,
+        label: buildSentence(t, "enable", "reminder"),
+      },
+      isCashable: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).isCashable,
+        label: buildSentence(t, "allow", "cash", "payment"),
+      },
+      lineItems: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).lineItems,
+        label: "",
+        disabled: isPaidBilling,
+        subFields: {
+          ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
+            .subFields,
 
             description:{
-              ...(storeFields as TFieldConfigObject<TBillingData>).lineItems.subFields.description,
+            ...(storeFields as TFieldConfigObject<TBillingData>).lineItems.subFields.description,
               placeholder:buildSentence(t,"description"),
-              disabled: isPaidBilling,
-            },
-            unitPrice: {
-              ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
-                .subFields.unitPrice,
-              label: buildSentence(t, "unit", "price"),
+            disabled: isPaidBilling,
+          },
+          unitPrice: {
+            ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
+              .subFields.unitPrice,
+            label: buildSentence(t, "unit", "price"),
               placeholder:buildSentence(t,"unit price"),
               required:true,
-              disabled: isPaidBilling,
-            },
-            quantity: {
-              ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
-                .subFields.quantity,
-              label: buildSentence(t, "quantity"),
+            disabled: isPaidBilling,
+          },
+          quantity: {
+            ...(storeFields as TFieldConfigObject<TBillingData>).lineItems
+              .subFields.quantity,
+            label: buildSentence(t, "quantity"),
               placeholder:buildSentence(t,"quantity"),
-              disabled: isPaidBilling,
-            },
+            disabled: isPaidBilling,
           },
         },
-        reminderConfig: {
-          ...(storeFields as TFieldConfigObject<TBillingData>).reminderConfig,
-          visible: (ctx: { values: Record<string, unknown> }) =>
-            ctx.values.enableReminder,
-          renderItem: (items: ReminderDto) => {
-            return (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {items.sendBefore as ReactNode}
-                {items.reminderTypes as ReactNode}
-              </div>
-            );
-          },
+      },
+      reminderConfig: {
+        ...(storeFields as TFieldConfigObject<TBillingData>).reminderConfig,
+        visible: (ctx: { values: Record<string, unknown> }) =>
+          ctx.values.enableReminder,
+        renderItem: (items: ReminderDto) => {
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {items.sendBefore as ReactNode}
+              {items.reminderTypes as ReactNode}
+            </div>
+          );
         },
-      } as TFieldConfigObject<TBillingData>),
-    [storeFields, t, RecipientUserSelect, isPaidBilling]
+      },
+    } as TFieldConfigObject<TBillingData>),
+    [storeFields, t, RecipientUserSelect, isPaidBilling, isEditing, isPlatformOwner, isBusinessPaymentType]
   );
 
   const inputs = useInput<TBillingData>({

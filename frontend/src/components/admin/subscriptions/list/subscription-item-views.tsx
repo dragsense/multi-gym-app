@@ -19,6 +19,7 @@ import { AppCard } from "@/components/layout-ui/app-card";
 // Types
 import type { ISubscription } from "@shared/interfaces";
 import { ESubscriptionStatus, ESubscriptionType } from "@shared/enums";
+import { formatCurrency } from "@shared/lib/format.utils";
 
 import {
   Tooltip,
@@ -115,7 +116,7 @@ const SubscriptionListItem = ({
               <div className="space-y-1 text-sm">
                 <div className="truncate font-medium">{item.title}</div>
                 <div className="truncate text-muted-foreground">
-                  ${item.price}
+                  {formatCurrency(item.price)}
                 </div>
               </div>
             </div>
@@ -205,18 +206,18 @@ export const SubscriptionItemViews = ({
       cell: ({ row }) => {
         const { price, discountPercentage } = row.original;
         const discountedPrice = discountPercentage
-          ? (price - (price * discountPercentage) / 100).toFixed(2)
+          ? price - (price * discountPercentage) / 100
           : price;
 
         return (
           <div className="flex flex-col text-sm">
             {discountPercentage ? (
               <>
-                <span className="font-medium text-green-700">${discountedPrice}</span>
-                <span className="line-through text-muted-foreground">${price}</span>
+                <span className="font-medium text-green-700">{formatCurrency(discountedPrice)}</span>
+                <span className="line-through text-muted-foreground">{formatCurrency(price)}</span>
               </>
             ) : (
-              <span className="font-medium">${price}</span>
+              <span className="font-medium">{formatCurrency(price)}</span>
             )}
           </div>
         );

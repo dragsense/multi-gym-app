@@ -46,17 +46,18 @@ export function hasPermission(
   if (!user) return false;
 
   const permissionNames = getUserPermissionNames(user);
-  const requiredPermission = action.map(action => `${resource}:${action}`).join(',');
+  const requiredPermissions = action.map((a) => `${resource}:${a}`);
 
   // Check for exact permission
-  if (permissionNames.includes(requiredPermission)) {
+  if (requiredPermissions.some((p) => permissionNames.includes(p))) {
     return true;
   }
 
   // Check for wildcard permissions
   if (
     permissionNames.includes(`${resource}:*`) ||
-    permissionNames.some(name => name.startsWith(`*:${action}`)) ||
+    // Support calling with multiple actions (treat as "any of these actions")
+    action.some((a) => permissionNames.includes(`*:${a}`)) ||
     permissionNames.includes('*:*')
   ) {
     return true;
@@ -75,8 +76,6 @@ export function hasResourcePermission(
   if (!user) return false;
 
   const permissionNames = getUserPermissionNames(user);
-
-
 
   // Check for any permission on this resource
   return permissionNames.some(

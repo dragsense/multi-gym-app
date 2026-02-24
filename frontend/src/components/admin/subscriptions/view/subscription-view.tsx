@@ -31,7 +31,7 @@ import { type ISingleHandlerState } from "@/@types/handler-types/single.type";
 // Hooks & Utils
 import { useI18n } from "@/hooks/use-i18n";
 import { useUserSettings } from "@/hooks/use-user-settings";
-import { formatPercentage, getCurrencySymbol } from "@/lib/utils";
+import { formatPercentage, formatCurrency } from "@/lib/utils";
 import { buildSentence } from "@/locales/translations";
 
 export type TSubscriptionViewExtraProps = Record<string, never>;
@@ -223,8 +223,7 @@ function SubscriptionDetailContent({
           <div className="flex items-center gap-1.5">
             <DollarSign className="w-4 h-4" />
             <span className="font-semibold text-foreground">
-              {getCurrencySymbol("USD")}
-              {discountedPrice.toFixed(2)}
+              {formatCurrency(discountedPrice, undefined, undefined, 2, 2, settings)}
               <span className="text-muted-foreground font-normal">
                 {" "}
                 / {t("month")}
@@ -235,8 +234,7 @@ function SubscriptionDetailContent({
             <>
               <span>•</span>
               <span className="line-through text-muted-foreground">
-                {getCurrencySymbol("USD")}
-                {basePrice.toFixed(2)}
+                {formatCurrency(basePrice, undefined, undefined, 2, 2, settings)}
               </span>
               <Badge variant="secondary" className="text-xs">
                 {discountPercent}% {t("off")}
@@ -273,8 +271,7 @@ function SubscriptionDetailContent({
                   {buildSentence(t, "base", "price")}
                 </div>
                 <div className="font-medium">
-                  {getCurrencySymbol("USD")}
-                  {basePrice.toFixed(2)} / {t("month")}
+                  {formatCurrency(basePrice, undefined, undefined, 2, 2, settings)} / {t("month")}
                 </div>
               </div>
             </div>
@@ -298,8 +295,7 @@ function SubscriptionDetailContent({
                       {buildSentence(t, "final", "price")}
                     </div>
                     <div className="font-medium text-lg text-green-600">
-                      {getCurrencySymbol("USD")}
-                      {discountedPrice.toFixed(2)} / {t("month")}
+                      {formatCurrency(discountedPrice, undefined, undefined, 2, 2, settings)} / {t("month")}
                     </div>
                   </div>
                 </div>

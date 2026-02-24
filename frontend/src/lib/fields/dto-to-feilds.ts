@@ -31,11 +31,15 @@ function buildField<T>(
   // Skip fields with no decorator type
   if (!decoratorType) return null;
 
+  const label = key[0].toUpperCase() + key.slice(1);
+  const placeholder = `Enter ${label}`;
+
   // Base field
   const baseField = {
     id: key,
     name: key,
     label: key[0].toUpperCase() + key.slice(1),
+    placeholder,
     required: !isOptional,
     options: decoratorOptions ?? undefined,
     type: decoratorType,
@@ -92,7 +96,7 @@ export function dtoToFields<T>(dto: new () => T): TFieldConfigObject<T> {
 
 export function addRenderItem<T>(
   fields: TFieldConfigObject<T>,
-  renderers: Record<string, (item: any) => ReactNode>
+  renderers: Record<string, (item: any) => React.ReactNode>
 ): TFieldConfigObject<T> {
   const result: any = {};
 

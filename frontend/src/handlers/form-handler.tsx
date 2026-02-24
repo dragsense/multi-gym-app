@@ -158,7 +158,9 @@ export function FormHandler<
               response: null,
             });
 
-            toast.error(`Failed to submit form: ${error.message}`);
+            if (!onError) {
+              toast.error(`Failed to submit form: ${error.message}`);
+            }
             onError?.(error);
 
             resolve({ success: false, data: null, error: error.message });
@@ -215,7 +217,9 @@ export function FormHandler<
             response: null,
           });
 
-          toast.error(`Failed to submit form: ${error.message}`);
+          if (!onError) {
+            toast.error(`Failed to submit form: ${error.message}`);
+          }
           onError?.(error);
         }
       });

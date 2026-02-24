@@ -11,6 +11,7 @@ import type {
 } from "@/@types/form/field-config.type";
 import { useInput, type FormInputs } from "@/hooks/use-input";
 import { usePaymentProcessors } from "@/hooks/use-payment-processors";
+import { useI18n } from "@/hooks/use-i18n";
 import { config } from "@/config";
 
 // Components
@@ -93,6 +94,7 @@ const SubdomainPreview = () => {
 export function BusinessSetupForm({ store, storeKey }: IBusinessSetupFormProps) {
   if (!store) return null;
 
+  const { t } = useI18n();
   const isSubmitting = store(useShallow((state) => state.isSubmitting));
   const storeFields = store(useShallow((state) => state.fields));
 
@@ -100,18 +102,23 @@ export function BusinessSetupForm({ store, storeKey }: IBusinessSetupFormProps) 
     () =>
       ({
         ...storeFields,
+        name: {
+          ...storeFields.name,
+          placeholder: t("enterBusinessName", ""),
+        },
         subdomain: {
           ...storeFields.subdomain,
+          placeholder: t("enterSubdomain", ""),
           endAdornment: <SubdomainPreview />,
         },
       /*   paymentProcessorId: {
           ...storeFields.paymentProcessorId,
           type: "custom" as const,
-          label: "Payment processor",
+          label: t("paymentProcessor", ""),
           Component: PaymentProcessorRadio,
         }, */
       }) as TFieldConfigObject<CreateBusinessDto>,
-    [storeFields]
+    [storeFields, t]
   );
 
   const { onBack } = store(useShallow((state) => state.extra));
@@ -137,20 +144,19 @@ export function BusinessSetupForm({ store, storeKey }: IBusinessSetupFormProps) 
           }
         >
           <div className="text-sm text-muted-foreground">
-            Set up your business information to get started
+            {t("setUpYourBusinessInformation", "Set up your business information to get started")}
           </div>
           <div className="space-y-4">
             {inputs.name}
             <div>
               {inputs.subdomain}
               <p className="text-xs text-muted-foreground mt-1">
-                This will be your unique subdomain for accessing your business portal
+                {t("uniqueSubdomainDescription", "This will be your unique subdomain for accessing your business portal")}
               </p>
             </div>
             {/* <div>
               <p className="text-xs text-muted-foreground mb-2">
-                Your business will use the selected payment processor for all payments. You can
-                change this later in business settings.
+                {t("paymentProcessorDescription", "Your business will use the selected payment processor for all payments. You can change this later in business settings.")}
               </p>
               {inputs.paymentProcessorId}
             </div> */}

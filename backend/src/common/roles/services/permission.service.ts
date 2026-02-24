@@ -142,17 +142,18 @@ export class PermissionService {
     action: EPermissionAction[],
   ): Promise<boolean> {
     const context = await this.getEntityPermissionContext(entityId);
-    const permissionStrings = action.map(action => `${resourceName}:${action}`).join(',');
+    const requiredPermissions = action.map((a) => `${resourceName}:${a}`);
 
     // Check direct permissions
-    if (context.permissions.some(permission => permissionStrings.includes(permission))) {
+    if (context.permissions.some((permission) => requiredPermissions.includes(permission))) {
       return true;
     }
 
     // Check wildcard permissions
     if (
       context.permissions.includes(`${resourceName}:*`) ||
-      context.permissions.some(name => name.startsWith(`*:${action}`)) ||
+      // Any action allowed globally for this entity (e.g. "*:read")
+      action.some((a) => context.permissions.includes(`*:${a}`)) ||
       context.permissions.includes('*:*')
     ) {
       return true;

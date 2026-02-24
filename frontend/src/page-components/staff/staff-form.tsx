@@ -33,6 +33,25 @@ import type { IStaff } from "@shared/interfaces/staff.interface";
 interface IStaffFormProps extends THandlerComponentProps<TSingleHandlerStore<IStaff, any>> {
 }
 
+const INITIAL_VALUES: TStaffData = {
+    isTrainer: false,
+    user: {
+        email: "",
+        isActive: true,
+        firstName: "",
+        lastName: "",
+        dateOfBirth: new Date(
+            new Date().setFullYear(new Date().getFullYear() - 12)
+        ).toISOString(),
+        gender: EUserGender.MALE,
+        level: EUserLevels.STAFF,
+        isAdministrative: false,
+    },
+    specialization: undefined,
+    experience: undefined,
+    location: undefined,
+};
+
 export default function StaffForm({
     storeKey,
     store,
@@ -60,25 +79,6 @@ export default function StaffForm({
         reset: state.reset
     })));
 
-    const INITIAL_VALUES: TStaffData = {
-        isTrainer: false,
-        user: {
-            email: "",
-            isActive: true,
-            firstName: "",
-            lastName: "",
-            dateOfBirth: new Date(
-                new Date().setFullYear(new Date().getFullYear() - 12)
-            ).toISOString(),
-            gender: EUserGender.MALE,
-            level: EUserLevels.STAFF,
-            isAdministrative: false,
-        },
-        specialization: undefined,
-        experience: undefined,
-        location: undefined,
-    };
-
     const initialValues = useMemo(() => {
 
         if (!response) {
@@ -97,19 +97,31 @@ export default function StaffForm({
 
     }, [INITIAL_VALUES, response?.id]);
 
+    const isEditing = !!response?.id;
+
     const handleClose = useCallback(() => {
         startTransition(() => {
-            reset();
+            // When editing, only clear action so the detail/profile view keeps its data and doesn't re-render
+            if (!isEditing) {
+                reset();
+            }
             setAction('none');
             setCredentialModalContent({ open: false, email: "", password: "" });
         });
-    }, [reset, setAction, startTransition]);
-
-    const isEditing = !!response?.id;
+    }, [isEditing, reset, setAction, startTransition]);
 
     const mutationFn = useMemo(() => {
         return isEditing && response?.id
-            ? (data: TStaffData) => updateStaff(response.id, data)
+            ? (data: TStaffData) => {
+                // UpdateUserDto omits 'level' - backend rejects user.level if sent
+                const payload = { ...data };
+                if (payload.user && typeof payload.user === "object" && "level" in payload.user) {
+                    const userCopy = { ...payload.user };
+                    delete (userCopy as Record<string, unknown>).level;
+                    payload.user = userCopy;
+                }
+                return updateStaff(response.id, payload);
+            }
             : createStaff;
     }, [isEditing, response?.id]);
 

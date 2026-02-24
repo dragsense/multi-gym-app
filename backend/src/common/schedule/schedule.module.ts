@@ -25,6 +25,6 @@ import { Business } from '@/modules/v1/business/entities/business.entity';
     ScheduleExecutorService,
     ScheduleProcessor,
   ],
-  exports: [ScheduleService],
+  exports: [ScheduleService, ScheduleExecutorService],
 })
 export class ScheduleModule {}

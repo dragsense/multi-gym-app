@@ -1,62 +1,27 @@
 import {
   EntitySubscriberInterface,
   EventSubscriber,
-  InsertEvent,
   DataSource,
-  UpdateEvent,
 } from 'typeorm';
 import { Schedule } from '../entities/schedule.entity';
-import { ScheduleExecutorService } from '../services/schedule-executor.service';
-import { Injectable, Logger } from '@nestjs/common';
-import { EScheduleStatus } from '@shared/enums/schedule.enum';
+import { Injectable } from '@nestjs/common';
 
+/**
+ * Schedule entity subscriber.
+ * Note: Setup on insert/update is triggered from ScheduleService.triggerSetupIfActive()
+ * so it runs for both default and tenant DataSources. TypeORM subscribers only run
+ * on the DataSource they are registered with (the default one), so when schedules
+ * are created via tenant repository (e.g. from event listeners), this subscriber
+ * would not run. The service-layer trigger ensures setup always runs.
+ */
 @Injectable()
 @EventSubscriber()
 export class ScheduleSubscriber implements EntitySubscriberInterface<Schedule> {
-  private readonly logger = new Logger(ScheduleSubscriber.name);
-
-  constructor(
-    dataSource: DataSource,
-    private readonly scheduleExecutor: ScheduleExecutorService,
-  ) {
+  constructor(dataSource: DataSource) {
     dataSource.subscribers.push(this);
   }
 
   listenTo() {
     return Schedule;
-  }
-
-  /**
-   * Called after a schedule is inserted
-   */
-  async afterInsert(event: InsertEvent<Schedule>) {
-    const schedule = event.entity;
-    this.setupIfToday(schedule);
-  }
-
-  /**
-   * Called after a schedule is updated
-   */
-  async afterUpdate(event: UpdateEvent<Schedule>) {
-    const schedule = event.entity as Schedule;
-    if (schedule) {
-      this.setupIfToday(schedule);
-    }
-  }
-
-  /**
-   * Setup schedule immediately if it's for today
-   */
-  private setupIfToday(schedule: Schedule) {
-    console.log('schedule', schedule);
-
-    if (schedule.status !== EScheduleStatus.ACTIVE) return;
-    setImmediate(() => {
-      this.scheduleExecutor.setupSchedule(schedule).catch((err) => {
-        this.logger.error(
-          `❌ Failed to setup schedule "${schedule.title}": ${err.message}`,
-        );
-      });
-    });
   }
 }

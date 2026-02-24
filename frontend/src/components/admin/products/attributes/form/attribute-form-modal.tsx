@@ -15,10 +15,14 @@ export interface IAttributeFormModalExtraProps {
   onClose: () => void;
 }
 
-interface IAttributeFormModalProps
-  extends THandlerComponentProps<TFormHandlerStore<TAttributeData, unknown, IAttributeFormModalExtraProps>> {}
+interface IAttributeFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<TAttributeData, unknown, IAttributeFormModalExtraProps>
+> {}
 
-export default function AttributeFormModal({ storeKey, store }: IAttributeFormModalProps) {
+export default function AttributeFormModal({
+  storeKey,
+  store,
+}: IAttributeFormModalProps) {
   const componentId = useId();
   const [, startTransition] = useTransition();
   const { t } = useI18n();
@@ -26,7 +30,8 @@ export default function AttributeFormModal({ storeKey, store }: IAttributeFormMo
   if (!store) {
     return (
       <div>
-        {buildSentence(t, "form", "store")} "{storeKey}" {buildSentence(t, "not", "found")}.
+        {buildSentence(t, "form", "store")} "{storeKey}"{" "}
+        {buildSentence(t, "not", "found")}.
       </div>
     );
   }
@@ -51,10 +56,13 @@ export default function AttributeFormModal({ storeKey, store }: IAttributeFormMo
         placeholder: t("selectType") || "Select attribute type",
       },
     }),
-    [storeFields, t]
+    [storeFields, t],
   );
 
-  const inputs = useInput<TAttributeData>({ fields, showRequiredAsterisk: true });
+  const inputs = useInput<TAttributeData>({
+    fields,
+    showRequiredAsterisk: true,
+  });
 
   const onOpenChange = (state: boolean) => {
     if (!state) startTransition(onClose);
@@ -63,7 +71,11 @@ export default function AttributeFormModal({ storeKey, store }: IAttributeFormMo
   const footer = useMemo(
     () => (
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => startTransition(onClose)}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => startTransition(onClose)}
+        >
           {t("cancel")}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
@@ -72,7 +84,7 @@ export default function AttributeFormModal({ storeKey, store }: IAttributeFormMo
         </Button>
       </div>
     ),
-    [onClose, isSubmitting, isEditing, t, startTransition]
+    [onClose, isSubmitting, isEditing, t, startTransition],
   );
 
   return (
@@ -82,7 +94,6 @@ export default function AttributeFormModal({ storeKey, store }: IAttributeFormMo
           ? buildSentence(t, "edit", "attribute")
           : buildSentence(t, "add", "attribute")
       }
-      description={isEditing ? "Edit attribute." : "Add a new attribute (e.g. Color, Size)."}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}

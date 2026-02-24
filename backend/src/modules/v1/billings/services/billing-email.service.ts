@@ -2,6 +2,7 @@ import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Billing } from '../entities/billing.entity';
+import { formatCurrency } from '@shared/lib/format.utils';
 import { LoggerService } from '@/common/logger/logger.service';
 import { BillingHistoryService } from './billing-history.service';
 import { BillingsService } from '../billings.service';
@@ -331,10 +332,7 @@ export class BillingEmailService {
     const dueDate = new Date(billing.dueDate).toLocaleDateString();
         //Add sataus variable here with  and call getbilling status funcionn
     const billingStatus=await this.billingServices.getBillingStatus(billing.id)
-    const formattedAmount = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(billing.amount);
+    const formattedAmount = formatCurrency(billing.amount, 'USD');
 
     const getEmailContent = () => {
       switch (reminderType) {
@@ -401,7 +399,7 @@ export class BillingEmailService {
           <p style="margin: 0 0 8px 0;"><strong>Line Items:</strong></p>
           ${billing.lineItems.map((item) => {
             const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
-            return `<p style="margin: 4px 0; font-size: 13px;">${item.description || 'N/A'} - Qty: ${item.quantity || 0} × ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.unitPrice || 0)} = ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(itemTotal)}</p>`;
+            return `<p style="margin: 4px 0; font-size: 13px;">${item.description || 'N/A'} - Qty: ${item.quantity || 0} × ${formatCurrency(item.unitPrice || 0, 'USD')} = ${formatCurrency(itemTotal, 'USD')}</p>`;
           }).join('')}
         </div>
       `
@@ -456,10 +454,7 @@ export class BillingEmailService {
     const appName = this.appConfig.name;
     const issueDate = new Date(billing.issueDate).toLocaleDateString();
     const dueDate = new Date(billing.dueDate).toLocaleDateString();
-    const formattedAmount = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(billing.amount);
+    const formattedAmount = formatCurrency(billing.amount, 'USD');
 
     const getEmailContent = () => {
       switch (reminderType) {
@@ -511,7 +506,7 @@ export class BillingEmailService {
     const lineItemsText = billing.lineItems && billing.lineItems.length > 0
       ? `\nLine Items:\n${billing.lineItems.map((item) => {
           const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
-          return `  - ${item.description || 'N/A'} - Qty: ${item.quantity || 0} × ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.unitPrice || 0)} = ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(itemTotal)}`;
+          return `  - ${item.description || 'N/A'} - Qty: ${item.quantity || 0} × ${formatCurrency(item.unitPrice || 0, 'USD')} = ${formatCurrency(itemTotal, 'USD')}`;
         }).join('\n')}`
       : '';
 

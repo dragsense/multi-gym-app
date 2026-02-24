@@ -59,7 +59,7 @@ export default function ScheduleList({
   }
 
   const setAction = singleStore(state => state.setAction);
-
+  const setListAction = store(state => state.setAction);
   const [currentView, setCurrentView] = useState<ViewType>("table");
 
   // React 19: Smooth action transitions
@@ -77,7 +77,7 @@ export default function ScheduleList({
 
   const handleDelete = (id: string) => {
     startTransition(() => {
-      setAction('delete', id);
+      setListAction('delete', id);
     });
   }
 
@@ -101,13 +101,13 @@ export default function ScheduleList({
         <ScheduleFilters store={store} />
         <ViewToggle componentId={componentId} />
         <div className="flex gap-2">
-          <Button
+      {/*     <Button
             onClick={handleCreate}
             variant="default"
             data-component-id={componentId}
           >
             <Plus /> <span className="hidden sm:inline">{buildSentence(t, 'create', 'schedule')}</span>
-          </Button>
+          </Button> */}
 
         </div>
       </div>

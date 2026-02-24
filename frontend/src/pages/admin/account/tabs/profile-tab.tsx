@@ -1,6 +1,6 @@
 // External Libraries
 import { useQueryClient } from "@tanstack/react-query";
-import { useMemo, useTransition } from "react";
+import { useCallback, useMemo, useTransition } from "react";
 import { toast } from "sonner";
 
 // Handlers
@@ -70,9 +70,18 @@ export default function ProfileTab() {
     });
   };
 
+  const mutationFn = useCallback(
+    (data: TUpdateProfileData, params?: Record<string, unknown>) => {
+      const payload =
+        data.image === null ? { ...data, removeImage: true } : data;
+      return updateMyProfile()(payload, params as any);
+    },
+    []
+  );
+
   return (
     <FormHandler<TUpdateProfileData, IMessageResponse>
-      mutationFn={updateMyProfile()}
+      mutationFn={mutationFn}
       FormComponent={ProfileForm}
       storeKey={PROFILE_STORE_KEY}
       initialValues={profileInitialValues}

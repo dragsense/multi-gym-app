@@ -6,7 +6,7 @@ import { AppCard } from "@/components/layout-ui/app-card";
 import type { IProduct } from "@shared/interfaces/products/product.interface";
 import { useI18n } from "@/hooks/use-i18n";
 import { useUserSettings } from "@/hooks/use-user-settings";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 
 interface IItemViewArgs {
   handleEdit: (id: string) => void;
@@ -61,7 +61,16 @@ export function productItemViews({
             <h3 className="font-semibold text-base line-clamp-2">{item.name}</h3>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <DollarSign className="h-4 w-4 shrink-0" />
-              <span>{Number(item.defaultPrice ?? 0).toFixed(2)}</span>
+              <span>
+                {formatCurrency(
+                  Number(item.defaultPrice ?? 0),
+                  undefined,
+                  undefined,
+                  2,
+                  2,
+                  settings as any
+                )}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Package className="h-4 w-4 shrink-0" />

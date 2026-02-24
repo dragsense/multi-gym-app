@@ -27,8 +27,8 @@ export const privilegesConfig: PrivilegesConfigFile = {
         `${EResource.CHECKINS}:${EPermissionAction.READ}`,
         `${EResource.FAQS}:${EPermissionAction.READ}`,
         `${EResource.MEMBERS}:${EPermissionAction.READ}`,
+        `${EResource.LOCATIONS}:${EPermissionAction.READ}`,
         `${EResource.STAFF}:${EPermissionAction.READ}`,
-
       ],
     },
     {
@@ -44,8 +44,11 @@ export const privilegesConfig: PrivilegesConfigFile = {
         `${EResource.CHAT}:${EPermissionAction.READ}`,
         `${EResource.CHECKINS}:${EPermissionAction.READ}`,
         `${EResource.FAQS}:${EPermissionAction.READ}`,
-        `${EResource.MEMBERS}:${EPermissionAction.READ}`,
         `${EResource.STAFF}:${EPermissionAction.READ}`,
+        `${EResource.LOCATIONS}:${EPermissionAction.READ}`,
+        `${EResource.ADVERTISEMENTS}:${EPermissionAction.READ}`,
+        `${EResource.SERVICE_OFFERS}:${EPermissionAction.READ}`,
+        `${EResource.LINK_MEMBERS}:${EPermissionAction.READ}`
 
       ],
     },

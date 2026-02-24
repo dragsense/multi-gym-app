@@ -16,7 +16,11 @@ import { cn } from "@/lib/utils";
 import type { TListHandlerStore } from "@/stores";
 import { useShallow } from "zustand/shallow";
 
-interface IListProps<TData, TListData = any, TExtra extends Record<string, unknown> = any> {
+interface IListProps<
+  TData,
+  TListData = any,
+  TExtra extends Record<string, unknown> = any,
+> {
   className?: string;
   limit?: number;
   children?: ReactNode;
@@ -32,8 +36,11 @@ interface IListProps<TData, TListData = any, TExtra extends Record<string, unkno
   getItemKey?: (item: any, index: number) => string | number;
 }
 
-export function List<TData, TListData = any, TExtra extends Record<string, unknown> = any>({
-
+export function List<
+  TData,
+  TListData = any,
+  TExtra extends Record<string, unknown> = any,
+>({
   renderItem,
   className,
   emptyMessage = "No results found.",
@@ -65,9 +72,8 @@ export function List<TData, TListData = any, TExtra extends Record<string, unkno
       error: state.error,
       pagination: state.pagination,
       setPagination: state.setPagination,
-    }))
+    })),
   );
-
 
   // React 19: Smooth pagination changes
   const handlePageChange = (page: number) => {
@@ -93,14 +99,20 @@ export function List<TData, TListData = any, TExtra extends Record<string, unkno
   }, [data, limit]);
 
   // React 19: Memoized loading state for better performance
-  const memoizedLoadingState = useMemo(() => (
-    <div className="absolute inset-0 bg-background/50 z-10 flex items-center justify-center rounded-lg">
-      <Loader2 className="h-8 w-8 animate-spin" />
-    </div>
-  ), []);
+  const memoizedLoadingState = useMemo(
+    () => (
+      <div className="absolute inset-0 bg-background/50 z-10 flex items-center justify-center rounded-lg">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    ),
+    [],
+  );
 
   return (
-    <div className={cn("relative flex flex-col gap-6", className)} data-component-id={componentId}>
+    <div
+      className={cn("relative flex flex-col gap-6", className)}
+      data-component-id={componentId}
+    >
       {loading && memoizedLoadingState}
       <div className={cn("space-y-3", colClassName)}>
         <div className={rowClassName}>
@@ -108,12 +120,13 @@ export function List<TData, TListData = any, TExtra extends Record<string, unkno
             memoizedDisplayData.map((item, index) => (
               <div key={getItemKey(item, index)} className="flex-1">
                 {renderItem(item, index)}
-                
               </div>
             ))
-          ) : (<div className="text-sm text-muted-foreground text-center py-8">
-            {emptyMessage}
-          </div>)}
+          ) : (
+            <div className="w-full col-span-full text-sm text-muted-foreground  text-center py-8">
+              {emptyMessage}
+            </div>
+          )}
         </div>
       </div>
 
@@ -122,40 +135,46 @@ export function List<TData, TListData = any, TExtra extends Record<string, unkno
       )}
 
       {/* Load More Button */}
-      {showLoadMore && pagination?.hasNextPage && !limit && memoizedDisplayData && memoizedDisplayData.length > 0 && (
-        <div className="flex justify-center py-4">
-          <Button
-            variant="outline"
-            onClick={() => handlePageChange((pagination.page || 1) + 1)}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Loading...
-              </>
-            ) : (
-              "Load More"
-            )}
-          </Button>
-        </div>
-      )}
+      {showLoadMore &&
+        pagination?.hasNextPage &&
+        !limit &&
+        memoizedDisplayData &&
+        memoizedDisplayData.length > 0 && (
+          <div className="flex justify-center py-4">
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange((pagination.page || 1) + 1)}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                "Load More"
+              )}
+            </Button>
+          </div>
+        )}
 
       {/* Pagination */}
-      {(showPagination && !limit && memoizedDisplayData && memoizedDisplayData.length > 0) && (
-        <div className="flex flex-col gap-4 pt-6 border-t">
-          <div className="w-full">
-            <Pagination
-              datalength={memoizedDisplayData.length}
-              pageSizeOptions={pageSizeOptions}
-              pagination={pagination}
-              onPageChange={handlePageChange}
-              onLimitChange={handleLimitChange}
-            />
+      {showPagination &&
+        !limit &&
+        memoizedDisplayData &&
+        memoizedDisplayData.length > 0 && (
+          <div className="flex flex-col gap-4 pt-6 border-t">
+            <div className="w-full">
+              <Pagination
+                datalength={memoizedDisplayData.length}
+                pageSizeOptions={pageSizeOptions}
+                pagination={pagination}
+                onPageChange={handlePageChange}
+                onLimitChange={handleLimitChange}
+              />
+            </div>
           </div>
-        </div>
-      )}
-
+        )}
     </div>
   );
 }

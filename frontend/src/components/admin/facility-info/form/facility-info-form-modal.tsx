@@ -10,20 +10,28 @@ import { useI18n } from "@/hooks/use-i18n";
 import type { TFormHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
 import type { IMessageResponse } from "@shared/interfaces/api/response.interface";
-import type { TCreateFacilityInfoData, TUpdateFacilityInfoData } from "@shared/types/facility-info.type";
+import type {
+  TCreateFacilityInfoData,
+  TUpdateFacilityInfoData,
+} from "@shared/types/facility-info.type";
 import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 
 // Components
 import { Button } from "@/components/ui/button";
 import { ModalForm } from "@/components/form-ui/modal-form";
-import { FormErrors } from "@/components/shared-ui/form-errors";
 
 export interface IFacilityInfoFormModalExtraProps {
   open: boolean;
   onClose: () => void;
 }
 
-interface IFacilityInfoFormModalProps extends THandlerComponentProps<TFormHandlerStore<TCreateFacilityInfoData | TUpdateFacilityInfoData, IMessageResponse, IFacilityInfoFormModalExtraProps>> { }
+interface IFacilityInfoFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<
+    TCreateFacilityInfoData | TUpdateFacilityInfoData,
+    IMessageResponse,
+    IFacilityInfoFormModalExtraProps
+  >
+> {}
 
 const FacilityInfoFormModal = React.memo(function FacilityInfoFormModal({
   storeKey,
@@ -39,18 +47,40 @@ const FacilityInfoFormModal = React.memo(function FacilityInfoFormModal({
 
   const open = store((state) => state.extra.open);
   const onClose = store((state) => state.extra.onClose);
-  const fields = store((state) => state.fields);
+  const storeFields = store((state) => state.fields);
   const isSubmitting = store((state) => state.isSubmitting);
   const isEditing = store((state) => state.isEditing);
 
-  const memoizedFields = useMemo(() => {
-    return fields as TFieldConfigObject<TCreateFacilityInfoData>;
-  }, [fields]);
+  // Memoized fields to add placeholders and custom labels
+  const fields = useMemo(() => {
+    return {
+      ...storeFields,
+      email: {
+        ...storeFields.email,
+        label: t("email"),
+        placeholder: t("Enter Facility Email"), // e.g., "example@facility.com"
+      },
+      phone: {
+        ...storeFields.phone,
+        label: t("phone"),
+        placeholder: t("Enter Facility Phone"), // e.g., "+1 (555) 000-0000"
+      },
+      address: {
+        ...storeFields.address,
+        label: t("address"),
+        placeholder: t("Enter Facility Address"), // e.g., "123 Main St, City, Country"
+      },
+      status: {
+        ...storeFields.status,
+        label: t("status"),
+      },
+    } as TFieldConfigObject<TCreateFacilityInfoData>;
+  }, [storeFields, t]);
 
-  const inputs = useInput<TCreateFacilityInfoData>({
-    fields: memoizedFields,
+  const inputs = useInput<TCreateFacilityInfoData | TUpdateFacilityInfoData>({
+    fields,
     showRequiredAsterisk: true,
-  }) as FormInputs<TCreateFacilityInfoData>;
+  }) as FormInputs<TCreateFacilityInfoData | TUpdateFacilityInfoData>;
 
   const onOpenChange = (state: boolean) => {
     if (state === false) {
@@ -58,29 +88,35 @@ const FacilityInfoFormModal = React.memo(function FacilityInfoFormModal({
     }
   };
 
-  const formButtons = useMemo(() => (
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          startTransition(() => onClose());
-        }}
-      >
-        {t('cancel')}
-      </Button>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? t('updateFacilityInfo') : t('createFacilityInfo')}
-      </Button>
-    </div>
-  ), [onClose, isSubmitting, isEditing, t, startTransition]);
+  const formButtons = useMemo(
+    () => (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={(e) => {
+            e.preventDefault();
+            startTransition(() => onClose());
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEditing ? t("updateFacilityInfo") : t("createFacilityInfo")}
+        </Button>
+      </div>
+    ),
+    [onClose, isSubmitting, isEditing, t],
+  );
 
   return (
-    <ModalForm<TCreateFacilityInfoData | TUpdateFacilityInfoData, IMessageResponse, IFacilityInfoFormModalExtraProps>
-      title={isEditing ? t('updateFacilityInfo') : t('createFacilityInfo')}
-      description={isEditing ? t('updateFacilityInfoInformation') : t('createNewFacilityInfo')}
+    <ModalForm<
+      TCreateFacilityInfoData | TUpdateFacilityInfoData,
+      IMessageResponse,
+      IFacilityInfoFormModalExtraProps
+    >
+      title={isEditing ? t("updateFacilityInfo") : t("createFacilityInfo")}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -89,21 +125,17 @@ const FacilityInfoFormModal = React.memo(function FacilityInfoFormModal({
       data-component-id={componentId}
     >
       <div className="space-y-6">
-        {/* Basic Info */}
         <div>
-          <h3 className="text-sm font-semibold mb-3">{t('facilityInfoDetails')}</h3>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {inputs.email}
             {inputs.phone}
-            {inputs.address}
-            {inputs.status}
           </div>
+          <div className="mt-4">{inputs.address}</div>
+          <div className="mt-4">{inputs.status}</div>
         </div>
       </div>
-      <FormErrors />
     </ModalForm>
   );
 });
 
 export default FacilityInfoFormModal;
-

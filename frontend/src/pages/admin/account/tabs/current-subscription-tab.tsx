@@ -1,12 +1,15 @@
 // Hooks
 import { useMyBusinessSubscriptionSummary } from "@/hooks/use-my-business-subscription-summary";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 // Components
 import { CurrentPlanSummaryCard, formatBillingFrequency, type IPlanSummaryDetail } from "@/components/shared-ui/current-plan-summary-card";
 import { Calendar, DollarSign, Clock } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 export default function CurrentSubscriptionTab() {
   const { summary, isActive, isLoading } = useMyBusinessSubscriptionSummary();
+  const { settings } = useUserSettings();
 
   // Build details array
   const details: IPlanSummaryDetail[] = [];
@@ -15,7 +18,14 @@ export default function CurrentSubscriptionTab() {
     details.push({
       icon: DollarSign,
       label: "Price",
-      value: `$${Number(summary.price).toFixed(2)}`,
+      value: formatCurrency(
+        Number(summary.price ?? 0),
+        undefined,
+        undefined,
+        2,
+        2,
+        settings
+      ),
       subValue: summary.frequency ? `/ ${formatBillingFrequency(summary.frequency)}` : undefined,
     });
   }
