@@ -40,16 +40,12 @@ const StaffActions = ({
 
   const handleViewClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-  const handleViewClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
     if (handleView) {
       startTransition(() => handleView(staff.id));
     }
   };
 
   const handleUpdateProfileClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-  const handleUpdateProfileClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (handleUpdateProfile) {
       // Profile API expects user id, not staff record id
@@ -60,16 +56,12 @@ const StaffActions = ({
 
   const handleEditClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
     if (handleEdit) {
       startTransition(() => handleEdit(staff.id));
     }
   };
 
   const handleDeleteClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-  const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (handleDelete) {
       startTransition(() => handleDelete(staff.id));
