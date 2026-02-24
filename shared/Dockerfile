@@ -93,8 +93,8 @@ WORKDIR /app
 RUN npm install -g pnpm pm2
 
 # Copy package files for production dependencies
-COPY backend/package.json backend/pnpm-lock.yaml ./backend/
-COPY shared/package.json shared/pnpm-lock.yaml ./shared/
+COPY backend/package.json ./backend/
+COPY shared/package.json ./shared/
 
 # Install production dependencies
 WORKDIR /app/shared
