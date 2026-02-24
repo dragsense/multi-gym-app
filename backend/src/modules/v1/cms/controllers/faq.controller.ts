@@ -34,7 +34,6 @@ import { EResource } from '@shared/enums';
 import { AuthUser } from '@/decorators/user.decorator';
 import { User } from '@/common/base-user/entities/user.entity';
 import { Faq } from '../entities/faq.entity';
-import { SelectQueryBuilder } from 'typeorm';
 
 @ApiTags('CMS - FAQs')
 @ApiBearerAuth('access-token')
