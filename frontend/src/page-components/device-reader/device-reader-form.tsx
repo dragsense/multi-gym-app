@@ -1,5 +1,5 @@
 // External Libraries
-import { useShallow } from 'zustand/shallow';
+import { useShallow } from "zustand/shallow";
 import { Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useCallback, useId, useTransition } from "react";
@@ -17,95 +17,141 @@ import { type IMessageResponse } from "@shared/interfaces/api/response.interface
 import { type TSingleHandlerStore } from "@/stores";
 
 // Components
-import { DeviceReaderFormModal, type IDeviceReaderFormModalExtraProps } from "@/components/admin";
+import {
+  DeviceReaderFormModal,
+  type IDeviceReaderFormModalExtraProps,
+} from "@/components/admin";
 
 // Services
-import { createDeviceReader, updateDeviceReader } from "@/services/device-reader.api";
+import {
+  createDeviceReader,
+  updateDeviceReader,
+} from "@/services/device-reader.api";
 import { strictDeepMerge } from "@/utils";
 import { CreateDeviceReaderDto, UpdateDeviceReaderDto } from "@shared/dtos";
-import type { TCreateDeviceReaderData, TUpdateDeviceReaderData } from '@shared/types/device-reader.type';
+import type {
+  TCreateDeviceReaderData,
+  TUpdateDeviceReaderData,
+} from "@shared/types/device-reader.type";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 import { getSelectedLocation } from "@/utils/location-storage";
 
 export type TDeviceReaderExtraProps = {};
 
-interface IDeviceReaderFormProps extends THandlerComponentProps<TSingleHandlerStore<IDeviceReader, TDeviceReaderExtraProps>> {}
+interface IDeviceReaderFormProps extends THandlerComponentProps<
+  TSingleHandlerStore<IDeviceReader, TDeviceReaderExtraProps>
+> {}
 
 export default function DeviceReaderForm({
-    storeKey,
-    store,
+  storeKey,
+  store,
 }: IDeviceReaderFormProps) {
-    const componentId = useId();
-    const [, startTransition] = useTransition();
+  const componentId = useId();
+  const [, startTransition] = useTransition();
 
-    const queryClient = useQueryClient();
-    const { t } = useI18n();
+  const queryClient = useQueryClient();
+  const { t } = useI18n();
 
-    if (!store) {
-        return <div>{buildSentence(t, 'single', 'store')} "{storeKey}" {buildSentence(t, 'not', 'found')}. {buildSentence(t, 'did', 'you', 'forget', 'to', 'register', 'it')}?</div>;
-    }
-
-    const { action, response, isLoading, setAction, reset } = store(useShallow(state => ({
-        action: state.action,
-        response: state.response,
-        isLoading: state.isLoading,
-        setAction: state.setAction,
-        reset: state.reset
-    })));
-
-    const location = getSelectedLocation();
-    const initialValues = useMemo(() => {
-        const INITIAL_VALUES: TCreateDeviceReaderData = {
-            deviceName: "",
-            macAddress: "",
-            status: undefined,
-            ...(location && { location: { id: location.id, name: location.name } }),
-        };
-        return strictDeepMerge<TCreateDeviceReaderData>(INITIAL_VALUES, response ?? {});
-    }, [response, location]);
-
-    const handleClose = useCallback(() => {
-        startTransition(() => {
-            reset();
-            setAction('none');
-        });
-    }, [reset, setAction, startTransition]);
-
-    const isEditing = !!response?.id;
-    const mutationFn = isEditing ? updateDeviceReader(response.id) : createDeviceReader;
-    const dto = isEditing ? UpdateDeviceReaderDto : CreateDeviceReaderDto;
-
-    if (isLoading) {
-        return (
-            <div className="absolute inset-0 z-30 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-        );
-    }
-
+  if (!store) {
     return (
-        <div data-component-id={componentId}>
-            <FormHandler<TCreateDeviceReaderData, IMessageResponse, IDeviceReaderFormModalExtraProps>
-                mutationFn={mutationFn}
-                FormComponent={DeviceReaderFormModal}
-                storeKey={storeKey}
-                initialValues={initialValues}
-                dto={dto}
-                validationMode={EVALIDATION_MODES.OnSubmit}
-                isEditing={isEditing}
-                onSuccess={() => {
-                    startTransition(() => {
-                        queryClient.invalidateQueries({ queryKey: [storeKey + "-list"] });
-                        handleClose();
-                    });
-                }}
-                formProps={{
-                    open: action === 'createOrUpdate',
-                    onClose: handleClose,
-                }}
-            />
-        </div>
+      <div>
+        {buildSentence(t, "single", "store")} "{storeKey}"{" "}
+        {buildSentence(t, "not", "found")}.{" "}
+        {buildSentence(t, "did", "you", "forget", "to", "register", "it")}?
+      </div>
     );
-}
+  }
 
+  const { action, response, isLoading, setAction, reset } = store(
+    useShallow((state) => ({
+      action: state.action,
+      response: state.response,
+      isLoading: state.isLoading,
+      setAction: state.setAction,
+      reset: state.reset,
+    })),
+  );
+
+  const initialValues = useMemo(() => {
+    const selectedLocation = getSelectedLocation();
+
+    // Default values for create/fallback
+    const defaultValues: TCreateDeviceReaderData = {
+      deviceName: "",
+      macAddress: "",
+      status: undefined as any,
+      location: selectedLocation
+        ? { id: selectedLocation.id, name: selectedLocation.name }
+        : (undefined as any),
+    };
+
+    if (response) {
+      // For editing, prioritize response data
+      const location =
+        response.location ||
+        ((response as any).locationId
+          ? { id: (response as any).locationId }
+          : undefined);
+
+      return {
+        ...defaultValues,
+        deviceName: response.deviceName || "",
+        macAddress: response.macAddress || "",
+        status: response.status,
+        location: location as any,
+      } as TCreateDeviceReaderData;
+    }
+
+    return defaultValues;
+  }, [response]);
+
+  const handleClose = useCallback(() => {
+    startTransition(() => {
+      reset();
+      setAction("none");
+    });
+  }, [reset, setAction, startTransition]);
+
+  const isEditing = !!response?.id;
+  const mutationFn = isEditing
+    ? updateDeviceReader(response.id)
+    : createDeviceReader;
+  const dto = isEditing ? UpdateDeviceReaderDto : CreateDeviceReaderDto;
+
+  if (isLoading) {
+    return (
+      <div className="absolute inset-0 z-30 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div data-component-id={componentId}>
+      <FormHandler<
+        TCreateDeviceReaderData,
+        IMessageResponse,
+        IDeviceReaderFormModalExtraProps
+      >
+        mutationFn={mutationFn}
+        FormComponent={DeviceReaderFormModal}
+        storeKey={storeKey}
+        initialValues={initialValues}
+        dto={dto}
+        validationMode={EVALIDATION_MODES.OnSubmit}
+        isEditing={isEditing}
+        onSuccess={() => {
+          startTransition(() => {
+            queryClient.invalidateQueries({ queryKey: [storeKey + "-list"] });
+            handleClose();
+          });
+        }}
+        formProps={{
+          open: action === "createOrUpdate",
+          onClose: handleClose,
+        }}
+      />
+    </div>
+  );
+}

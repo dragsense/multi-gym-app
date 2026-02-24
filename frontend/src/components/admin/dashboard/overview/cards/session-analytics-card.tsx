@@ -114,6 +114,7 @@ export const SessionsAnalyticsCard: React.FC<ISessionsAnalyticsCardProps> = ({ d
             title={buildSentence(t, 'total', 'potential', 'revenue')}
             value={data?.timeline.reduce((acc, item) => acc + item.totalPotentialRevenue / 100, 0) || 0}
             isCurrency
+            settings={settings}
           />
           <StatCard
             title={buildSentence(t, 'average', 'completion', 'rate')}
@@ -132,6 +133,7 @@ export const SessionsAnalyticsCard: React.FC<ISessionsAnalyticsCardProps> = ({ d
                 : 0
             }
             isCurrency
+            settings={settings}
           />
         </div>
 
@@ -162,7 +164,7 @@ export const SessionsAnalyticsCard: React.FC<ISessionsAnalyticsCardProps> = ({ d
                 <Tooltip
                   formatter={(value: number, name: string) => {
                     if (name === 'averagePrice') {
-                      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
+                      return formatCurrency(value, undefined, undefined, 2, 2, settings);
                     }
                     return value;
                   }}
@@ -189,11 +191,12 @@ interface StatCardProps {
   value: number;
   isCurrency?: boolean;
   isPercentage?: boolean;
+  settings?: Parameters<typeof formatCurrency>[5];
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, isCurrency, isPercentage }) => {
+const StatCard: React.FC<StatCardProps> = ({ title, value, isCurrency, isPercentage, settings }) => {
   const formattedValue = isCurrency
-    ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
+    ? formatCurrency(value, undefined, undefined, 2, 2, settings)
     : isPercentage
       ? `${value.toFixed(1)}%`
       : value;

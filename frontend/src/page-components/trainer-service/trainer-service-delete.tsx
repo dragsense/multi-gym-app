@@ -44,12 +44,17 @@ export default function TrainerServiceDelete({
   const { t } = useI18n();
 
   const selector = useShallow(
-    (state: ISingleHandlerState<ITrainerService, TTrainerServiceDeleteExtraProps>) => ({
+    (
+      state: ISingleHandlerState<
+        ITrainerService,
+        TTrainerServiceDeleteExtraProps
+      >,
+    ) => ({
       action: state.action,
       response: state.response,
       setAction: state.setAction,
       reset: state.reset,
-    })
+    }),
   );
 
   const storeState = store ? store(selector) : null;
@@ -86,7 +91,7 @@ export default function TrainerServiceDelete({
           setError(error?.message || "Failed to delete trainer service");
         });
       },
-    }
+    },
   );
 
   const handleConfirm = useCallback(() => {
@@ -138,7 +143,7 @@ export default function TrainerServiceDelete({
                   "to",
                   "delete",
                   "this",
-                  "trainerService"
+                  "trainerService",
                 )}
                 ? {buildSentence(t, "this", "action", "cannot", "be", "undone")}
                 .
@@ -161,9 +166,7 @@ export default function TrainerServiceDelete({
             </div>
           </div>
 
-          {error && (
-            <div className="text-sm text-red-500 mt-2">{error}</div>
-          )}
+          {error && <div className="text-sm text-red-500 mt-2">{error}</div>}
         </div>
 
         <AlertDialogFooter>
@@ -188,4 +191,3 @@ export default function TrainerServiceDelete({
     </AlertDialog>
   );
 }
-

@@ -36,6 +36,7 @@ import { BillingHistoryService } from './services/billing-history.service';
 import { generateInvoiceRef } from './utils/billing.utils';
 import { LinkMemberService } from '../members/services/link-member.service';
 import { MembersService } from '../members/members.service';
+import { formatCurrency } from '@shared/lib/format.utils';
 
 @Injectable()
 export class BillingsService extends CrudService<Billing> {
@@ -159,7 +160,9 @@ export class BillingsService extends CrudService<Billing> {
       throw new NotFoundException('Billing not found');
     }
 
-    if (existingBilling.recipientUser?.id !== currentUser.id) {
+    const isSuperAdmin = currentUser.level === EUserLevels.PLATFORM_OWNER || currentUser.level === EUserLevels.ADMIN;
+
+    if (!isSuperAdmin && existingBilling.recipientUser?.id !== currentUser.id) {
       throw new ForbiddenException('You are not authorized to update this billing');
     }
 
@@ -526,16 +529,10 @@ export class BillingsService extends CrudService<Billing> {
           <td>${item.description || ''}</td>
           <td style="text-align:right;">${item.quantity || 0}</td>
           <td style="text-align:right;">
-            ${new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: 'USD',
-            }).format(item.unitPrice || 0)}
+            ${formatCurrency(item.unitPrice || 0, 'USD')}
           </td>
           <td style="text-align:right;">
-            ${new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: 'USD',
-            }).format((item.quantity || 0) * (item.unitPrice || 0))}
+            ${formatCurrency((item.quantity || 0) * (item.unitPrice || 0), 'USD')}
           </td>
         </tr>`,
           )

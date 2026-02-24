@@ -16,8 +16,8 @@ import { AttributeDto } from './attribute.dto';
 export class CreateAttributeValueDto {
   @ApiProperty({ example: 'Red', description: 'Attribute value(s). Use comma-separated values to create multiple (e.g. Red, Blue, Green or XL, L, M)' })
   @IsString()
-  @IsNotEmpty()
   @MaxLength(255)
+  @IsNotEmpty({ message: 'Value is required' })
   @FieldType('text', true)
   value: string;
 

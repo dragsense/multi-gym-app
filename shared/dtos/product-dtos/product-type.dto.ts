@@ -9,8 +9,8 @@ import { ListQueryDto } from '../common/list-query.dto';
 export class CreateProductTypeDto {
   @ApiProperty({ example: 'Clothing', description: 'Product type name (e.g. Clothing, Electronics)' })
   @IsString()
-  @IsNotEmpty()
   @MaxLength(255)
+  @IsNotEmpty({message: 'Name is required'})
   @FieldType('text', true)
   name: string;
 }

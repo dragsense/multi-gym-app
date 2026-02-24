@@ -6,6 +6,7 @@ import { EntityRouterService } from '@/common/database/entity-router.service';
 import { User } from '@/common/base-user/entities/user.entity';
 import { EUserLevels } from '@shared/enums';
 import { ENotificationType } from '@shared/enums/notification.enum';
+import { formatCurrency } from '@shared/lib/format.utils';
 import { Order } from '../entities/order.entity';
 import { In } from 'typeorm';
 
@@ -127,10 +128,7 @@ export class OrdersNotificationListener {
     }
 
     private generateOrderContent(order: Order): { html: string; text: string } {
-        const formattedAmount = new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-        }).format(order.totalAmount);
+        const formattedAmount = formatCurrency(order.totalAmount, 'USD');
 
         const createdDate = new Date(order.createdAt).toLocaleDateString();
         const orderRef = order.orderRef || order.id.substring(0, 8).toUpperCase();
@@ -163,7 +161,7 @@ export class OrdersNotificationListener {
         const lineItemsText = order.lineItems && order.lineItems.length > 0
             ? `\nLine Items:\n${order.lineItems.map((item) => {
                 const itemTotal = (item.quantity || 0) * (item.unitPrice || 0);
-                return `  - ${item.description || 'N/A'} - Qty: ${item.quantity || 0} × ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(item.unitPrice || 0)} = ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(itemTotal)}`;
+                return `  - ${item.description || 'N/A'} - Qty: ${item.quantity || 0} × ${formatCurrency(item.unitPrice || 0, 'USD')} = ${formatCurrency(itemTotal, 'USD')}`;
             }).join('\n')}`
             : '';
 

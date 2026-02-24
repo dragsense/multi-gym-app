@@ -1,16 +1,31 @@
 import { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { AppCard } from "@/components/layout-ui/app-card";
-import { Trash2, ShoppingCart, ArrowLeft, ArrowRight, Minus, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Trash2,
+  ShoppingCart,
+  ArrowLeft,
+  ArrowRight,
+  Minus,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import type { ICartLineItem } from "@shared/interfaces";
 import { useI18n } from "@/hooks/use-i18n";
 import { Link } from "react-router-dom";
 import { SEGMENTS, ADMIN_ROUTES } from "@/config/routes.config";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { useCart } from "@/hooks/use-cart";
+import { formatCurrency } from "@/lib/utils";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 export interface ICartListProps {
-  onUpdateQuantity: (productId: string, productVariantId: string | undefined, quantity: number) => void;
+  onUpdateQuantity: (
+    productId: string,
+    productVariantId: string | undefined,
+    quantity: number,
+  ) => void;
   onRemove: (productId: string, productVariantId?: string) => void;
 }
 
@@ -21,11 +36,17 @@ function CartLineCard({
   onUpdateQuantity,
   onRemove,
   t,
+  formatCurrencyFn,
 }: {
   item: ICartLineItem;
-  onUpdateQuantity: (productId: string, productVariantId: string | undefined, quantity: number) => void;
+  onUpdateQuantity: (
+    productId: string,
+    productVariantId: string | undefined,
+    quantity: number,
+  ) => void;
   onRemove: (productId: string, productVariantId?: string) => void;
   t: (key: string) => string;
+  formatCurrencyFn: (amount: number) => string;
 }) {
   return (
     <AppCard>
@@ -46,11 +67,13 @@ function CartLineCard({
         </div>
         <div className="flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <p className="font-semibold text-base line-clamp-2">{item.description}</p>
+            <p className="font-semibold text-base line-clamp-2">
+              {item.description}
+            </p>
             <p className="text-sm text-muted-foreground">
-              ${Number(item.unitPrice).toFixed(2)} × {item.quantity} =
+              {formatCurrencyFn(Number(item.unitPrice ?? 0))} × {item.quantity} =
               <span className="font-medium text-foreground ml-1">
-                ${((item.quantity ?? 0) * Number(item.unitPrice ?? 0)).toFixed(2)}
+                {formatCurrencyFn((item.quantity ?? 0) * Number(item.unitPrice ?? 0))}
               </span>
             </p>
           </div>
@@ -63,7 +86,8 @@ function CartLineCard({
                 onClick={() => {
                   const q = Math.max(0, (item.quantity || 0) - 1);
                   if (q === 0) onRemove(item.productId, item.productVariantId);
-                  else onUpdateQuantity(item.productId, item.productVariantId, q);
+                  else
+                    onUpdateQuantity(item.productId, item.productVariantId, q);
                 }}
               >
                 <Minus className="h-4 w-4" />
@@ -79,7 +103,7 @@ function CartLineCard({
                   onUpdateQuantity(
                     item.productId,
                     item.productVariantId,
-                    (item.quantity || 0) + 1
+                    (item.quantity || 0) + 1,
                   )
                 }
               >
@@ -102,18 +126,25 @@ function CartLineCard({
   );
 }
 
-export default function CartList({ onUpdateQuantity, onRemove }: ICartListProps) {
+export default function CartList({
+  onUpdateQuantity,
+  onRemove,
+}: ICartListProps) {
   const componentId = useId();
   const { t } = useI18n();
   const { user } = useAuthUser();
+  const { settings } = useUserSettings();
   const segment = SEGMENTS[user?.level ?? -1] ?? "/admin";
+
+  const formatCurrencyFn = (amount: number) =>
+    formatCurrency(amount, undefined, undefined, 2, 2, settings);
 
   const { cart, items, isLoading, pagination, setPage } = useCart(PAGINATION_LIMIT);
 
   const itemCount = (cart?.items ?? []).length;
   const grandTotal = (cart?.items ?? []).reduce(
     (sum, i) => sum + (i.quantity ?? 0) * Number(i.unitPrice ?? 0),
-    0
+    0,
   );
 
   if (isLoading) {
@@ -126,7 +157,7 @@ export default function CartList({ onUpdateQuantity, onRemove }: ICartListProps)
 
   if (itemCount === 0) {
     return (
-      <div className="space-y-4 max-w-2xl" data-component-id={componentId}>
+      <div className="space-y-4 w-full" data-component-id={componentId}>
         <AppCard>
           <div className="py-8 text-center text-muted-foreground">
             <ShoppingCart className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -153,6 +184,7 @@ export default function CartList({ onUpdateQuantity, onRemove }: ICartListProps)
             onUpdateQuantity={onUpdateQuantity}
             onRemove={onRemove}
             t={t}
+            formatCurrencyFn={formatCurrencyFn}
           />
         ))}
       </div>
@@ -160,7 +192,9 @@ export default function CartList({ onUpdateQuantity, onRemove }: ICartListProps)
       {pagination.total > PAGINATION_LIMIT && (
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="text-sm text-muted-foreground">
-            Showing {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
+            Showing {(pagination.page - 1) * pagination.limit + 1} -{" "}
+            {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
+            {pagination.total}
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -186,7 +220,7 @@ export default function CartList({ onUpdateQuantity, onRemove }: ICartListProps)
       <AppCard>
         <div className="p-4 flex justify-between items-center">
           <span className="font-semibold">{t("total")}</span>
-          <span className="text-lg font-semibold">${grandTotal.toFixed(2)}</span>
+          <span className="text-lg font-semibold">{formatCurrencyFn(grandTotal)}</span>
         </div>
       </AppCard>
 

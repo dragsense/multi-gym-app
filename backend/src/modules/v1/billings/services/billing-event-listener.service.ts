@@ -17,6 +17,7 @@ import { BillingEmailService } from './billing-email.service';
 import { UsersService } from '@/modules/v1/users/users.service';
 import { BillingNotificationService } from './billing-notification.service';
 import { RequestContext } from '@/common/context/request-context';
+import { EScheduleFrequency, EScheduleStatus } from '@shared/enums';
 
 @Injectable()
 export class BillingEventListenerService implements OnModuleInit {
@@ -30,7 +31,7 @@ export class BillingEventListenerService implements OnModuleInit {
     private readonly billingEmailService: BillingEmailService,
     private readonly usersService: UsersService,
     private readonly billingNotificationService: BillingNotificationService,
-  ) {}
+  ) { }
 
   onModuleInit() {
     // Register billing actions with action registry
@@ -169,8 +170,8 @@ export class BillingEventListenerService implements OnModuleInit {
         // Update reminders if billing details changed (pass tenantId for multi-tenant support)
         if (
           billing.enableReminder &&
-          JSON.stringify(billing.reminderConfig) !==
-            JSON.stringify(oldBilling?.reminderConfig)
+          (JSON.stringify(billing.reminderConfig) !==
+            JSON.stringify(oldBilling?.reminderConfig) || billing.dueDate !== oldBilling?.dueDate)
         ) {
           await this.setupBillingReminders(billing, tenantId);
         }
@@ -465,7 +466,8 @@ export class BillingEventListenerService implements OnModuleInit {
   ): Promise<void> {
     try {
       const reminderDate = new Date(billing.dueDate);
-      reminderDate.setDate(reminderDate.getDate() - sendBefore);
+      reminderDate.setMinutes(reminderDate.getMinutes() - sendBefore);
+
 
       // Skip if reminder time has already passed
       if (reminderDate <= new Date()) {
@@ -475,13 +477,18 @@ export class BillingEventListenerService implements OnModuleInit {
         return;
       }
 
+      const timeOfDay = reminderDate.toISOString().substring(11, 16);
+
+
       const scheduleData = {
         title: `Billing Reminder - ${billing.title}`,
         description: `Reminder for ${billing.title} due on ${billing.dueDate.toISOString()}`,
         action: 'send-billing-reminder',
         entityId: billing.id,
-        nextRunDate: reminderDate.toISOString(),
-        status: 'active' as any,
+        frequency: EScheduleFrequency.ONCE,
+        status: EScheduleStatus.ACTIVE,
+        startDate: reminderDate.toISOString(),
+        timeOfDay: timeOfDay,
         retryOnFailure: false,
         tenantId, // Include tenant context for multi-tenant database routing
         data: {

@@ -15,12 +15,14 @@ export interface IProductTypeFormModalExtraProps {
   onClose: () => void;
 }
 
-interface IProductTypeFormModalProps
-  extends THandlerComponentProps<
-    TFormHandlerStore<TProductTypeData, unknown, IProductTypeFormModalExtraProps>
-  > {}
+interface IProductTypeFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<TProductTypeData, unknown, IProductTypeFormModalExtraProps>
+> {}
 
-export default function ProductTypeFormModal({ storeKey, store }: IProductTypeFormModalProps) {
+export default function ProductTypeFormModal({
+  storeKey,
+  store,
+}: IProductTypeFormModalProps) {
   const componentId = useId();
   const [, startTransition] = useTransition();
   const { t } = useI18n();
@@ -28,7 +30,8 @@ export default function ProductTypeFormModal({ storeKey, store }: IProductTypeFo
   if (!store) {
     return (
       <div>
-        {buildSentence(t, "form", "store")} "{storeKey}" {buildSentence(t, "not", "found")}.
+        {buildSentence(t, "form", "store")} "{storeKey}"{" "}
+        {buildSentence(t, "not", "found")}.
       </div>
     );
   }
@@ -48,10 +51,13 @@ export default function ProductTypeFormModal({ storeKey, store }: IProductTypeFo
         placeholder: "Enter name",
       },
     }),
-    [storeFields, t]
+    [storeFields, t],
   );
 
-  const inputs = useInput<TProductTypeData>({ fields, showRequiredAsterisk: true });
+  const inputs = useInput<TProductTypeData>({
+    fields,
+    showRequiredAsterisk: true,
+  });
 
   const onOpenChange = (state: boolean) => {
     if (!state) startTransition(onClose);
@@ -60,7 +66,11 @@ export default function ProductTypeFormModal({ storeKey, store }: IProductTypeFo
   const footer = useMemo(
     () => (
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => startTransition(onClose)}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => startTransition(onClose)}
+        >
           {t("cancel")}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
@@ -69,7 +79,7 @@ export default function ProductTypeFormModal({ storeKey, store }: IProductTypeFo
         </Button>
       </div>
     ),
-    [onClose, isSubmitting, isEditing, t, startTransition]
+    [onClose, isSubmitting, isEditing, t, startTransition],
   );
 
   return (
@@ -79,7 +89,7 @@ export default function ProductTypeFormModal({ storeKey, store }: IProductTypeFo
           ? buildSentence(t, "edit", "product", "type")
           : buildSentence(t, "add", "product", "type")
       }
-      description={isEditing ? "Edit product type." : "Add a new product type."}
+      // description={isEditing ? "Edit product type." : "Add a new product type."}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}

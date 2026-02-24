@@ -10,6 +10,8 @@ import type { TSingleHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
+import { useUserSettings } from "@/hooks/use-user-settings";
+import { formatCurrency } from "@/lib/utils";
 
 export type TStoreProductViewExtraProps = Record<string, unknown>;
 
@@ -20,6 +22,7 @@ export default function StoreProductView({ storeKey, store }: IStoreProductViewP
   const componentId = useId();
   const [, startTransition] = useTransition();
   const { t } = useI18n();
+  const { settings } = useUserSettings();
 
   if (!store) {
     return (
@@ -79,7 +82,14 @@ export default function StoreProductView({ storeKey, store }: IStoreProductViewP
                 <div className="flex items-center gap-1.5">
                   <DollarSign className="w-4 h-4" />
                   <span className="font-semibold text-foreground">
-                    ${Number(product.defaultPrice ?? 0).toFixed(2)}
+                    {formatCurrency(
+                      Number(product.defaultPrice ?? 0),
+                      undefined,
+                      undefined,
+                      2,
+                      2,
+                      settings
+                    )}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">

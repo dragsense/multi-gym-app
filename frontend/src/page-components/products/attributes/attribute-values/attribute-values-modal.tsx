@@ -22,10 +22,14 @@ import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 import type { IAttribute } from "@shared/interfaces/products/attribute.interface";
 
-interface IAttributeValuesModalProps
-  extends THandlerComponentProps<TListHandlerStore<unknown, unknown, Record<string, unknown>>> { }
+interface IAttributeValuesModalProps extends THandlerComponentProps<
+  TListHandlerStore<unknown, unknown, Record<string, unknown>>
+> {}
 
-export default function AttributeValuesModal({ storeKey, store }: IAttributeValuesModalProps) {
+export default function AttributeValuesModal({
+  storeKey,
+  store,
+}: IAttributeValuesModalProps) {
   const componentId = useId();
   const [, startTransition] = useTransition();
   const queryClient = useQueryClient();
@@ -38,7 +42,7 @@ export default function AttributeValuesModal({ storeKey, store }: IAttributeValu
       action: s.action,
       setAction: s.setAction,
       extra: s.extra,
-    }))
+    })),
   );
 
   const attribute = extra?.attribute as IAttribute | undefined;
@@ -49,18 +53,24 @@ export default function AttributeValuesModal({ storeKey, store }: IAttributeValu
   if (!isOpen || !attribute) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} data-component-id={componentId}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => !open && handleClose()}
+      data-component-id={componentId}
+    >
       <DialogContent className="min-w-4xl max-h-[90vh] overflow-y-auto">
         <AppDialog
           title={buildSentence(t, "manage", "attribute", "values")}
-          description={buildSentence(t, "manage", "attribute", "values", "for", "attribute")}
+          // description={buildSentence(t, "manage", "attribute", "values", "for", "attribute")}
         >
           <SingleHandler<IAttributeValue, TAttributeValuesExtraProps>
             queryFn={fetchAttributeValue}
             initialParams={{}}
             storeKey={AV_STORE_KEY}
             SingleComponent={() => null}
-            actionComponents={[{ action: "createOrUpdate", comp: AttributeValueForm }]}
+            actionComponents={[
+              { action: "createOrUpdate", comp: AttributeValueForm },
+            ]}
             singleProps={{ attribute }}
           />
           <ListHandler<
@@ -70,16 +80,23 @@ export default function AttributeValuesModal({ storeKey, store }: IAttributeValu
             IAttributeValue
           >
             queryFn={(params) => {
-              if (attribute) return fetchAttributeValuesByAttribute(attribute.id, params);
+              if (attribute)
+                return fetchAttributeValuesByAttribute(attribute.id, params);
               return Promise.reject(new Error("Attribute ID is required"));
             }}
-            initialParams={{ _relations: "attribute", sortBy: "createdAt", sortOrder: "DESC" }}
+            initialParams={{
+              _relations: "attribute",
+              sortBy: "createdAt",
+              sortOrder: "DESC",
+            }}
             ListComponent={AttributeValuesList}
             dto={AttributeValueListDto}
             deleteFn={deleteAttributeValue}
             onDeleteSuccess={() => {
               startTransition(() => {
-                queryClient.invalidateQueries({ queryKey: [AV_STORE_KEY + "-list"] });
+                queryClient.invalidateQueries({
+                  queryKey: [AV_STORE_KEY + "-list"],
+                });
               });
             }}
             storeKey={AV_STORE_KEY}

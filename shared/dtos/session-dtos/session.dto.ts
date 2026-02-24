@@ -293,9 +293,7 @@ export class CreateSessionDto {
 }
 
 // Re-define UpdateSessionDto to exclude 'notes'
-export class UpdateSessionDto extends PartialType(
-  OmitType(CreateSessionDto, ["notes"] as const)
-) {
+export class UpdateSessionDto extends PartialType(CreateSessionDto) {
   // update scope
   @ApiPropertyOptional({
     example: EUpdateSessionScope.ALL,

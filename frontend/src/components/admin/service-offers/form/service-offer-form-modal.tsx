@@ -7,7 +7,10 @@ import { type FormInputs, useInput } from "@/hooks/use-input";
 import { useI18n } from "@/hooks/use-i18n";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { EUserLevels } from "@shared/enums";
-import { useSearchableTrainers, useSearchableTrainerServices } from "@/hooks/use-searchable";
+import {
+  useSearchableTrainers,
+  useSearchableTrainerServices,
+} from "@/hooks/use-searchable";
 import { SearchableInputWrapper } from "@/components/shared-ui/searchable-input-wrapper";
 import type { TCustomInputWrapper } from "@/@types/form/field-config.type";
 import type { StaffDto, TrainerServiceDto } from "@shared/dtos";
@@ -16,7 +19,10 @@ import type { StaffDto, TrainerServiceDto } from "@shared/dtos";
 import type { TFormHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
 import type { IMessageResponse } from "@shared/interfaces/api/response.interface";
-import type { TCreateServiceOfferData, TUpdateServiceOfferData } from "@shared/types/service-offer.type";
+import type {
+  TCreateServiceOfferData,
+  TUpdateServiceOfferData,
+} from "@shared/types/service-offer.type";
 import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 
 // Components
@@ -29,7 +35,13 @@ export interface IServiceOfferFormModalExtraProps {
   onClose: () => void;
 }
 
-interface IServiceOfferFormModalProps extends THandlerComponentProps<TFormHandlerStore<TCreateServiceOfferData | TUpdateServiceOfferData, IMessageResponse, IServiceOfferFormModalExtraProps>> { }
+interface IServiceOfferFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<
+    TCreateServiceOfferData | TUpdateServiceOfferData,
+    IMessageResponse,
+    IServiceOfferFormModalExtraProps
+  >
+> {}
 
 // Custom components
 const TrainerSelect = React.memo((props: TCustomInputWrapper) => {
@@ -95,6 +107,21 @@ const ServiceOfferFormModal = React.memo(function ServiceOfferFormModal({
     const baseFields = fields as TFieldConfigObject<TCreateServiceOfferData>;
     return {
       ...baseFields,
+      name: {
+        ...baseFields.name,
+        placeholder: t("Enter Name"),
+      },
+      offerPrice: {
+        ...baseFields.offerPrice,
+        label: t("Offer Price"),
+        placeholder: t("Enter Offer Price"),
+      },
+      discount: {
+        ...baseFields.discount,
+        label: t("Discount"),
+        placeholder: t("Enter Discount"),
+      },
+
       trainer: {
         ...baseFields.trainer,
         type: "custom" as const,
@@ -103,6 +130,7 @@ const ServiceOfferFormModal = React.memo(function ServiceOfferFormModal({
       },
       trainerService: {
         ...baseFields.trainerService,
+        label: t("Trainer Service"),
         type: "custom" as const,
         Component: TrainerServiceSelect,
       },
@@ -120,29 +148,35 @@ const ServiceOfferFormModal = React.memo(function ServiceOfferFormModal({
     }
   };
 
-  const formButtons = useMemo(() => (
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          startTransition(() => onClose());
-        }}
-      >
-        {t('cancel')}
-      </Button>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? t('updateServiceOffer') : t('createServiceOffer')}
-      </Button>
-    </div>
-  ), [onClose, isSubmitting, isEditing, t, startTransition]);
+  const formButtons = useMemo(
+    () => (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={(e) => {
+            e.preventDefault();
+            startTransition(() => onClose());
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEditing ? t("updateServiceOffer") : t("createServiceOffer")}
+        </Button>
+      </div>
+    ),
+    [onClose, isSubmitting, isEditing, t, startTransition],
+  );
 
   return (
-    <ModalForm<TCreateServiceOfferData | TUpdateServiceOfferData, IMessageResponse, IServiceOfferFormModalExtraProps>
-      title={isEditing ? t('updateServiceOffer') : t('createServiceOffer')}
-      description={isEditing ? t('updateServiceOfferInformation') : t('createNewServiceOffer')}
+    <ModalForm<
+      TCreateServiceOfferData | TUpdateServiceOfferData,
+      IMessageResponse,
+      IServiceOfferFormModalExtraProps
+    >
+      title={isEditing ? t("updateServiceOffer") : t("createServiceOffer")}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -152,10 +186,9 @@ const ServiceOfferFormModal = React.memo(function ServiceOfferFormModal({
     >
       <div className="space-y-6">
         {/* Basic Info */}
-        <div>
-          <h3 className="text-sm font-semibold mb-3">{t('serviceOfferDetails')}</h3>
-          <div className="grid grid-cols-1 gap-4">
-            {inputs.name}
+        <div className="space-y-4">
+          {inputs.name}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {inputs.offerPrice}
             {inputs.discount}
             {inputs.trainerService}
@@ -164,10 +197,9 @@ const ServiceOfferFormModal = React.memo(function ServiceOfferFormModal({
           </div>
         </div>
       </div>
-      <FormErrors />
+      {/* <FormErrors /> */}
     </ModalForm>
   );
 });
 
 export default ServiceOfferFormModal;
-

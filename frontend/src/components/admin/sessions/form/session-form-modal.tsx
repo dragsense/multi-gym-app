@@ -103,7 +103,7 @@ const LocationSelect = React.memo((props: TCustomInputWrapper) => {
   const searchableLocations = useSearchableLocations({});
   const { t } = useI18n();
   const selectedLocation = getSelectedLocation();
-  
+
   // Set default value if location is selected in localStorage
   React.useEffect(() => {
     if (selectedLocation && !props.value && props.onChange) {
@@ -145,16 +145,16 @@ const SessionDateTimeSelect = React.memo((props: TCustomInputWrapper) => {
 // ServiceOfferSelect component
 const ServiceOfferSelect = React.memo((props: TCustomInputWrapper) => {
   const { setValue, watch } = useFormContext<TSessionData | TUpdateSessionData>();
-  
+
   const handleServiceOfferChange = (value: IServiceOffer | null) => {
     props.onChange(value);
-    
+
     // Set duration to 60 if service offer is selected and duration is not set
     if (value && !watch("duration")) {
       setValue("duration", 60, { shouldValidate: false });
     }
   };
-  
+
   return (
     <ServiceOfferListSelector
       value={(props.value as IServiceOffer) || null}
@@ -166,6 +166,7 @@ const ServiceOfferSelect = React.memo((props: TCustomInputWrapper) => {
 
 import type { IMember } from "@shared/interfaces/member.interface";
 import type { IStaff } from "@shared/interfaces/staff.interface";
+import { useShallow } from "zustand/shallow";
 
 export interface ISessionFormModalExtraProps {
   open: boolean;
@@ -181,7 +182,7 @@ interface ISessionFormModalProps
       ISessionResponse,
       ISessionFormModalExtraProps
     >
-  > {}
+  > { }
 
 const SessionFormModal = React.memo(function SessionFormModal({
   storeKey,
@@ -195,6 +196,17 @@ const SessionFormModal = React.memo(function SessionFormModal({
   const { settings } = useUserSettings();
   const { t } = useI18n();
 
+  if (!store) {
+    return (
+      <div>
+        {buildSentence(t, "form", "store")} "{storeKey}"{" "}
+        {buildSentence(t, "not", "found")}.{" "}
+        {buildSentence(t, "did", "you", "forget", "to", "register", "it")}?
+      </div>
+    );
+  }
+
+
   // Stepper state
   const [currentStep, setCurrentStep] = useState(1);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -205,18 +217,30 @@ const SessionFormModal = React.memo(function SessionFormModal({
     isRecurringSession: false,
     hasDateChanged: false,
   });
-  
+
+
+
+  const { isSubmitting, isEditing, extra, fields: storeFields, values } = store(
+    useShallow((state) => ({
+      isSubmitting: state.isSubmitting,
+      isEditing: state.isEditing,
+      extra: state.extra,
+      fields: state.fields,
+      values: state.values,
+    }))
+  );
+
+
   // Get store values safely
   const limits = settings?.limits;
-  const isSubmitting = store ? store((state) => state.isSubmitting) : false;
-  const isEditing = store ? store((state) => state.isEditing) : false;
-  const open = store ? store((state) => state.extra.open) : false;
-  const onClose = store ? store((state) => state.extra.onClose) : () => {};
+  const open = extra.open ?? false;
+  const onClose = store ? store((state) => state.extra.onClose) : () => { };
   const member = store ? store((state) => state.extra.member) : null;
   const trainer = store ? store((state) => state.extra.trainer) : null;
-  const storeFields = store ? store((state) => state.fields) : {};
 
-  const oldSessionValues = store ? store((state) => state.values) : null;
+  const oldSessionValues = values ?? {};
+
+
   // Reset stepper and modals when modal opens/closes
   useEffect(() => {
     if (open) {
@@ -253,7 +277,7 @@ const SessionFormModal = React.memo(function SessionFormModal({
         ...(storeFields as any).locationText,
         placeholder: t("location"),
       },
-  
+
       notes: {
         ...(storeFields as any).notes,
         placeholder: t("notes"),
@@ -272,6 +296,7 @@ const SessionFormModal = React.memo(function SessionFormModal({
         ...(storeFields as any).trainer,
         type: "custom" as const,
         Component: TrainerSelect,
+        //visible: () => user?.level !== EUserLevels.STAFF,
         disabled: !!trainer,
       },
       members: {
@@ -279,6 +304,7 @@ const SessionFormModal = React.memo(function SessionFormModal({
         type: "custom" as const,
         Component: MembersSelect,
         disabled: !!member,
+        //visible: () => user?.level !== EUserLevels.MEMBER,
       },
 /*       serviceOffer: {
         ...(storeFields as any).serviceOffer,
@@ -344,7 +370,7 @@ const SessionFormModal = React.memo(function SessionFormModal({
         visible: (ctx: { values: Record<string, unknown> }) =>
           ctx.values.enableRecurrence,
         label: buildSentence(t, "end", "date"),
-        
+
       },
       enableRecurrence: {
         ...(storeFields as any).enableRecurrence,

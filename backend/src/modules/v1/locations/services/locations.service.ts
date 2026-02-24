@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityManager, Repository, ILike } from 'typeorm'; // Added ILike
 import { ModuleRef } from '@nestjs/core';
 
 import { IMessageResponse } from '@shared/interfaces';
@@ -36,6 +36,30 @@ export class LocationsService extends CrudService<Location> {
     const { image: _, ...locationData } = createLocationDto;
 
     const location = await this.create(locationData, {
+      beforeCreate: async (
+        processedData: CreateLocationDto,
+        manager: EntityManager,
+      ) => {
+        // Normalize: remove leading/trailing spaces
+        const normalizedName = processedData.name?.trim();
+
+        // Check for existing name (Case-Insensitive)
+        const existingLocation = await manager.findOne(Location, {
+          where: {
+            name: ILike(normalizedName),
+          },
+        });
+
+        if (existingLocation) {
+          throw new ConflictException('Location name already exists');
+        }
+
+        // Return data with trimmed name
+        return {
+          ...processedData,
+          name: normalizedName,
+        };
+      },
       afterCreate: async (entity, manager) => {
         if (imageFile) {
           const uploaded = await this.fileUploadService.createFile(
@@ -51,7 +75,6 @@ export class LocationsService extends CrudService<Location> {
           entity.image = uploaded;
           await manager.save(entity);
 
-          // Save the file after entity is saved
           await this.fileUploadService.saveFiles([
             { file: imageFile, fileUpload: uploaded },
           ]);
@@ -70,6 +93,32 @@ export class LocationsService extends CrudService<Location> {
     const { image: _, ...locationData } = updateLocationDto;
 
     await this.update(id, locationData, {
+      beforeUpdate: async (
+        processedData: UpdateLocationDto,
+        existingEntity: Location,
+        manager: EntityManager,
+      ) => {
+        if (processedData.name) {
+          // Normalize the new name
+          const normalizedName = processedData.name.trim();
+
+          // Compare case-insensitively with current name
+          if (normalizedName.toLowerCase() !== existingEntity.name.toLowerCase()) {
+            const nameExists = await manager.findOne(Location, {
+              where: { name: ILike(normalizedName) },
+            });
+
+            if (nameExists) {
+              throw new ConflictException('Location name already exists');
+            }
+          }
+          
+          // Ensure the trimmed name is the one saved
+          processedData.name = normalizedName;
+        }
+
+        return processedData;
+      },
       afterUpdate: async (entity, manager) => {
         const location = await this.getSingle(id, {
           _relations: ['image'],
@@ -95,18 +144,19 @@ export class LocationsService extends CrudService<Location> {
           );
           entity.image = uploaded;
 
-          // Save the file after entity is saved
           await this.fileUploadService.saveFiles([
             { file: imageFile, fileUpload: uploaded },
           ]);
-        } else if (updateLocationDto.image == null || updateLocationDto.image === 'null') {
+        } else if (
+          updateLocationDto.image == null ||
+          updateLocationDto.image === 'null'
+        ) {
           oldImage = location.image || undefined;
           entity.image = null;
         }
 
         await manager.save(entity);
 
-        // Delete old image if replaced
         if (oldImage) {
           this.fileUploadService.deleteFiles([oldImage]).catch((error) => {
             this.logger.error(
@@ -120,4 +170,3 @@ export class LocationsService extends CrudService<Location> {
     return { message: 'Location updated successfully' };
   }
 }
-

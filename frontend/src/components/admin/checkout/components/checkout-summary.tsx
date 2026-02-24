@@ -7,6 +7,8 @@ import { Link } from "react-router-dom";
 import { SEGMENTS, ADMIN_ROUTES } from "@/config/routes.config";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { useCartAll } from "@/hooks/use-cart";
+import { formatCurrency } from "@/lib/utils";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 export interface ICheckoutSummaryProps {}
 
@@ -14,7 +16,11 @@ export function CheckoutSummary({}: ICheckoutSummaryProps) {
   const componentId = useId();
   const { t } = useI18n();
   const { user } = useAuthUser();
+  const { settings } = useUserSettings();
   const segment = SEGMENTS[user?.level ?? -1] ?? "/admin";
+
+  const formatCurrencyFn = (amount: number) =>
+    formatCurrency(amount, undefined, undefined, 2, 2, settings);
 
   const { items, isLoading } = useCartAll();
 
@@ -69,15 +75,14 @@ export function CheckoutSummary({}: ICheckoutSummaryProps) {
                 </div>
               </div>
               <span className="font-medium">
-                $
-                {((item.quantity ?? 0) * Number(item.unitPrice ?? 0)).toFixed(2)}
+                {formatCurrencyFn((item.quantity ?? 0) * Number(item.unitPrice ?? 0))}
               </span>
             </li>
           ))}
         </ul>
         <div className="border-t mt-4 pt-4 flex justify-between font-bold text-lg">
           <span>{t("total")}</span>
-          <span>${total.toFixed(2)}</span>
+          <span>{formatCurrencyFn(total)}</span>
         </div>
       </AppCard>
 

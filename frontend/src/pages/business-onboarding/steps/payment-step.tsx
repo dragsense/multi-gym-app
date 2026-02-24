@@ -1,26 +1,23 @@
 // React
-import { useState, useCallback, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 
 // Types
-import type { ISubscription } from "@shared/interfaces";
 import type { PaymentCardFormData } from "@/@types/payment.types";
 import { ESubscriptionFrequency } from "@shared/enums";
+import type { ISubscription } from "@shared/interfaces";
 
 // Components
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { AppCard } from "@/components/layout-ui/app-card";
 import {
-  StepNavigationButtons,
-  PaymentSuccessDialog,
   PaymentErrorDialog,
+  PaymentSuccessDialog,
+  StepNavigationButtons,
   SubscriptionSummary,
 } from "@/components/business-onboarding";
-import {
-  usePaymentProcessor,
-  PaymentModalAdapter,
-} from "@/payment-processors";
+import { AppCard } from "@/components/layout-ui/app-card";
+import { Button } from "@/components/ui/button";
+import { PaymentModalAdapter } from "@/payment-processors";
+import { ArrowLeft } from "lucide-react";
 
 // Services
 import { createBusinessSubscriptionBillingPaymentIntent } from "@/services/business/business-subscription-payment.api";
@@ -34,7 +31,7 @@ import { buildSentence } from "@/locales/translations";
 const normalizeSubscriptionPrice = (
   price: number,
   frequency: ESubscriptionFrequency,
-  discountPercentage?: number
+  discountPercentage?: number,
 ): number => {
   let normalizedPrice = price;
 
@@ -94,23 +91,24 @@ export function PaymentStep({
 
   const { cards, isLoadingPaymentCards } = usePaymentCards();
 
-  const { mutate: processPayment, isPending: isProcessingPayment } = useMutation({
-    mutationFn: (data: CreateBusinessSubscriptionPaymentIntentDto) =>
-      createBusinessSubscriptionBillingPaymentIntent(data),
-    onSuccess: () => {
-      setShowSuccessDialog(true);
-      setTimeout(() => {
-        handleSuccessContinue();
-      }, 1000);
-      setShowPaymentModal(false);
-    },
-    onError: (error: Error) => {
-      const message = error?.message || buildSentence(t, "payment", "failed");
-      setErrorMessage(message);
-      setShowErrorDialog(true);
-      setShowPaymentModal(false);
-    },
-  });
+  const { mutate: processPayment, isPending: isProcessingPayment } =
+    useMutation({
+      mutationFn: (data: CreateBusinessSubscriptionPaymentIntentDto) =>
+        createBusinessSubscriptionBillingPaymentIntent(data),
+      onSuccess: () => {
+        setShowSuccessDialog(true);
+        setTimeout(() => {
+          handleSuccessContinue();
+        }, 1000);
+        setShowPaymentModal(false);
+      },
+      onError: (error: Error) => {
+        const message = error?.message || buildSentence(t, "payment", "failed");
+        setErrorMessage(message);
+        setShowErrorDialog(true);
+        setShowPaymentModal(false);
+      },
+    });
 
   const handlePayClick = useCallback(
     async (paymentMethodId?: string, cardData?: PaymentCardFormData) => {
@@ -131,7 +129,7 @@ export function PaymentStep({
 
       processPayment(paymentData);
     },
-    [selectedSubscription, businessData, processPayment]
+    [selectedSubscription, businessData, processPayment],
   );
 
   const handleProceedToPayment = useCallback(() => {
@@ -146,10 +144,10 @@ export function PaymentStep({
 
   const totalAmount = selectedSubscription?.plan.price
     ? normalizeSubscriptionPrice(
-      selectedSubscription.plan.price,
-      selectedSubscription.frequency,
-      selectedSubscription.plan.discountPercentage
-    )
+        selectedSubscription.plan.price,
+        selectedSubscription.frequency,
+        selectedSubscription.plan.discountPercentage,
+      )
     : 0;
 
   const handleRetry = () => {
@@ -172,7 +170,9 @@ export function PaymentStep({
     return (
       <AppCard>
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Please complete previous steps first.</p>
+          <p className="text-muted-foreground">
+            Please complete previous steps first.
+          </p>
           {onBack && (
             <div className="mt-4">
               <Button onClick={onBack} variant="outline">
@@ -193,17 +193,18 @@ export function PaymentStep({
           onBack={onBack}
           onContinue={handleProceedToPayment}
           continueLabel="Proceed to Payment"
-          continueDisabled={
-            isLoadingPaymentCards ||
-            isProcessingPayment
-          }
-          continueLoading={isProcessingPayment}
+          // continueDisabled={
+          //   isLoadingPaymentCards ||
+          //   isProcessingPayment
+          // }
+          // continueLoading={isProcessingPayment}
           showBack={!!onBack}
         />
       }>
         <div className="space-y-4">
           <div className="text-sm text-muted-foreground">
-            Review your subscription details above and proceed to payment when ready.
+            Review your subscription details above and proceed to payment when
+            ready.
           </div>
 
           {/* Business Information */}

@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Body,
   Patch,
   Param,
   UseInterceptors,
@@ -29,6 +28,7 @@ import { AuthUser } from '@/decorators/user.decorator';
 import { User } from '@/common/base-user/entities/user.entity';
 import { SkipBusinessCheck } from '@/decorators/skip-business-check.decorator';
 import { MinUserLevel } from '@/decorators/level.decorator';
+import { MultipartBody } from '@/decorators/multipart-body.decorator';
 import { EUserLevels } from '@shared/enums';
 
 @ApiBearerAuth('access-token')
@@ -83,7 +83,7 @@ export class ProfilesController {
     @AuthUser() currentUser: User,
     @UploadedFiles()
     files: { image?: Express.Multer.File[]; documents?: Express.Multer.File[] },
-    @Body() updateProfileDto: OmitType<UpdateProfileDto, 'image' | 'documents'>,
+    @MultipartBody() updateProfileDto: OmitType<UpdateProfileDto, 'image' | 'documents'>,
   ) {
     let profile: Profile | null = null;
     try {
@@ -127,7 +127,7 @@ export class ProfilesController {
     @Param('id') id: string,
     @UploadedFiles()
     files: { image?: Express.Multer.File[]; documents?: Express.Multer.File[] },
-    @Body() updateProfileDto: OmitType<UpdateProfileDto, 'image' | 'documents'>,
+    @MultipartBody() updateProfileDto: OmitType<UpdateProfileDto, 'image' | 'documents'>,
   ) {
     let profile: Profile | null = null;
     try {

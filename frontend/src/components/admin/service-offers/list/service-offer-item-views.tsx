@@ -178,14 +178,14 @@ export const itemViews = ({
                   {item.discount > 0 ? (
                     <>
                       <span className="line-through text-muted-foreground mr-2">
-                        ${item.offerPrice}
+                        {formatCurrency(item.offerPrice)}
                       </span>
                       <span className="text-primary font-semibold">
-                        ${finalPrice.toFixed(2)}
+                        {formatCurrency(finalPrice)}
                       </span>
                     </>
                   ) : (
-                    <span>${item.offerPrice}</span>
+                    <span>{formatCurrency(item.offerPrice)}</span>
                   )}
                 </span>
               </div>

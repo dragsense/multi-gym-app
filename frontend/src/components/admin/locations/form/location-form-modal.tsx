@@ -10,7 +10,10 @@ import { useI18n } from "@/hooks/use-i18n";
 import type { TFormHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
 import type { IMessageResponse } from "@shared/interfaces/api/response.interface";
-import type { TCreateLocationData, TUpdateLocationData } from "@shared/types/location.type";
+import type {
+  TCreateLocationData,
+  TUpdateLocationData,
+} from "@shared/types/location.type";
 import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 import type { IFileUpload } from "@shared/interfaces/file-upload.interface";
 
@@ -25,7 +28,13 @@ export interface ILocationFormModalExtraProps {
   onClose: () => void;
 }
 
-interface ILocationFormModalProps extends THandlerComponentProps<TFormHandlerStore<TCreateLocationData | TUpdateLocationData, IMessageResponse, ILocationFormModalExtraProps>> { }
+interface ILocationFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<
+    TCreateLocationData | TUpdateLocationData,
+    IMessageResponse,
+    ILocationFormModalExtraProps
+  >
+> {}
 
 const LocationFormModal = React.memo(function LocationFormModal({
   storeKey,
@@ -47,19 +56,42 @@ const LocationFormModal = React.memo(function LocationFormModal({
 
   // React 19: Memoized fields for better performance with FileUpload component
   const memoizedFields = useMemo(() => {
-    const storeFields = fields as TFieldConfigObject<TCreateLocationData | TUpdateLocationData>;
+    const storeFields = fields as TFieldConfigObject<
+      TCreateLocationData | TUpdateLocationData
+    >;
     return {
       ...storeFields,
+      name: {
+        ...storeFields.name,
+        label: t("name"),
+        placeholder: t("Enter location name"),
+      },
+      address: {
+        ...storeFields.address,
+        label: t("address"),
+        placeholder: t("Enter location address"),
+      },
       image: {
         ...storeFields.image,
-        type: 'custom' as const,
-        Component: ({ value, onChange }: { value: File | IFileUpload | null, onChange: (file: File | null) => void }) => (
+        type: "custom" as const,
+        Component: ({
+          value,
+          onChange,
+        }: {
+          value: File | IFileUpload | null;
+          onChange: (file: File | null) => void;
+        }) => (
           <FileUpload
             value={value}
             onChange={onChange}
             variant="rectangle"
             maxSizeInMB={10}
-            acceptedTypes={['image/jpeg', 'image/jpg', 'image/png', 'image/webp']}
+            acceptedTypes={[
+              "image/jpeg",
+              "image/jpg",
+              "image/png",
+              "image/webp",
+            ]}
           />
         ),
       },
@@ -77,29 +109,36 @@ const LocationFormModal = React.memo(function LocationFormModal({
     }
   };
 
-  const formButtons = useMemo(() => (
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          startTransition(() => onClose());
-        }}
-      >
-        {t('cancel')}
-      </Button>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? t('updateLocation') : t('createLocation')}
-      </Button>
-    </div>
-  ), [onClose, isSubmitting, isEditing, t, startTransition]);
+  const formButtons = useMemo(
+    () => (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={(e) => {
+            e.preventDefault();
+            startTransition(() => onClose());
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEditing ? t("updateLocation") : t("createLocation")}
+        </Button>
+      </div>
+    ),
+    [onClose, isSubmitting, isEditing, t, startTransition],
+  );
 
   return (
-    <ModalForm<TCreateLocationData | TUpdateLocationData, IMessageResponse, ILocationFormModalExtraProps>
-      title={isEditing ? t('updateLocation') : t('createLocation')}
-      description={isEditing ? t('updateLocationInformation') : t('createNewLocation')}
+    <ModalForm<
+      TCreateLocationData | TUpdateLocationData,
+      IMessageResponse,
+      ILocationFormModalExtraProps
+    >
+      title={isEditing ? t("updateLocation") : t("createLocation")}
+      // description={isEditing ? t('updateLocationInformation') : t('createNewLocation')}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -110,7 +149,7 @@ const LocationFormModal = React.memo(function LocationFormModal({
       <div className="space-y-6">
         {/* Basic Info */}
         <div>
-          <h3 className="text-sm font-semibold mb-3">{t('locationDetails')}</h3>
+          <h3 className="text-sm font-semibold mb-3">{t("locationDetails")}</h3>
           <div className="grid grid-cols-1 gap-4">
             {inputs.name}
             {inputs.address}
@@ -118,10 +157,9 @@ const LocationFormModal = React.memo(function LocationFormModal({
           </div>
         </div>
       </div>
-      <FormErrors />
+      {/* <FormErrors /> */}
     </ModalForm>
   );
 });
 
 export default LocationFormModal;
-

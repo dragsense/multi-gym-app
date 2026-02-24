@@ -50,17 +50,21 @@ export default function CartPage() {
   });
 
   const onUpdateQuantity = useCallback(
-    (productId: string, productVariantId: string | undefined, quantity: number) => {
+    (
+      productId: string,
+      productVariantId: string | undefined,
+      quantity: number,
+    ) => {
       updateMutation.mutate({ productId, productVariantId, quantity });
     },
-    [updateMutation]
+    [updateMutation],
   );
 
   const onRemove = useCallback(
     (productId: string, productVariantId?: string) => {
       removeMutation.mutate({ productId, productVariantId });
     },
-    [removeMutation]
+    [removeMutation],
   );
 
   return (

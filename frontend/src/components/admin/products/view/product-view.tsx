@@ -28,7 +28,7 @@ import type { TSingleHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
 import { useI18n } from "@/hooks/use-i18n";
 import { useUserSettings } from "@/hooks/use-user-settings";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import { buildSentence } from "@/locales/translations";
 import { EAttributeType } from "@shared/enums";
 
@@ -127,7 +127,16 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <DollarSign className="w-4 h-4" />
-            <span className="font-semibold text-foreground">{Number(product.defaultPrice ?? 0).toFixed(2)}</span>
+            <span className="font-semibold text-foreground">
+              {formatCurrency(
+                Number(product.defaultPrice ?? 0),
+                undefined,
+                undefined,
+                2,
+                2,
+                settings as any
+              )}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <Package className="w-4 h-4" />
@@ -171,7 +180,16 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
               <DollarSign className="w-4 h-4 text-muted-foreground shrink-0" />
               <div>
                 <div className="text-xs text-muted-foreground">{t("defaultPrice")}</div>
-                <div className="font-medium">{Number(product.defaultPrice ?? 0).toFixed(2)}</div>
+              <div className="font-medium">
+                {formatCurrency(
+                  Number(product.defaultPrice ?? 0),
+                  undefined,
+                  undefined,
+                  2,
+                  2,
+                  settings as any
+                )}
+              </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -347,7 +365,14 @@ function VariantRow({ variant, attributeColumns, t }: IVariantRowProps) {
       <TableCell className="text-sm">
         <div className="flex items-center gap-1">
           <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
-          {Number(variant.price ?? 0).toFixed(2)}
+          {formatCurrency(
+            Number(variant.price ?? 0),
+            undefined,
+            undefined,
+            2,
+            2,
+            settings as any
+          )}
         </div>
       </TableCell>
       <TableCell className="text-sm">

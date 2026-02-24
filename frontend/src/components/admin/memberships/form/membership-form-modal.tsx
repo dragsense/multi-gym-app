@@ -131,7 +131,6 @@ const DoorSelect = React.memo((props: TCustomInputWrapper) => {
                 }}
                 shouldFilter={false}
                 multiple={true}
-                disabled={isAllDoors}
             />
         </div>
     );
@@ -158,7 +157,6 @@ const TermsAndConditionsButton = React.memo((props: TCustomInputWrapper) => {
     return (
         <>
             <div className="space-y-2">
-                <Label>{buildSentence(t, 'terms', 'and', 'conditions')}</Label>
                 <Button
                     type="button"
                     variant="outline"
@@ -397,7 +395,7 @@ const MembershipFormModal = React.memo(function MembershipFormModal({
             ...(storeFields as TFieldConfigObject<TMembershipData>).termsAndConditions,
             type: "custom" as const,
             Component: TermsAndConditionsButton,
-            label: buildSentence(t, 'terms', 'and', 'conditions'),
+            label: "",
         },
     } as TFieldConfigObject<TMembershipData>), [storeFields, t]);
 
@@ -494,7 +492,7 @@ const MembershipFormModal = React.memo(function MembershipFormModal({
                     {inputs.settings && (
                         <div>
                             <h3 className="text-sm font-semibold mb-3">{t('otherSettings')}</h3>
-                            {inputs.settings}
+                            {inputs.settings as React.ReactNode}
                         </div>
                     )}
 
@@ -502,17 +500,18 @@ const MembershipFormModal = React.memo(function MembershipFormModal({
 
                     <div>
                       
-                            <h3 className="text-sm font-semibold mb-3">{buildSentence(t, 'accessHours', 'and', 'accessFeatures')}</h3>
+                            <h3 className="text-sm font-semibold mb-3">{buildSentence(t, 'access')}</h3>
                       
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                             {inputs.accessHours}
                             {inputs.accessFeatures}
+                            {inputs.doors}
                         </div>
                     </div>
 
                     {/* Terms and Conditions */}
                     <div>
-                        <h3 className="text-sm font-semibold mb-3">{buildSentence(t, 'terms', 'and', 'conditions')}</h3>
+                        <h3 className="text-sm font-semibold mb-3">{buildSentence(t, 'termsAndConditions')}</h3>
                         <div className="space-y-2">
                             {inputs.termsAndConditions}
                         </div>

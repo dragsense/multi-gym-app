@@ -6,7 +6,10 @@ import { Loader2 } from "lucide-react";
 import { type FormInputs, useInput } from "@/hooks/use-input";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
-import { useSearchableDeviceReaders, useSearchableCameras } from "@/hooks/use-searchable";
+import {
+  useSearchableDeviceReaders,
+  useSearchableCameras,
+} from "@/hooks/use-searchable";
 import type { TCustomInputWrapper } from "@/@types/form/field-config.type";
 
 // Types
@@ -30,13 +33,18 @@ export interface IDoorFormModalExtraProps {
   locationId?: string;
 }
 
-interface IDoorFormModalProps extends THandlerComponentProps<TFormHandlerStore<TDoorData, TDoorResponse, IDoorFormModalExtraProps>> { }
+interface IDoorFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<TDoorData, TDoorResponse, IDoorFormModalExtraProps>
+> {}
 
 // Custom component for device reader select (filtered by location)
 const DeviceReaderSelect = React.memo(
   ({ locationId, ...props }: TCustomInputWrapper & { locationId?: string }) => {
     const { t } = useI18n();
-    const searchable = useSearchableDeviceReaders({ locationId, initialParams: { limit: 100 } });
+    const searchable = useSearchableDeviceReaders({
+      locationId,
+      initialParams: { limit: 100 },
+    });
 
     return (
       <SearchableInputWrapper<IDeviceReader>
@@ -44,26 +52,31 @@ const DeviceReaderSelect = React.memo(
         modal={true}
         useSearchable={() => searchable}
         getLabel={(item) => {
-          if (!item) return buildSentence(t, 'select', 'device', 'reader');
+          if (!item) return buildSentence(t, "select", "device", "reader");
           return `${item.deviceName} (${item.macAddress})`;
         }}
         getKey={(item) => item.id.toString()}
-        getValue={(item) => ({
-          id: item.id,
-          deviceName: item.deviceName,
-          macAddress: item.macAddress,
-        } as IDeviceReader)}
+        getValue={(item) =>
+          ({
+            id: item.id,
+            deviceName: item.deviceName,
+            macAddress: item.macAddress,
+          }) as IDeviceReader
+        }
         shouldFilter={false}
       />
     );
-  }
+  },
 );
 
 // Custom component for camera select (filtered by location)
 const CameraSelect = React.memo(
   ({ locationId, ...props }: TCustomInputWrapper & { locationId?: string }) => {
     const { t } = useI18n();
-    const searchable = useSearchableCameras({ locationId, initialParams: { limit: 100 } });
+    const searchable = useSearchableCameras({
+      locationId,
+      initialParams: { limit: 100 },
+    });
 
     return (
       <SearchableInputWrapper<ICamera>
@@ -71,18 +84,20 @@ const CameraSelect = React.memo(
         modal={true}
         useSearchable={() => searchable}
         getLabel={(item) => {
-          if (!item) return buildSentence(t, 'select', 'camera');
-          return item.name || '';
+          if (!item) return buildSentence(t, "select", "camera");
+          return item.name || "";
         }}
         getKey={(item) => item.id.toString()}
-        getValue={(item) => ({
-          id: item.id,
-          name: item.name,
-        } as ICamera)}
+        getValue={(item) =>
+          ({
+            id: item.id,
+            name: item.name,
+          }) as ICamera
+        }
         shouldFilter={false}
       />
     );
-  }
+  },
 );
 
 const DoorFormModal = React.memo(function DoorFormModal({
@@ -94,7 +109,7 @@ const DoorFormModal = React.memo(function DoorFormModal({
   const { t } = useI18n();
 
   if (!store) {
-    return `${buildSentence(t, 'form', 'store')} "${storeKey}" ${buildSentence(t, 'not', 'found')}. ${buildSentence(t, 'did', 'you', 'forget', 'to', 'register', 'it')}?`;
+    return `${buildSentence(t, "form", "store")} "${storeKey}" ${buildSentence(t, "not", "found")}. ${buildSentence(t, "did", "you", "forget", "to", "register", "it")}?`;
   }
 
   const open = store((state) => state.extra.open);
@@ -109,33 +124,37 @@ const DoorFormModal = React.memo(function DoorFormModal({
       ...fields,
       name: {
         ...(fields as TFieldConfigObject<TDoorData>).name,
-        label: buildSentence(t, 'name'),
-        placeholder: buildSentence(t, 'enter', 'name'),
+        label: buildSentence(t, "name"),
+        placeholder: buildSentence(t, "enter", "name"),
       },
       description: {
         ...(fields as TFieldConfigObject<TDoorData>).description,
-        label: buildSentence(t, 'description'),
-        placeholder: buildSentence(t, 'enter', 'description'),
+        label: buildSentence(t, "description"),
+        placeholder: buildSentence(t, "enter", "description"),
       },
       locationId: {
         ...(fields as TFieldConfigObject<TDoorData>).locationId,
-        label: buildSentence(t, 'location'),
-        placeholder: buildSentence(t, 'select', 'location'),
+        label: buildSentence(t, "location"),
+        placeholder: buildSentence(t, "select", "location"),
         ...(locationId && { value: locationId }),
       },
       deviceReader: {
         ...(fields as TFieldConfigObject<TDoorData>).deviceReader,
-        type: 'custom' as const,
-        Component: (p: TCustomInputWrapper) => <DeviceReaderSelect {...p} locationId={locationId} />,
-        label: buildSentence(t, 'device', 'reader'),
-        placeholder: buildSentence(t, 'select', 'device', 'reader'),
+        type: "custom" as const,
+        Component: (p: TCustomInputWrapper) => (
+          <DeviceReaderSelect {...p} locationId={locationId} />
+        ),
+        label: buildSentence(t, "device", "reader"),
+        placeholder: buildSentence(t, "select", "device", "reader"),
       },
       camera: {
         ...(fields as TFieldConfigObject<TDoorData>).camera,
-        type: 'custom' as const,
-        Component: (p: TCustomInputWrapper) => <CameraSelect {...p} locationId={locationId} />,
-        label: buildSentence(t, 'camera'),
-        placeholder: buildSentence(t, 'select', 'camera'),
+        type: "custom" as const,
+        Component: (p: TCustomInputWrapper) => (
+          <CameraSelect {...p} locationId={locationId} />
+        ),
+        label: buildSentence(t, "camera"),
+        placeholder: buildSentence(t, "select", "camera"),
       },
     } as TFieldConfigObject<TDoorData>;
   }, [fields, t, locationId]);
@@ -151,29 +170,32 @@ const DoorFormModal = React.memo(function DoorFormModal({
     }
   };
 
-  const formButtons = useMemo(() => (
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          startTransition(() => onClose());
-        }}
-      >
-        {t('cancel')}
-      </Button>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? t('update') : t('add')}
-      </Button>
-    </div>
-  ), [onClose, isSubmitting, isEditing, t, startTransition]);
+  const formButtons = useMemo(
+    () => (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={(e) => {
+            e.preventDefault();
+            startTransition(() => onClose());
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEditing ? t("update") : t("add")}
+        </Button>
+      </div>
+    ),
+    [onClose, isSubmitting, isEditing, t, startTransition],
+  );
 
   return (
     <ModalForm<TDoorData, TDoorResponse, IDoorFormModalExtraProps>
-      title={buildSentence(t, isEditing ? 'edit' : 'add', 'door')}
-      description={buildSentence(t, isEditing ? 'edit' : 'add', 'a', 'new', 'door')}
+      title={buildSentence(t, isEditing ? "edit" : "add", "door")}
+      // description={buildSentence(t, isEditing ? 'edit' : 'add', 'a', 'new', 'door')}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -187,9 +209,7 @@ const DoorFormModal = React.memo(function DoorFormModal({
           {inputs.deviceReader as React.ReactNode}
           {inputs.camera as React.ReactNode}
         </div>
-        <div>
-          {inputs.description}
-        </div>
+        <div>{inputs.description}</div>
       </div>
       <FormErrors />
     </ModalForm>

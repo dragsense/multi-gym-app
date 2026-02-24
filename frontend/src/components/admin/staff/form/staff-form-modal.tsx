@@ -36,13 +36,14 @@ interface IStaffFormModalProps extends THandlerComponentProps<TFormHandlerStore<
 // Custom component for roles multi-select
 const RolesSelect = React.memo(
   (props: TCustomInputWrapper) => {
+    const { t } = useI18n();
     return (
       <SearchableInputWrapper<IRole>
         {...props}
         modal={true}
         useSearchable={() => useSearchableRoles({ initialParams: { limit: 100 } })}
         getLabel={(item) => {
-          if (!item) return 'Select Role';
+          if (!item) return buildSentence(t, 'select', 'role');
           return item.name || item.code || 'Unknown Role';
         }}
         getKey={(item) => item.id.toString()}
@@ -57,19 +58,21 @@ const RolesSelect = React.memo(
 // Custom component for permissions multi-select
 const PermissionsSelect = React.memo(
   (props: TCustomInputWrapper) => {
+    const { t } = useI18n();
     return (
       <SearchableInputWrapper<IPermission>
         {...props}
         modal={true}
         useSearchable={() => useSearchablePermissions({ initialParams: { limit: 100 } })}
         getLabel={(item) => {
-          if (!item) return 'Select Permission';
+          if (!item) return buildSentence(t, 'select', 'permission');
           return item.displayName || item.name || 'Unknown Permission';
         }}
         getKey={(item) => item.id.toString()}
         getValue={(item) => { return { id: item.id, displayName: item.displayName, name: item.name } }}
         shouldFilter={false}
         multiple={true}
+        allowSelectAll={true}
       />
     );
   }
@@ -141,7 +144,7 @@ const StaffFormModal = React.memo(function StaffFormModal({
             {user.lastName as ReactNode}
             {user.dateOfBirth as ReactNode}
             {user.gender as ReactNode}
-       
+
           </div>
          {/*  <div className="grid grid-cols-1 md:grid-cols-2 gap-4"> 
           {user.roles as ReactNode}
@@ -152,30 +155,78 @@ const StaffFormModal = React.memo(function StaffFormModal({
     };
 
     const baseFields = addRenderItem(storeFields, renderers) as TFieldConfigObject<TStaffData>;
-    
+
     const fieldsWithVisibility = {
       ...baseFields,
+      experience: {
+        ...baseFields.experience,
+        label: t('experience'),
+        placeholder: buildSentence(t, 'enter', 'experience'),
+      },
+      specialization: {
+        ...baseFields.specialization,
+        label: t('specialization'),
+        placeholder: buildSentence(t, 'enter', 'specialization'),
+      },
       isTrainer: {
         ...baseFields.isTrainer,
+        label: buildSentence(t, 'is', 'trainer'),
         visible: () => !isEditing, // Hide in edit mode
       },
       location: {
         ...(baseFields.location as any),
         type: 'custom' as const,
         Component: LocationSelect,
+        label: buildSentence(t, 'location'),
+        placeholder: buildSentence(t, 'select', 'location'),
+        disabled: !!getSelectedLocation(),
       },
       user: {
         ...(baseFields.user as any),
+        label: "",
         subFields: {
           ...(baseFields.user as any)?.subFields,
+          email: {
+            ...(baseFields.user as any)?.subFields?.email,
+            label: t('email'),
+            placeholder: buildSentence(t, 'enter', 'email'),
+          },
+          isActive: {
+            ...(baseFields.user as any)?.subFields?.isActive,
+            label: t('active') || 'Active',
+          },
+          firstName: {
+            ...(baseFields.user as any)?.subFields?.firstName,
+            label: t('FirstName'),
+            placeholder: buildSentence(t, 'enter', 'first', 'name'),
+          },
+          lastName: {
+            ...(baseFields.user as any)?.subFields?.lastName,
+            label: t('LastName'),
+            placeholder: buildSentence(t, 'enter', 'last', 'name'),
+          },
+          dateOfBirth: {
+            ...(baseFields.user as any)?.subFields?.dateOfBirth,
+            label: t('dateOfBirth'),
+            placeholder: buildSentence(t, 'select', 'date', 'of', 'birth'),
+          },
+          gender: {
+            ...(baseFields.user as any)?.subFields?.gender,
+            label: t('gender'),
+            placeholder: buildSentence(t, 'select', 'gender'),
+          },
           roles: {
             ...(baseFields.user as any)?.subFields?.roles,
             type: 'custom' as const,
+            label: t('roles'),
+            placeholder: buildSentence(t, 'select', 'role'),
             Component: RolesSelect,
           },
           permissions: {
             ...(baseFields.user as any)?.subFields?.permissions,
             type: 'custom' as const,
+            label: t('permissions'),
+            placeholder: buildSentence(t, 'select', 'permission'),
             Component: PermissionsSelect,
           },
         },
@@ -224,7 +275,7 @@ const StaffFormModal = React.memo(function StaffFormModal({
   return (
     <ModalForm<TStaffData, IStaff, IStaffFormModalExtraProps>
       title={buildSentence(t, isEditing ? 'edit' : 'add', 'staff', 'member')}
-      description={buildSentence(t, isEditing ? 'edit' : 'add', 'a', 'new', 'staff', 'member')}
+      // description={buildSentence(t, isEditing ? 'edit' : 'add', 'a', 'new', 'staff', 'member')}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -238,7 +289,7 @@ const StaffFormModal = React.memo(function StaffFormModal({
         </div>
 
         {inputs.isTrainer}
-        
+
         {(inputs.specialization || inputs.experience || inputs.location) && (
           <div>
             <h3 className="text-sm font-semibold mb-3">{buildSentence(t, 'staff', 'information') || 'Staff Information'}</h3>
@@ -250,8 +301,8 @@ const StaffFormModal = React.memo(function StaffFormModal({
           </div>
         )}
 
-   
-        
+
+
       </div>
     </ModalForm>
   );

@@ -107,7 +107,7 @@ const baseNavItems: NavItemGroup[] = [
         title: "sessions",
         url: ADMIN_ROUTES.SESSIONS,
         icon: Calendar,
-        roles: [EUserLevels.ADMIN, EUserLevels.MEMBER],
+        roles: [EUserLevels.ADMIN, EUserLevels.STAFF, EUserLevels.MEMBER],
         requiredResource: EResource.SESSIONS,
         requiredAction: ['read', 'manage'],
         requiredFeature: ESubscriptionFeatures.SESSIONS,
@@ -122,19 +122,24 @@ const baseNavItems: NavItemGroup[] = [
         requiredFeature: ESubscriptionFeatures.TASKS,
       },
       {
+        title: "checkins",
+        url: ADMIN_ROUTES.CHECKINS,
+        icon: LogIn,
+        roles: [EUserLevels.ADMIN, EUserLevels.STAFF, EUserLevels.MEMBER],
+        requiredResource: EResource.CHECKINS,
+        requiredAction: ['read', 'manage'],
+        requiredFeature: ESubscriptionFeatures.CHECKINS,
+      },
+    ],
+  },
+  {
+    groupTitle: "Support",
+    items: [
+      {
         title: "tickets",
         url: ADMIN_ROUTES.TICKETS,
         icon: MessageCircle,
         roles: [EUserLevels.SUPER_ADMIN, EUserLevels.PLATFORM_OWNER],
-      },
-      {
-        title: "checkins",
-        url: ADMIN_ROUTES.CHECKINS,
-        icon: LogIn,
-        roles: [EUserLevels.ADMIN, EUserLevels.MEMBER],
-        requiredResource: EResource.CHECKINS,
-        requiredAction: ['read', 'manage'],
-        requiredFeature: ESubscriptionFeatures.CHECKINS,
       },
     ],
   },
@@ -195,9 +200,10 @@ const baseNavItems: NavItemGroup[] = [
         title: "automation",
         url: ADMIN_ROUTES.AUTOMATION,
         icon: Bot,
-        roles: [],
-        requiredFeature: ESubscriptionFeatures.EMAIL_TEMPLATES,
-      }, 
+        roles: [EUserLevels.ADMIN, EUserLevels.STAFF],
+        requiredAction: 'read',
+        requiredFeature: ESubscriptionFeatures.EMAIL_TEMPLATES
+      },
     ],
   },
   {
@@ -240,21 +246,25 @@ const baseNavItems: NavItemGroup[] = [
         title: "emailTemplates",
         url: ADMIN_ROUTES.CMS.EMAIL_TEMPLATES,
         icon: Mail,
-        roles: [],
+        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.STAFF, EUserLevels.ADMIN,],
         requiredFeature: ESubscriptionFeatures.EMAIL_TEMPLATES,
-      }, 
+        requiredAction: 'read'
+      },
       {
         title: "pages",
         url: ADMIN_ROUTES.CMS.PAGES,
         icon: LayoutGrid,
-        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.ADMIN],
+        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.STAFF, EUserLevels.ADMIN],
         requiredFeature: ESubscriptionFeatures.PAGES,
+        requiredAction: 'read'
       },
       {
         title: "faqs",
         url: ADMIN_ROUTES.CMS.FAQS,
         icon: FileText,
         requiredFeature: ESubscriptionFeatures.FAQS,
+        roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.STAFF, EUserLevels.ADMIN],
+        requiredAction: 'read'
       },
     ],
   },
@@ -528,6 +538,12 @@ const filterNavItemsByRole = (
 ): NavItem[] =>
   items
     .filter((item) => {
+
+      // For other levels, check role-based access
+      if (item.roles && !item.roles.includes(level)) {
+        return false;
+      }
+
       // Check subscription feature requirement
       if (item.requiredFeature) {
         // For platform owner and super admin, skip feature check
@@ -541,16 +557,15 @@ const filterNavItemsByRole = (
         }
       }
 
+
+
       if (level === EUserLevels.STAFF) {
         if (item.requiredResource) {
           return canReadResource(user, item.requiredResource);
         }
       }
 
-      // For other levels, check role-based access
-      if (item.roles && !item.roles.includes(level)) {
-        return false;
-      }
+
 
       return true;
     })

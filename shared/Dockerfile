@@ -85,11 +85,6 @@ RUN pnpm run build
 WORKDIR /app/frontend
 RUN pnpm run build
 
-# Copy frontend build to the correct location for NestJS to serve
-# NestJS expects it at backend/dist/backend/client/dist
-RUN mkdir -p /app/backend/dist/backend/client && \
-    cp -r /app/frontend/dist /app/backend/dist/backend/client/dist
-
 # Production stage
 FROM node:22 AS prod
 WORKDIR /app
@@ -110,6 +105,7 @@ WORKDIR /app
 
 # Copy built backend (frontend is already inside dist/backend/client/dist)
 COPY --from=build /app/backend/dist ./backend/dist
+COPY --from=build /app/frontend/dist ./frontend/dist
 COPY --from=build /app/shared ./shared
 
 # Copy environment files

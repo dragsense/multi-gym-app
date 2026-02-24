@@ -20,6 +20,7 @@ export interface UserInputPropsWrapperProps<T> extends TCustomInputWrapper {
   getKey: (item: T) => string;
   getValue: (item: T) => T;
   shouldFilter?: boolean;
+  allowSelectAll?: boolean;
 }
 
 export const SearchableInputWrapper = <T,>({
@@ -33,6 +34,7 @@ export const SearchableInputWrapper = <T,>({
   getKey,
   getValue,
   shouldFilter = true,
+  allowSelectAll = false,
 }: UserInputPropsWrapperProps<T>) => {
   // React 19: Essential IDs and transitions
   const componentId = useId();
@@ -78,6 +80,7 @@ export const SearchableInputWrapper = <T,>({
         modal={modal}
         disabled={disabled}
         shouldFilter={shouldFilter}
+        allowSelectAll={allowSelectAll}
       />
     </div>
   );

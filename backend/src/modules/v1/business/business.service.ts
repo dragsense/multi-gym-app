@@ -283,9 +283,9 @@ export class BusinessService extends CrudService<Business> {
 
         // 5. Build redirect URL
         const host = this.configService.get('app.host') || 'localhost';
-        const port = process.env.SUBDOMAIN_PORT || '5173';
-        const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-        const redirectUrl = `${protocol}://${business.subdomain}.${host}:${port}/auth/impersonate?token=${impersonationToken}`;
+        const port = process.env.NODE_ENV === 'development' ? (process.env.SUBDOMAIN_PORT || '5173') : '';
+        const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+        const redirectUrl = `${protocol}://${business.subdomain}.${host}${port ? `:${port}` : ''}/auth/impersonate?token=${impersonationToken}`;
 
         return {
             redirectUrl,

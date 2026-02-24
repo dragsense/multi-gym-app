@@ -23,8 +23,8 @@ export class CreateServiceOfferDto {
     example: "Summer Special",
     description: "Service offer name",
   })
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty({message: "Service offer name is required"})
   @FieldType("text", true)
   name: string;
 
@@ -32,9 +32,9 @@ export class CreateServiceOfferDto {
     example: 100,
     description: "Offer price",
   })
-  @IsNotEmpty()
   @IsNumber()
   @Min(0)
+  @IsNotEmpty({message: "Offer price is required"})
   @FieldType("number", true)
   @Expose()
   @Type(() => Number)
@@ -79,7 +79,7 @@ export class CreateServiceOfferDto {
   @Expose()
   @Type(() => TrainerServiceDto)
   @FieldType("nested", true, TrainerServiceDto)
-  @IsNotEmpty()
+  @IsNotEmpty({message: "Trainer service is required"})
   trainerService: TrainerServiceDto;
 }
 

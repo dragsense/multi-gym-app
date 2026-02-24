@@ -16,6 +16,8 @@ import { useI18n } from "@/hooks/use-i18n";
 import { useTransition } from "react";
 import { SEGMENTS, ADMIN_ROUTES } from "@/config/routes.config";
 import { useAuthUser } from "@/hooks/use-auth-user";
+import { useUserSettings } from "@/hooks/use-user-settings";
+import { formatCurrency } from "@/lib/utils";
 import { EAttributeType } from "@shared/enums";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart } from "@/services/cart.api";
@@ -31,6 +33,7 @@ interface IStoreProductCardProps {
 export function StoreProductCard({ product, onView, componentId }: IStoreProductCardProps) {
     const { t } = useI18n();
     const { user } = useAuthUser();
+    const { settings } = useUserSettings();
     const queryClient = useQueryClient();
     const segment = SEGMENTS[user?.level ?? -1] ?? "/admin";
     const [, startTransition] = useTransition();
@@ -193,7 +196,7 @@ export function StoreProductCard({ product, onView, componentId }: IStoreProduct
                 <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-1 font-semibold text-primary">
                         <DollarSign className="h-4 w-4" />
-                        <span>{currentPrice.toFixed(2)}</span>
+                        <span>{formatCurrency(currentPrice, undefined, undefined, 2, 2, settings)}</span>
                     </div>
                     <div className="flex items-center gap-1 text-muted-foreground">
                         <Package className="h-4 w-4" />

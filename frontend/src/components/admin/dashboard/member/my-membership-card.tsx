@@ -1,9 +1,11 @@
 // Hooks
 import { useMyMembershipSummary } from "@/hooks/use-my-membership-summary";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 // Components
 import { CurrentPlanSummaryCard, formatBillingFrequency, type IPlanSummaryDetail } from "@/components/shared-ui/current-plan-summary-card";
 import { Calendar, DollarSign, Clock, BadgeCheck } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 /**
  * Card component that displays the current membership for the logged-in member
@@ -11,6 +13,7 @@ import { Calendar, DollarSign, Clock, BadgeCheck } from "lucide-react";
  */
 export function MyMembershipCard() {
   const { summary, isActive, isLoading } = useMyMembershipSummary();
+  const { settings } = useUserSettings();
 
   // Build details array
   const details: IPlanSummaryDetail[] = [];
@@ -19,7 +22,14 @@ export function MyMembershipCard() {
     details.push({
       icon: DollarSign,
       label: "Price",
-      value: `$${summary.price.toFixed(2)}`,
+      value: formatCurrency(
+        summary.price || 0,
+        undefined,
+        undefined,
+        2,
+        2,
+        settings
+      ),
       subValue: summary.billingFrequency ? `/ ${formatBillingFrequency(summary.billingFrequency)}` : undefined,
     });
   }

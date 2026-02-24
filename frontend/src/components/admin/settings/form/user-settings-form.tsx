@@ -193,13 +193,24 @@ export default function UserSettingsForm({
           icon: Shield,
           description: buildSentence(t, "session", "and", "member", "limits"),
         },
-        
+        /* {
+          id: "business",
+          label: t("business"),
+          icon: Building,
+          description: buildSentence(
+            t,
+            "business",
+            "information",
+            "and",
+            "branding"
+          ),
+        }, */
       ]
       : []),
 
     ...(user?.level === EUserLevels.ADMIN || user?.level === EUserLevels.PLATFORM_OWNER
       ? [
-        {
+   /*      {
           id: "currency",
           label: t("currency"),
           icon: DollarSign,
@@ -211,7 +222,7 @@ export default function UserSettingsForm({
             "settings"
           ),
         },
-
+ */
         {
           id: "billing",
           label: t("billing"),
@@ -303,8 +314,10 @@ export default function UserSettingsForm({
                   {tab.id === "limits" && (inputs.limits as ReactNode)}
 
                   {tab.id === "time" && inputs.time}
-
+{/* 
                   {tab.id === "currency" && inputs.currency}
+
+                  {tab.id === "business" && inputs.business} */}
 
                   {tab.id === "billing" && inputs.billing}
 

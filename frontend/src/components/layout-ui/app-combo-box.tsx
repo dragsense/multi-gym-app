@@ -35,6 +35,7 @@ export interface AppComboBoxProps<T> {
   disabled?: boolean;
   modal?: boolean;
   shouldFilter?: boolean;
+  allowSelectAll?: boolean;
 }
 
 export function AppComboBox<T>({
@@ -53,6 +54,7 @@ export function AppComboBox<T>({
   modal = false,
   getValue,
   shouldFilter = true,
+  allowSelectAll = false,
 }: AppComboBoxProps<T>) {
   // React 19: Essential IDs and transitions
   const componentId = useId();
@@ -110,6 +112,16 @@ export function AppComboBox<T>({
       } else {
         onChange(getValue(item));
         setOpen(false);
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    startTransition(() => {
+      if (selectedValues.length === items.length) {
+        onChange([]);
+      } else {
+        onChange(items.map((item) => getValue(item)) as T[]);
       }
     });
   };
@@ -182,6 +194,23 @@ export function AppComboBox<T>({
             onValueChange={onSearchChange}
             disabled={disabled}
           />
+
+          {multiple && allowSelectAll && items.length > 0 && (
+            <div className="px-2 py-1.5 border-b">
+              <div
+                onClick={handleSelectAll}
+                className="flex items-center cursor-pointer text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                <Checkbox
+                  checked={selectedValues.length === items.length && items.length > 0}
+                  className="h-3.5 w-3.5 pointer-events-none"
+                />
+                <span className="ml-2">
+                  {selectedValues.length === items.length ? "Unselect All" : "Select All"}
+                </span>
+              </div>
+            </div>
+          )}
 
           <CommandList>
             {loading ? (

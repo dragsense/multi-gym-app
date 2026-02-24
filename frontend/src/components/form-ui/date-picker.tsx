@@ -64,7 +64,7 @@ export const DatePicker: React.FC<DatePickerProps> = React.memo(
     // React 19: Memoized display value for better performance
     const displayValue = useMemo(
       () => (value ? new Date(value).toLocaleDateString() : placeholder),
-      [value, placeholder]
+      [value, placeholder],
     );
 
     // React 19: Smooth popover transitions
@@ -114,7 +114,7 @@ export const DatePicker: React.FC<DatePickerProps> = React.memo(
         </PopoverContent>
       </Popover>
     );
-  }
+  },
 );
 
 DatePicker.displayName = "DatePicker";
@@ -144,13 +144,13 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = React.memo(
     // React 19: Memoized display value for better performance
     const displayValue = useMemo(
       () => (value ? new Date(value).toLocaleString() : placeholder),
-      [value, placeholder]
+      [value, placeholder],
     );
 
     // React 19: Memoized time value for better performance
     const timeValue = useMemo(
       () => (value ? new Date(value).toTimeString().slice(0, 5) : ""),
-      [value]
+      [value],
     );
 
     // React 19: Smooth popover transitions
@@ -190,7 +190,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = React.memo(
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className={`w-auto justify-between font-normal ${className}`}
+            className={`w-full justify-between font-normal ${className}`}
             disabled={disabled}
             data-component-id={componentId}
           >
@@ -221,7 +221,7 @@ export const DateTimePicker: React.FC<DateTimePickerProps> = React.memo(
         </PopoverContent>
       </Popover>
     );
-  }
+  },
 );
 
 DateTimePicker.displayName = "DateTimePicker";
@@ -229,7 +229,7 @@ DateTimePicker.displayName = "DateTimePicker";
 interface DateRangePickerProps {
   value?: DateRange | [Date, Date] | null;
   onChange: (
-    dateRange: DateRange | [Date | null, Date | null] | undefined
+    dateRange: DateRange | [Date | null, Date | null] | undefined,
   ) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -249,7 +249,7 @@ interface DateRangePickerProps {
       | DateRange
       | [Date | null, Date | null]
       | [string | null, string | null]
-      | undefined
+      | undefined,
   ) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -289,7 +289,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = React.memo(
               fromDate = new Date(
                 parseInt(parts[0], 10),
                 parseInt(parts[1], 10) - 1,
-                parseInt(parts[2], 10)
+                parseInt(parts[2], 10),
               );
             }
           }
@@ -299,7 +299,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = React.memo(
               toDate = new Date(
                 parseInt(parts[0], 10),
                 parseInt(parts[1], 10) - 1,
-                parseInt(parts[2], 10)
+                parseInt(parts[2], 10),
               );
             }
           }
@@ -327,7 +327,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = React.memo(
             fromDate = new Date(
               parseInt(parts[0], 10),
               parseInt(parts[1], 10) - 1,
-              parseInt(parts[2], 10)
+              parseInt(parts[2], 10),
             );
           }
         }
@@ -337,7 +337,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = React.memo(
             toDate = new Date(
               parseInt(parts[0], 10),
               parseInt(parts[1], 10) - 1,
-              parseInt(parts[2], 10)
+              parseInt(parts[2], 10),
             );
           }
         }
@@ -373,10 +373,10 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = React.memo(
 
     // Internal state for temporary date selection
     const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
-      undefined
+      undefined,
     );
     const [dateMode, setDateMode] = useState<"range" | "after" | "before">(
-      "range"
+      "range",
     );
 
     // React 19: Smooth date range selection (temporary, not applied yet)
@@ -585,7 +585,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = React.memo(
         </PopoverContent>
       </Popover>
     );
-  }
+  },
 );
 
 DateRangePicker.displayName = "DateRangePicker";
@@ -596,7 +596,7 @@ interface DateTimeRangePickerProps {
     dateTimeRange:
       | { from: Date; to: Date }
       | [Date | null, Date | null]
-      | undefined
+      | undefined,
   ) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -654,12 +654,12 @@ export const DateTimeRangePicker: React.FC<DateTimeRangePickerProps> =
 
       // Internal state for temporary date/time selection
       const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(
-        undefined
+        undefined,
       );
       const [tempFromTime, setTempFromTime] = useState<string>("");
       const [tempToTime, setTempToTime] = useState<string>("");
       const [dateMode, setDateMode] = useState<"range" | "after" | "before">(
-        "range"
+        "range",
       );
 
       // React 19: Smooth date range selection (temporary, not applied yet)
@@ -909,7 +909,7 @@ export const DateTimeRangePicker: React.FC<DateTimeRangePickerProps> =
           </PopoverContent>
         </Popover>
       );
-    }
+    },
   );
 
 DateTimeRangePicker.displayName = "DateTimeRangePicker";

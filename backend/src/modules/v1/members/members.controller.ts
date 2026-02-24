@@ -32,7 +32,7 @@ import { User } from '@/common/base-user/entities/user.entity';
 import { SelectQueryBuilder } from 'typeorm';
 import { EUserLevels } from '@shared/enums';
 import { MinUserLevel } from '@/decorators/level.decorator';
-import { Resource } from '@/decorators';
+import { Resource, SkipPermissions } from '@/decorators';
 import { EResource } from '@shared/enums';
 
 @ApiTags('Members')
@@ -51,6 +51,7 @@ export class MembersController {
     type: MemberDto,
   })
   @MinUserLevel(EUserLevels.MEMBER)
+  @SkipPermissions()
   @Get('me')
   async getMyMember(@AuthUser() currentUser: User) {
     return this.membersService.getSingle({ userId: currentUser.id }, { _relations: ['user'] });
@@ -65,8 +66,8 @@ export class MembersController {
   @Get()
   @MinUserLevel(EUserLevels.STAFF)
   async findAll(@Query() query: MemberListDto, @AuthUser() currentUser: User) {
-    const locationId = (query as any).locationId;
-    return this.membersService.get(query, MemberListDto, {
+    const {locationId, ...rest} = query;
+    return this.membersService.get(rest, MemberListDto, {
       beforeQuery: (qb: SelectQueryBuilder<Member>) => {
         if (locationId) {
           qb.andWhere(

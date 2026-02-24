@@ -18,7 +18,7 @@ import {
 import type { IMembership } from "@shared/interfaces/membership.interface";
 import { Badge } from "@/components/ui/badge";
 import { AppCard } from "@/components/layout-ui/app-card";
-import { formatDate } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 const MembershipActions = ({
   membership,
@@ -122,7 +122,9 @@ export const membershipItemViews = ({
       header: "Price",
       cell: ({ row }) => {
         const membership = row.original;
-        return membership.price ? `$${Number(membership.price).toFixed(2)}` : "-";
+        return membership.price
+          ? formatCurrency(Number(membership.price ?? 0))
+          : "-";
       },
     },
     {
@@ -138,7 +140,9 @@ export const membershipItemViews = ({
       header: "Calculated Price",
       cell: ({ row }) => {
         const membership = row.original;
-        return membership.calculatedPrice ? `$${Number(membership.calculatedPrice).toFixed(2)}` : "-";
+        return membership.calculatedPrice
+          ? formatCurrency(Number(membership.calculatedPrice ?? 0))
+          : "-";
       },
     },
     {
@@ -182,10 +186,15 @@ export const membershipItemViews = ({
             )}
             <div className="flex gap-4 text-sm text-muted-foreground">
               {membership.price && (
-                <span>Price: ${Number(membership.price).toFixed(2)}</span>
+                <span>
+                  Price: {formatCurrency(Number(membership.price ?? 0))}
+                </span>
               )}
               {membership.calculatedPrice && (
-                <span>Calculated: ${Number(membership.calculatedPrice).toFixed(2)}</span>
+                <span>
+                  Calculated:{" "}
+                  {formatCurrency(Number(membership.calculatedPrice ?? 0))}
+                </span>
               )}
               {membership.billingFrequency && (
                 <span>Billing: {membership.billingFrequency}</span>

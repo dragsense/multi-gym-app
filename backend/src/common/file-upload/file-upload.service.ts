@@ -31,8 +31,8 @@ export class FileUploadService extends CrudService<FileUpload> {
     moduleRef: ModuleRef,
   ) {
     super(fileRepo, moduleRef);
-    this.appUrl =
-      this.configService.get<string>('app.url') || 'http://localhost:3000';
+    this.appUrl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' :
+      this.configService.get<string>('app.appUrl') || 'http://localhost:3000';
   }
   private ensureDirectoryExists(dir: string) {
     if (!fs.existsSync(dir)) {

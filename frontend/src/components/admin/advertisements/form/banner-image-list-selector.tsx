@@ -1,5 +1,11 @@
 // External Libraries
-import React, { useId, useMemo, useTransition, useState, useEffect } from "react";
+import React, {
+  useId,
+  useMemo,
+  useTransition,
+  useState,
+  useEffect,
+} from "react";
 import { Check, Image as ImageIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks/use-i18n";
@@ -29,11 +35,7 @@ export const BannerImageListSelector = React.memo(
     const { t } = useI18n();
     const [searchQuery, setSearchQuery] = useState("");
 
-    const {
-      response,
-      isLoading,
-      setFilters,
-    } = useSearchableBannerImages({});
+    const { response, isLoading, setFilters } = useSearchableBannerImages({});
 
     const bannerImages = response?.data || [];
 
@@ -63,7 +65,7 @@ export const BannerImageListSelector = React.memo(
           onChange({
             id: bannerImage.id,
             name: bannerImage.name,
-            image: bannerImage.image
+            image: bannerImage.image,
           });
         }
       });
@@ -94,10 +96,12 @@ export const BannerImageListSelector = React.memo(
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Check className="w-4 h-4 text-primary" />
-                  <span className="font-semibold">{selectedBannerImage.name}</span>
+                  <span className="font-semibold">
+                    {selectedBannerImage.name}
+                  </span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {t('selected')} {t('bannerImage').toLowerCase()}
+                  {t("selected")} {t("bannerImage").toLowerCase()}
                 </p>
               </div>
               {!disabled && (
@@ -107,7 +111,7 @@ export const BannerImageListSelector = React.memo(
                   size="sm"
                   onClick={() => onChange(null)}
                 >
-                  {t('clear')}
+                  {t("clear")}
                 </Button>
               )}
             </div>
@@ -118,7 +122,9 @@ export const BannerImageListSelector = React.memo(
         <div>
           <Input
             type="text"
-            placeholder={t('search') + " " + t('bannerImages').toLowerCase() + "..."}
+            placeholder={
+              t("search") + " " + t("bannerImages").toLowerCase() + "..."
+            }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             disabled={disabled || isLoading}
@@ -132,8 +138,8 @@ export const BannerImageListSelector = React.memo(
               <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
             </div>
           ) : bannerImages.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {t('no')} {t('bannerImages').toLowerCase()} {t('found')}
+            <div className="text-center text-sm py-8 text-muted-foreground">
+              {t("no")} {t("bannerImages").toLowerCase()} {t("found")}
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -148,7 +154,7 @@ export const BannerImageListSelector = React.memo(
                       isSelected
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/50",
-                      disabled && "opacity-50 cursor-not-allowed"
+                      disabled && "opacity-50 cursor-not-allowed",
                     )}
                     onClick={() => handleSelect(bannerImage)}
                   >
@@ -189,6 +195,5 @@ export const BannerImageListSelector = React.memo(
         </div>
       </div>
     );
-  }
+  },
 );
-

@@ -52,7 +52,7 @@ export class ScheduleController {
     return await this.scheduleService.getSingle(id, queryDto);
   }
 
-  @Post()
+/*   @Post()
   @ApiOperation({ summary: 'Create schedule' })
   @ApiHeader({
     name: 'X-Timezone',
@@ -70,7 +70,7 @@ export class ScheduleController {
       timezone,
     );
     return { message: 'Schedule created successfully', data: schedule };
-  }
+  } */
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update schedule' })

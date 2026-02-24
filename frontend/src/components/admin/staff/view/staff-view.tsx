@@ -28,9 +28,6 @@ import { formatDate } from "@/lib/utils";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 import { getUserRole } from "@shared/lib/utils";
-import { UserProfileInfo } from "../../users/view/user-profile-info";
-
-
 
 interface IStaffViewProps extends THandlerComponentProps<TSingleHandlerStore<IStaff, any>> {
 }
@@ -348,11 +345,6 @@ function StaffDetailContent({
           </div>
         </div>
       )}
-
-      {/* Profile Information */}
-      <div>
-        <UserProfileInfo userId={userId} />
-      </div>
     </div>
   );
 }

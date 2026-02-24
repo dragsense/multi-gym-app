@@ -41,6 +41,7 @@ export class ProfilesService extends CrudService<Profile> {
       image,
       documents: _,
       removedDocumentIds,
+      removeImage,
       ...profileData
     } = updateProfileDto;
 
@@ -69,7 +70,12 @@ export class ProfilesService extends CrudService<Profile> {
             manager,
           );
           entity.image = uploaded;
-        } else if (image === null || image === 'null') {
+        } else if (
+          removeImage === true ||
+          String(removeImage) === 'true' ||
+          image === null ||
+          image === 'null'
+        ) {
           oldImage = profile.image;
           entity.image = null;
         }
@@ -159,7 +165,6 @@ export class ProfilesService extends CrudService<Profile> {
         await manager.save(entity);
 
         if (oldImage) {
-          console.log('oldImage', oldImage);
           this.fileUploadService.deleteFiles([oldImage]).catch((error) => {
             this.logger.error(
               error instanceof Error ? error.message : String(error),

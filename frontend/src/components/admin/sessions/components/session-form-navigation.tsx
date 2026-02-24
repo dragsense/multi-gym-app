@@ -71,7 +71,7 @@ export const SessionFormNavigation = React.memo(function SessionFormNavigation({
     } else if (currentStep === 2) {
       // Validate step 2: trainer and members
       if (
-        !formValues?.members?.length ||
+        (!formValues?.members?.length && user?.level !== EUserLevels.MEMBER) ||
         (!formValues?.trainer && user?.level !== EUserLevels.STAFF)
       ) {
         return;
@@ -94,7 +94,7 @@ export const SessionFormNavigation = React.memo(function SessionFormNavigation({
       return !!(formValues?.title && formValues?.type);
     } else if (currentStep === 2) {
       return !!(
-        formValues?.members?.length &&
+        (formValues?.members?.length || user?.level === EUserLevels.MEMBER)  &&
         (formValues?.trainer || user?.level === EUserLevels.STAFF)
       );
     } else if (currentStep === 3) {

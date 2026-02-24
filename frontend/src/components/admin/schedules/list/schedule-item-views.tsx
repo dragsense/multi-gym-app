@@ -14,7 +14,7 @@ import { EScheduleStatus, EScheduleFrequency } from "@shared/enums";
 
 // Utils
 import { formatTimeOfDay, formatInterval } from "@/utils/date-format";
-import { formatDate, formatTime } from "@/lib/utils";
+import { formatDate, formatDateTime, formatTime } from "@/lib/utils";
 import type { IUserSettings } from "@shared/interfaces/settings.interface";
 
 interface IItemViewArgs {
@@ -96,15 +96,9 @@ export const scheduleItemViews = ({
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="text-sm font-medium">
-            {formatDate(row.original.nextRunDate, settings)}
+            {formatDateTime(row.original.nextRunDate, settings)}
           </span>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {row.original.timeOfDay && (
-              <span className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {formatTimeOfDay(row.original.timeOfDay)}
-              </span>
-            )}
             {row.original.interval && (
               <span className="flex items-center gap-1">
                 ⏱️ {formatInterval(row.original.intervalValue || row.original.interval, row.original.intervalUnit)}

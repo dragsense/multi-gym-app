@@ -28,9 +28,7 @@ export default function SchedulesPage() {
     <PageInnerLayout Header={<Header />}>
       <SingleHandler<ISchedule, TScheduleExtraProps>
         queryFn={fetchSchedule}
-        deleteFn={deleteSchedule}
         storeKey={STORE_KEY}
-        onDeleteSuccess={() => queryClient.invalidateQueries({ queryKey: [STORE_KEY + "-list"] })}
         SingleComponent={ScheduleView}
         actionComponents={[
           {
@@ -44,6 +42,9 @@ export default function SchedulesPage() {
         queryFn={fetchSchedules}
         ListComponent={ScheduleList}
         dto={ScheduleListDto}
+        deleteFn={deleteSchedule}
+        onDeleteSuccess={() => queryClient.invalidateQueries({ queryKey: [STORE_KEY + "-list"] })}
+
         storeKey={STORE_KEY}
       />
     </PageInnerLayout>

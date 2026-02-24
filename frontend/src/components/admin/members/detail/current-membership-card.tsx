@@ -12,6 +12,7 @@ import { useActiveMemberships } from "@/hooks/use-active-memberships";
 import { useCurrentMembershipSummary } from "@/hooks/use-current-membership-summary";
 import { useAdminMemberMembership } from "@/hooks/use-admin-member-membership";
 import { buildSentence } from "@/locales/translations";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 // Components
 import { CurrentPlanSummaryCard, formatBillingFrequency, type IPlanSummaryDetail } from "@/components/shared-ui/current-plan-summary-card";
@@ -24,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Calendar, DollarSign, Clock, BadgeCheck, XCircle, Loader2, Plus, ChevronLeft, Banknote, CreditCard } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/utils";
 
 interface ICurrentMembershipCardProps {
   member: IMember;
@@ -31,6 +33,7 @@ interface ICurrentMembershipCardProps {
 
 export function CurrentMembershipCard({ member }: ICurrentMembershipCardProps) {
   const { t } = useI18n();
+  const { settings } = useUserSettings();
 
   // Fetch current membership summary
   const { data: summary, isLoading } = useCurrentMembershipSummary({
@@ -108,7 +111,14 @@ export function CurrentMembershipCard({ member }: ICurrentMembershipCardProps) {
     details.push({
       icon: DollarSign,
       label: "Price",
-      value: `$${summary.price.toFixed(2)}`,
+      value: formatCurrency(
+        summary.price || 0,
+        undefined,
+        undefined,
+        2,
+        2,
+        settings
+      ),
       subValue: summary.billingFrequency ? `/ ${formatBillingFrequency(summary.billingFrequency)}` : undefined,
     });
   }
@@ -204,7 +214,14 @@ export function CurrentMembershipCard({ member }: ICurrentMembershipCardProps) {
           <div className="flex items-center gap-4 text-sm">
             <span className="flex items-center gap-1">
               <DollarSign className="h-4 w-4" />
-              ${Number(selectedMembership.calculatedPrice || 0).toFixed(2)}
+              {formatCurrency(
+                Number(selectedMembership.calculatedPrice || 0),
+                undefined,
+                undefined,
+                2,
+                2,
+                settings
+              )}
             </span>
             {selectedMembership.billingFrequency && (
               <span className="flex items-center gap-1">

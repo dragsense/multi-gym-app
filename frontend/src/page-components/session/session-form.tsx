@@ -49,7 +49,7 @@ export type TSessionExtraProps = {
 interface ISessionFormProps
   extends THandlerComponentProps<
     TSingleHandlerStore<ISession, TSessionExtraProps>
-  > {}
+  > { }
 
 export default function SessionForm({ storeKey, store }: ISessionFormProps) {
   // React 19: Essential IDs and transitions
@@ -71,25 +71,27 @@ export default function SessionForm({ storeKey, store }: ISessionFormProps) {
   }
 
 
-    // Fetch current user's member and trainer information
-    const { data: member } = useQuery<IMember | null>({
-      queryKey: ["myMember"],
-      queryFn: getMyMember,
-    });
-  
-    const { data: currentUserStaff } = useQuery<IStaff | null>({
-      queryKey: ["currentUserStaff"],
-      queryFn: getCurrentUserStaff,
-    });
-  
-    const trainer = currentUserStaff?.isTrainer ? currentUserStaff : undefined;
 
-  const { action, response, isLoading, setAction, reset } = store(
+  // Fetch current user's member and trainer information
+  const { data: member, isLoading: isMemberLoading } = useQuery<IMember | null>({
+    queryKey: ["myMember"],
+    queryFn: getMyMember,
+  });
+
+  const { data: currentUserStaff, isLoading: isStaffLoading } = useQuery<IStaff | null>({
+    queryKey: ["currentUserStaff"],
+    queryFn: getCurrentUserStaff,
+  });
+
+  const trainer = currentUserStaff?.isTrainer ? currentUserStaff : undefined;
+
+  const { action, response, isLoading, setAction, setExtra, reset } = store(
     useShallow((state) => ({
       action: state.action,
       response: state.response,
       isLoading: state.isLoading,
       setAction: state.setAction,
+      setExtra: state.setExtra,
       reset: state.reset,
     }))
   );
@@ -178,7 +180,7 @@ export default function SessionForm({ storeKey, store }: ISessionFormProps) {
     return isEditing ? UpdateSessionDto : CreateSessionDto;
   }, [isEditing]);
 
-  if (isLoading) {
+  if (isLoading || isMemberLoading || isStaffLoading) {
     return (
       <div className="absolute inset-0 z-30 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -200,7 +202,7 @@ export default function SessionForm({ storeKey, store }: ISessionFormProps) {
         dto={dto}
         validationMode={EVALIDATION_MODES.OnSubmit}
         isEditing={isEditing}
-        onSuccess={() => {
+        onSuccess={(created) => {
           startTransition(() => {
             queryClient.invalidateQueries({
               queryKey: [storeKey + "-calendar"],
@@ -208,6 +210,17 @@ export default function SessionForm({ storeKey, store }: ISessionFormProps) {
             queryClient.invalidateQueries({
               queryKey: [storeKey + "-list"],
             });
+
+            // If current user is a member and created session has a price,
+            // open the same payment flow as the "Pay now" button.
+            const sessionResponse = created as ISessionResponse | undefined;
+            const createdSession = sessionResponse?.session;
+            if (member && createdSession && createdSession.price && createdSession.price > 0) {
+              setExtra("memberId", member.id);
+              setAction("pay", createdSession.id);
+              return;
+            }
+
             handleClose();
           });
         }}

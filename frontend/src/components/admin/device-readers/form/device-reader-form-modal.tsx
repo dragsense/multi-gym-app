@@ -13,7 +13,10 @@ import { getSelectedLocation } from "@/utils/location-storage";
 import type { TFormHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
 import type { IMessageResponse } from "@shared/interfaces/api/response.interface";
-import type { TCreateDeviceReaderData, TUpdateDeviceReaderData } from "@shared/types/device-reader.type";
+import type {
+  TCreateDeviceReaderData,
+  TUpdateDeviceReaderData,
+} from "@shared/types/device-reader.type";
 import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 
 // Components
@@ -29,21 +32,28 @@ export interface IDeviceReaderFormModalExtraProps {
   onClose: () => void;
 }
 
-interface IDeviceReaderFormModalProps extends THandlerComponentProps<TFormHandlerStore<TCreateDeviceReaderData | TUpdateDeviceReaderData, IMessageResponse, IDeviceReaderFormModalExtraProps>> { }
+interface IDeviceReaderFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<
+    TCreateDeviceReaderData | TUpdateDeviceReaderData,
+    IMessageResponse,
+    IDeviceReaderFormModalExtraProps
+  >
+> {}
 
 const LocationSelect = React.memo((props: TCustomInputWrapper) => {
   const searchableLocations = useSearchableLocations({});
   const { t } = useI18n();
   const selectedLocation = getSelectedLocation();
 
+  // Only set the default location if the current value is empty and we have a selected location in storage
   React.useEffect(() => {
-    if (selectedLocation && !props.value && props.onChange) {
+    if (selectedLocation && !props.value?.id && props.onChange) {
       props.onChange({
         id: selectedLocation.id,
         name: selectedLocation.name,
       } as ILocation);
     }
-  }, [selectedLocation, props.value, props.onChange]);
+  }, [selectedLocation, props.value?.id, props.onChange]);
 
   return (
     <SearchableInputWrapper<ILocation>
@@ -51,11 +61,13 @@ const LocationSelect = React.memo((props: TCustomInputWrapper) => {
       modal={true}
       useSearchable={() => searchableLocations}
       getLabel={(item) => {
-        if (!item) return buildSentence(t, 'select', 'location');
-        return `${item.name}${item.address ? ` - ${item.address}` : ''}`;
+        if (!item?.id) return buildSentence(t, "select", "location");
+        return `${item.name}${item.address ? ` - ${item.address}` : ""}`;
       }}
       getKey={(item) => item.id.toString()}
-      getValue={(item) => ({ id: item.id, name: item.name, address: item.address } as ILocation)}
+      getValue={(item) =>
+        ({ id: item.id, name: item.name, address: item.address }) as ILocation
+      }
       shouldFilter={false}
       disabled={!!selectedLocation || props.disabled}
     />
@@ -76,23 +88,43 @@ const DeviceReaderFormModal = React.memo(function DeviceReaderFormModal({
 
   const open = store((state) => state.extra.open);
   const onClose = store((state) => state.extra.onClose);
-  const fields = store((state) => state.fields);
+  const storeFields = store((state) => state.fields);
   const isSubmitting = store((state) => state.isSubmitting);
   const isEditing = store((state) => state.isEditing);
 
-  const memoizedFields = useMemo(() => ({
-    ...fields,
-    location: {
-      ...fields.location,
-      type: 'custom' as const,
-      Component: LocationSelect,
-      label: buildSentence(t, 'location'),
-      placeholder: buildSentence(t, 'select', 'location'),
-    },
-  }), [fields, t]);
+  const memoizedFields = useMemo(
+    () => ({
+      ...storeFields,
+      deviceName: {
+        ...storeFields.deviceName,
+        label: buildSentence(t, "device", "name"),
+        placeholder: buildSentence(t, "enter", "device", "name"),
+      },
+      macAddress: {
+        ...storeFields.macAddress,
+        label: buildSentence(t, "mac", "address"),
+        placeholder: "00:00:00:00:00:00",
+      },
+      status: {
+        ...storeFields.status,
+        label: buildSentence(t, "status"),
+        placeholder: buildSentence(t, "select", "status"),
+      },
+      location: {
+        ...storeFields.location,
+        type: "custom" as const,
+        Component: LocationSelect,
+        label: buildSentence(t, "location"),
+        placeholder: buildSentence(t, "select", "location"),
+      },
+    }),
+    [storeFields, t],
+  );
 
   const inputs = useInput<TCreateDeviceReaderData>({
-    fields: memoizedFields as Parameters<typeof useInput<TCreateDeviceReaderData>>[0]['fields'],
+    fields: memoizedFields as Parameters<
+      typeof useInput<TCreateDeviceReaderData>
+    >[0]["fields"],
     showRequiredAsterisk: true,
   }) as FormInputs<TCreateDeviceReaderData>;
 
@@ -102,29 +134,36 @@ const DeviceReaderFormModal = React.memo(function DeviceReaderFormModal({
     }
   };
 
-  const formButtons = useMemo(() => (
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          startTransition(() => onClose());
-        }}
-      >
-        {t('cancel')}
-      </Button>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? t('updateDeviceReader') : t('createDeviceReader')}
-      </Button>
-    </div>
-  ), [onClose, isSubmitting, isEditing, t, startTransition]);
+  const formButtons = useMemo(
+    () => (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={(e) => {
+            e.preventDefault();
+            startTransition(() => onClose());
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEditing ? t("updateDeviceReader") : t("createDeviceReader")}
+        </Button>
+      </div>
+    ),
+    [onClose, isSubmitting, isEditing, t, startTransition],
+  );
 
   return (
-    <ModalForm<TCreateDeviceReaderData | TUpdateDeviceReaderData, IMessageResponse, IDeviceReaderFormModalExtraProps>
-      title={isEditing ? t('updateDeviceReader') : t('createDeviceReader')}
-      description={isEditing ? t('updateDeviceReaderInformation') : t('createNewDeviceReader')}
+    <ModalForm<
+      TCreateDeviceReaderData | TUpdateDeviceReaderData,
+      IMessageResponse,
+      IDeviceReaderFormModalExtraProps
+    >
+      title={isEditing ? t("updateDeviceReader") : t("createDeviceReader")}
+      // description={isEditing ? t('updateDeviceReaderInformation') : t('createNewDeviceReader')}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -135,7 +174,9 @@ const DeviceReaderFormModal = React.memo(function DeviceReaderFormModal({
       <div className="space-y-6">
         {/* Basic Info */}
         <div>
-          <h3 className="text-sm font-semibold mb-3">{t('deviceReaderDetails')}</h3>
+          {/* <h3 className="text-sm font-semibold mb-3">
+            {t("deviceReaderDetails")}
+          </h3> */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {inputs.deviceName}
             {inputs.macAddress}
@@ -144,10 +185,9 @@ const DeviceReaderFormModal = React.memo(function DeviceReaderFormModal({
           </div>
         </div>
       </div>
-      <FormErrors />
+      {/* <FormErrors /> */}
     </ModalForm>
   );
 });
 
 export default DeviceReaderFormModal;
-

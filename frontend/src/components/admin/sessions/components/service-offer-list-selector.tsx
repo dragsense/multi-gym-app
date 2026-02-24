@@ -1,8 +1,9 @@
 // External Libraries
 import React, { useId, useMemo, useTransition, useState, useEffect } from "react";
 import { Check, Tag, Loader2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { useI18n } from "@/hooks/use-i18n";
+import { useUserSettings } from "@/hooks/use-user-settings";
 
 // Types
 import type { IServiceOffer } from "@shared/interfaces/service-offer.interface";
@@ -28,6 +29,7 @@ export const ServiceOfferListSelector = React.memo(
     const componentId = useId();
     const [, startTransition] = useTransition();
     const { t } = useI18n();
+    const { settings } = useUserSettings();
     const [searchQuery, setSearchQuery] = useState("");
 
     const {
@@ -83,6 +85,9 @@ export const ServiceOfferListSelector = React.memo(
       const discountAmount = (Number(selectedServiceOffer.offerPrice) * (Number(selectedServiceOffer.discount) || 0)) / 100;
       return Number(selectedServiceOffer.offerPrice) - discountAmount;
     };
+    
+    const formatPrice = (value: number) =>
+      formatCurrency(value, undefined, undefined, 2, 2, settings);
 
     return (
       <div className="space-y-4" data-component-id={componentId}>
@@ -113,7 +118,7 @@ export const ServiceOfferListSelector = React.memo(
                   </Badge>
                 </div>
                 <div className="mt-2 text-sm font-medium text-primary">
-                  {t('price')}: ${calculatePrice().toFixed(2)}
+                  {t('price')}: {formatPrice(calculatePrice())}
                 </div>
               </div>
               {!disabled && (
@@ -197,14 +202,14 @@ export const ServiceOfferListSelector = React.memo(
                         <div className="flex items-center gap-2">
                           {serviceOffer.discount > 0 && (
                             <span className="text-xs line-through text-muted-foreground">
-                              ${serviceOffer.offerPrice}
+                              {formatPrice(Number(serviceOffer.offerPrice ?? 0))}
                             </span>
                           )}
                           <span className={cn(
                             "font-semibold",
                             serviceOffer.discount > 0 ? "text-primary" : ""
                           )}>
-                            ${finalPrice.toFixed(2)}
+                            {formatPrice(finalPrice)}
                           </span>
                         </div>
                       </div>

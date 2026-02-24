@@ -6,7 +6,7 @@ import { Business } from '@/modules/v1/business/entities/business.entity';
 import { RequestContext } from '../context/request-context';
 
 /** Subdomains reserved for env (staging, testing). Stripped so tenant is resolved from business subdomain only. */
-const RESERVED_SUBDOMAINS = ['staging', 'testing', 'dev'];
+const RESERVED_SUBDOMAINS = ['staging', 'testing', 'dev', 'formance'];
 
 /**
  * Middleware to extract subdomain from request and set tenant context

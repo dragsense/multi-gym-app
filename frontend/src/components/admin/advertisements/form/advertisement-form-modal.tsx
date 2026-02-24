@@ -11,7 +11,10 @@ import type { TFormHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
 import type { IMessageResponse } from "@shared/interfaces/api/response.interface";
 import type { TCustomInputWrapper } from "@/@types/form/field-config.type";
-import type { TCreateAdvertisementData, TUpdateAdvertisementData } from "@shared/types/advertisement.type";
+import type {
+  TCreateAdvertisementData,
+  TUpdateAdvertisementData,
+} from "@shared/types/advertisement.type";
 import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 
 // Components
@@ -26,19 +29,23 @@ export interface IAdvertisementFormModalExtraProps {
   onClose: () => void;
 }
 
-interface IAdvertisementFormModalProps extends THandlerComponentProps<TFormHandlerStore<TCreateAdvertisementData | TUpdateAdvertisementData, IMessageResponse, IAdvertisementFormModalExtraProps>> { }
+interface IAdvertisementFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<
+    TCreateAdvertisementData | TUpdateAdvertisementData,
+    IMessageResponse,
+    IAdvertisementFormModalExtraProps
+  >
+> {}
 
-const BannerImageSelect = React.memo(
-  (props: TCustomInputWrapper) => {
-    return (
-      <BannerImageListSelector
-        value={props.value as IBannerImage | null}
-        onChange={(value) => props.onChange(value)}
-        disabled={props.disabled}
-      />
-    );
-  }
-);
+const BannerImageSelect = React.memo((props: TCustomInputWrapper) => {
+  return (
+    <BannerImageListSelector
+      value={props.value as IBannerImage | null}
+      onChange={(value) => props.onChange(value)}
+      disabled={props.disabled}
+    />
+  );
+});
 
 const AdvertisementFormModal = React.memo(function AdvertisementFormModal({
   storeKey,
@@ -62,10 +69,26 @@ const AdvertisementFormModal = React.memo(function AdvertisementFormModal({
     const storeFields = fields as TFieldConfigObject<TCreateAdvertisementData>;
     return {
       ...storeFields,
+      startDate: {
+        ...storeFields.startDate,
+        label: t("startDate"),
+        placeholder: "Select start date",
+      },
+      endDate: {
+        ...storeFields.endDate,
+        label: t("endDate"),
+        placeholder: "Select end date",
+      },
       bannerImage: {
         ...storeFields.bannerImage,
-        type: 'custom' as const,
+        label: t("bannerImage"),
+        type: "custom" as const,
         Component: BannerImageSelect,
+      },
+      websiteLink: {
+        ...storeFields.websiteLink,
+        label: t("Website Link"),
+        placeholder: "Enter website link",
       },
     } as TFieldConfigObject<TCreateAdvertisementData>;
   }, [fields]);
@@ -81,29 +104,36 @@ const AdvertisementFormModal = React.memo(function AdvertisementFormModal({
     }
   };
 
-  const formButtons = useMemo(() => (
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          startTransition(() => onClose());
-        }}
-      >
-        {t('cancel')}
-      </Button>
-      <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? t('updateAdvertisement') : t('createAdvertisement')}
-      </Button>
-    </div>
-  ), [onClose, isSubmitting, isEditing, t, startTransition]);
+  const formButtons = useMemo(
+    () => (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={(e) => {
+            e.preventDefault();
+            startTransition(() => onClose());
+          }}
+        >
+          {t("cancel")}
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEditing ? t("updateAdvertisement") : t("createAdvertisement")}
+        </Button>
+      </div>
+    ),
+    [onClose, isSubmitting, isEditing, t, startTransition],
+  );
 
   return (
-    <ModalForm<TCreateAdvertisementData | TUpdateAdvertisementData, IMessageResponse, IAdvertisementFormModalExtraProps>
-      title={isEditing ? t('updateAdvertisement') : t('createAdvertisement')}
-      description={isEditing ? t('updateAdvertisementInformation') : t('createNewAdvertisement')}
+    <ModalForm<
+      TCreateAdvertisementData | TUpdateAdvertisementData,
+      IMessageResponse,
+      IAdvertisementFormModalExtraProps
+    >
+      title={isEditing ? t("updateAdvertisement") : t("createAdvertisement")}
+      // description={isEditing ? t('updateAdvertisementInformation') : t('createNewAdvertisement')}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -114,7 +144,9 @@ const AdvertisementFormModal = React.memo(function AdvertisementFormModal({
       <div className="space-y-6">
         {/* Basic Info */}
         <div>
-          <h3 className="text-sm font-semibold mb-3">{t('advertisementDetails')}</h3>
+          <h3 className="text-sm font-semibold mb-3">
+            {t("advertisementDetails")}
+          </h3>
           <div className="grid grid-cols-1 gap-4">
             {inputs.title}
             {inputs.status}
@@ -123,7 +155,7 @@ const AdvertisementFormModal = React.memo(function AdvertisementFormModal({
 
         {/* Dates */}
         <div>
-          <h3 className="text-sm font-semibold mb-3">{t('schedule')}</h3>
+          <h3 className="text-sm font-semibold mb-3">{t("schedule")}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {inputs.startDate}
             {inputs.endDate}
@@ -132,20 +164,13 @@ const AdvertisementFormModal = React.memo(function AdvertisementFormModal({
 
         {/* Banner Image & Link */}
         <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold mb-3">{t('bannerImage')}</h3>
-            {inputs.bannerImage as React.ReactNode}
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold mb-3">{t('websiteLink')}</h3>
-            {inputs.websiteLink}
-          </div>
+          <div>{inputs.bannerImage as React.ReactNode}</div>
+          <div>{inputs.websiteLink}</div>
         </div>
       </div>
-      <FormErrors />
+      {/* <FormErrors /> */}
     </ModalForm>
   );
 });
 
 export default AdvertisementFormModal;
-

@@ -127,6 +127,7 @@ export class SessionsService extends CrudService<Session> {
 
     const memberIds = createSessionDto.members.map((c) => c.id);
     const membersResult = await this.getMembers(
+      currentUser,
       memberIds,
     );
 
@@ -320,6 +321,7 @@ export class SessionsService extends CrudService<Session> {
     if (updateSessionDto.members && updateSessionDto.members.length > 0) {
       const memberIdsFromDto = updateSessionDto.members.map((c) => c.id);
       const members = await this.getMembers(
+        currentUser,
         memberIdsFromDto,
         existingSession.members,
       );
@@ -859,22 +861,20 @@ export class SessionsService extends CrudService<Session> {
         beforeQuery: (query: SelectQueryBuilder<Session>) => {
           if (!isAdmin) {
             query
-              .leftJoin('entity.trainer', '_trainer')
-              .leftJoin('entity.members', '_members')
               .andWhere(
                 new Brackets((qb2) => {
                   qb2
                     .where('entity.createdByUserId = :uid', {
                       uid: currentUser.id,
                     })
-                    .orWhere('_trainer.userId = :uid', {
+                    .orWhere('trainer.userId = :uid', {
                       uid: currentUser.id,
                     })
-                    .orWhere('_members.userId = :uid', {
+                    .orWhere('members.userId = :uid', {
                       uid: currentUser.id,
                     });
-  
-  
+
+
                 }),
               );
           }
@@ -885,8 +885,7 @@ export class SessionsService extends CrudService<Session> {
             });
 
           if (memberId) {
-            query.leftJoin('entity.members', '_members');
-            query.andWhere('_members.id = :memberId', {
+            query.andWhere('members.id = :memberId', {
               memberId,
             });
           }
@@ -986,7 +985,7 @@ export class SessionsService extends CrudService<Session> {
           specialization: overrideSession.trainer.specialization,
           experience: overrideSession.trainer.experience,
         } as Staff)
-        : session.trainer; 
+        : session.trainer;
       sessionObject.members =
         overrideSession.members && overrideSession.members.length > 0
           ? overrideSession.members.map(
@@ -1866,43 +1865,55 @@ export class SessionsService extends CrudService<Session> {
   }
 
   private async getMembers(
+    currentUser: User,
     memberIdsFromDto: string[],
     existingMembers?: Member[],
   ): Promise<Member[]> {
     // For create scenario or update with new members
-    if (memberIdsFromDto && memberIdsFromDto.length > 0) {
-      const members = await this.membersService.getAll(
-        {
-          __relations: ['user'],
-        },
-        MemberListDto,
-        {
-          beforeQuery: (query: SelectQueryBuilder<Member>) => {
-            query.andWhere('entity.id IN (:...ids)', { ids: memberIdsFromDto });
+    if (currentUser.level === EUserLevels.MEMBER) {
+      const member = await this.membersService.getSingle({
+        userId: currentUser.id
+      });
 
-            return query;
+      if (!member)
+        throw new BadRequestException('At least one member must be selected');
+
+      return [member];
+
+    } else
+      if (memberIdsFromDto && memberIdsFromDto.length > 0) {
+        const members = await this.membersService.getAll(
+          {
+            __relations: ['user'],
           },
-        },
-      );
+          MemberListDto,
+          {
+            beforeQuery: (query: SelectQueryBuilder<Member>) => {
+              query.andWhere('entity.id IN (:...ids)', { ids: memberIdsFromDto });
 
-      if (members.length !== memberIdsFromDto.length) {
-        const existingIdsSet = new Set(members.map((c) => c.id));
-        const missing = memberIdsFromDto.filter(
-          (id) => !existingIdsSet.has(id),
+              return query;
+            },
+          },
         );
-        throw new NotFoundException(
-          `Members not found or invalid: ${missing.join(', ')}`,
-        );
+
+        if (members.length !== memberIdsFromDto.length) {
+          const existingIdsSet = new Set(members.map((c) => c.id));
+          const missing = memberIdsFromDto.filter(
+            (id) => !existingIdsSet.has(id),
+          );
+          throw new NotFoundException(
+            `Members not found or invalid: ${missing.join(', ')}`,
+          );
+        }
+
+        return members;
+      } else if (existingMembers) {
+        // For update scenario - use existing members if no new ones provided
+        return existingMembers;
+      } else {
+        // For create scenario - members are required
+        throw new BadRequestException('At least one member must be selected');
       }
-
-      return members;
-    } else if (existingMembers) {
-      // For update scenario - use existing members if no new ones provided
-      return existingMembers;
-    } else {
-      // For create scenario - members are required
-      throw new BadRequestException('At least one member must be selected');
-    }
   }
 
   private async getTrainerAvailability(

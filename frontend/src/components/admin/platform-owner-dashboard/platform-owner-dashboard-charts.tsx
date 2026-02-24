@@ -5,6 +5,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLe
 import { formatCurrency } from '@/lib/utils';
 import type { IPlatformOwnerDashboardStats } from '@shared/interfaces/platform-owner-dashboard.interface';
 import { useI18n } from '@/hooks/use-i18n';
+import { useUserSettings } from '@/hooks/use-user-settings';
 
 interface IPlatformOwnerDashboardChartsProps {
   data: IPlatformOwnerDashboardStats | null;
@@ -13,6 +14,7 @@ interface IPlatformOwnerDashboardChartsProps {
 
 export const PlatformOwnerDashboardCharts: React.FC<IPlatformOwnerDashboardChartsProps> = ({ data }) => {
   const { t } = useI18n();
+  const { settings } = useUserSettings();
   const businessGrowth = data?.businessGrowth || [];
   const subscriptionDistribution = data?.subscriptionDistribution || [];
 
@@ -118,7 +120,7 @@ export const PlatformOwnerDashboardCharts: React.FC<IPlatformOwnerDashboardChart
               content={<ChartTooltipContent 
                 formatter={(value: number, name: string) => {
                   if (name === 'revenue') {
-                    return formatCurrency(value);
+                    return formatCurrency(value, undefined, undefined, 2, 2, settings);
                   }
                   return value;
                 }}

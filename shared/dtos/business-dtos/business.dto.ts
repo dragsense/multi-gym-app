@@ -35,8 +35,8 @@ export class CreateBusinessDto {
     })
     @IsNotEmpty({ message: "Subdomain is required" })
     @IsString({ message: "Subdomain must be a valid text" })
-    @IsNotIn(["dev", "staging", "testing"], {
-        message: "Subdomain cannot be a reserved name (dev, staging, testing).",
+    @IsNotIn(["dev", "staging", "testing", "formance"], {
+        message: "Subdomain cannot be a reserved name (dev, staging, testing, formance).",
     })
     @Matches(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
         message: "Subdomain can only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen, and cannot contain dots or special characters.",
@@ -70,8 +70,8 @@ export class CreateBusinessWithUserDto {
     })
     @IsNotEmpty({ message: "Subdomain is required" })
     @IsString({ message: "Subdomain must be a valid text" })
-    @IsNotIn(["dev", "staging", "testing"], {
-        message: "Subdomain cannot be a reserved name (dev, staging, testing).",
+    @IsNotIn(["dev", "staging", "testing", "formance"], {
+        message: "Subdomain cannot be a reserved name (dev, staging, testing, formance).",
     })
     @Matches(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
         message: "Subdomain can only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen, and cannot contain dots or special characters.",

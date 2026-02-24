@@ -51,7 +51,7 @@ export default function MembersPage() {
             />
 
             <ListHandler<IMember, TMemberListData, IMemberListExtraProps, IMember, TMemberViewExtraProps>
-                queryFn={(params) => fetchMembers({ ...params, locationId: location?.id })}
+                queryFn={(params) => fetchMembers(params, location?.id)}
                 initialParams={{
                     _relations: 'user',
                     _select: 'user.email, user.isActive, user.firstName, user.lastName',

@@ -1,6 +1,8 @@
 import React, { memo } from 'react'
 import { AppCard } from '@/components/layout-ui/app-card'
 import { useI18n } from '@/hooks/use-i18n'
+import { useUserSettings } from '@/hooks/use-user-settings'
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils'
 import { buildSentence } from '@/locales/translations'
 import {
   ComposedChart,
@@ -23,6 +25,8 @@ interface TotalRevenueCardProps {
 
 function TotalRevenueCard({ data, isLoading, error }: TotalRevenueCardProps) {
   const { t } = useI18n();
+  const { settings } = useUserSettings();
+  const currencySymbol = getCurrencySymbol(settings?.currency?.defaultCurrency || 'USD');
 
   const chartData = React.useMemo(() => {
     if (!data?.timeline) return [];
@@ -37,21 +41,14 @@ function TotalRevenueCard({ data, isLoading, error }: TotalRevenueCardProps) {
     }));
   }, [data?.timeline]);
 
-  // Format currency for tooltip (values are in dollars)
-  const formatCurrency = (value: number | undefined | null) => {
-    const numValue = typeof value === 'number' ? value : 0;
-    return `$${numValue.toFixed(2)}`;
-  };
+  const formatCurrencyTooltip = (value: number | undefined | null) =>
+    formatCurrency(typeof value === 'number' ? value : 0, undefined, undefined, 2, 2, settings);
 
   const currencyFormatter = (value: number) => {
     const absValue = Math.abs(value);
-
-    if (absValue >= 1000000) {
-      return `$${(value / 1000000).toFixed(1)}M`;
-    } else if (absValue >= 1000) {
-      return `$${(value / 1000).toFixed(1)}K`;
-    }
-    return `$${value.toFixed(0)}`;
+    if (absValue >= 1000000) return `${currencySymbol}${(value / 1000000).toFixed(1)}M`;
+    if (absValue >= 1000) return `${currencySymbol}${(value / 1000).toFixed(1)}K`;
+    return `${currencySymbol}${value.toFixed(0)}`;
   };
 
   if (isLoading) {
@@ -107,7 +104,7 @@ function TotalRevenueCard({ data, isLoading, error }: TotalRevenueCardProps) {
                 tickFormatter={currencyFormatter}
               />
               <Tooltip
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value: number) => formatCurrencyTooltip(value)}
                 labelFormatter={(label) => {
                   if (!label) return '';
                   const date = new Date(label);

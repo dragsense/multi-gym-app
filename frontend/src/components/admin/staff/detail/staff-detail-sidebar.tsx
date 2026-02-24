@@ -132,8 +132,8 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
       >
         <div className="space-y-6">
           {/* User & Profile: Basic Information */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="space-y-3 w-fit mx-auto">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground text-left">
               {buildSentence(t, 'basic', 'information')}
             </h3>
             <div className="space-y-2">
@@ -185,8 +185,8 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
 
           {/* Profile Entity: Address Information */}
           {(profile?.address || profile?.city || profile?.state || profile?.zipCode || profile?.country) && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+            <div className="space-y-3 w-fit mx-auto">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2 text-left">
                 <MapPin className="w-4 h-4" />
                 {buildSentence(t, 'address', 'information')}
               </h3>
@@ -210,8 +210,8 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
           {profile?.rfid && (
             <>
               <Separator />
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+              <div className="space-y-3 w-fit mx-auto">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2 text-left">
                   <CreditCard className="w-4 h-4" />
                   RFID Tag
                 </h3>
@@ -224,8 +224,8 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
           {(profile?.emergencyContactName || profile?.emergencyContactNumber || profile?.emergencyContactRelationship) && (
             <>
               <Separator />
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+              <div className="space-y-3 w-fit mx-auto">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2 text-left">
                   <Shield className="w-4 h-4" />
                   {buildSentence(t, 'emergency', 'contact')}
                 </h3>
@@ -256,8 +256,8 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
           <Separator />
 
           {/* Trainer Entity: Trainer Details */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+          <div className="space-y-3 w-fit mx-auto">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2 text-left">
               <Target className="w-4 h-4" />
               {buildSentence(t, 'trainer', 'details')}
             </h3>
@@ -284,7 +284,7 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
                 </div>
               ) : null}
 
-             
+
             </div>
           </div>
 
@@ -292,8 +292,8 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
           {profile?.documents && profile.documents.length > 0 && (
             <>
               <Separator />
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+              <div className="space-y-3 w-fit mx-auto">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2 text-left">
                   <FileText className="w-4 h-4" />
                   Documents ({profile.documents.length})
                 </h3>
@@ -312,8 +312,8 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
           {profile?.business && (
             <>
               <Separator />
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2">
+              <div className="space-y-3 w-fit mx-auto">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-2 text-left">
                   <Building className="w-4 h-4" />
                   Business
                 </h3>
@@ -327,8 +327,8 @@ export function StaffDetailSidebar({ staff, storeKey, store }: IStaffDetailSideb
           <Separator />
 
           {/* QR Code Section */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="space-y-3 w-fit mx-auto">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground text-left">
               Staff QR Code
             </h3>
             <div className="flex flex-col items-center gap-4">

@@ -1,5 +1,5 @@
 // React
-import { useId, useMemo, useState, useEffect } from "react";
+import React, { useId, useMemo, useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { useShallow } from "zustand/shallow";
 import { Loader2 } from "lucide-react";
@@ -51,10 +51,10 @@ const FaviconUploadField = ({
   onChange: (file: File | null) => void;
   disabled?: boolean;
 }) => (
-  <FileUpload 
-    value={value} 
-    onChange={onChange} 
-    variant="rectangle" 
+  <FileUpload
+    value={value}
+    onChange={onChange}
+    variant="rectangle"
     disabled={disabled}
     acceptedTypes={['.ico']}
     maxSizeInMB={0.5}
@@ -154,6 +154,27 @@ export function CustomizationForm({ storeKey, store }: ICustomizationFormProps) 
   return (
     <Form<CreateBusinessThemeDto, IMessageResponse> formStore={store}>
       <div data-component-id={componentId} className="space-y-4">
+
+
+        {/* Title Field */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "title")}</h3>
+          {inputs.title}
+        </div>
+
+        {/* Font Option - Outside tabs */}
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "font", "family")}</h3>
+          {inputs.fontFamily}
+        </div>
+
+        <div>
+          <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "favicon")}</h3>
+          <div>
+            {inputs.favicon as React.ReactNode}
+          </div>
+        </div>
+
         {/* Tabs - Above form */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'light' | 'dark')} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -170,11 +191,7 @@ export function CustomizationForm({ storeKey, store }: ICustomizationFormProps) 
 
 
         <div className="space-y-6 max-h-[calc(100vh-350px)] overflow-y-auto pr-2 pb-2">
-          {/* Title Field */}
-          <div className="mb-6">
-            <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "title")}</h3>
-            {inputs.title}
-          </div>
+
 
           {/* Content based on active tab */}
           <div className="w-full space-y-6">
@@ -182,14 +199,9 @@ export function CustomizationForm({ storeKey, store }: ICustomizationFormProps) 
               <>
                 {/* Logo and Favicon Section */}
                 <div>
-                  <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "logo", "and", "favicon")}</h3>
-                  <div className="space-y-4">
-                    <div>
-                      {inputs.logoLight}
-                    </div>
-                    <div>
-                      {inputs.favicon}
-                    </div>
+                  <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "logo")}</h3>
+                  <div>
+                  {inputs.logoLight as React.ReactNode}
                   </div>
                 </div>
 
@@ -207,14 +219,9 @@ export function CustomizationForm({ storeKey, store }: ICustomizationFormProps) 
               <>
                 {/* Logo and Favicon Section */}
                 <div>
-                  <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "logo", "and", "favicon")}</h3>
-                  <div className="space-y-4">
-                    <div>
-                      {inputs.logoDark}
-                    </div>
-                    <div>
-                      {inputs.favicon}
-                    </div>
+                  <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "logo")}</h3>
+                  <div>
+                  {inputs.logoDark as React.ReactNode}
                   </div>
                 </div>
 
@@ -229,21 +236,17 @@ export function CustomizationForm({ storeKey, store }: ICustomizationFormProps) 
             )}
           </div>
 
-          {/* Font Option - Outside tabs */}
-          <div className="mt-6">
-            <h3 className="text-sm font-semibold mb-3">{buildSentence(t, "font", "family")}</h3>
-            {inputs.fontFamily}
-          </div>
+
 
         </div>
 
         <div className="flex justify-end gap-2 mt-6">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {buildSentence(t, "save", "theme")}
-        </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {buildSentence(t, "save", "theme")}
+          </Button>
         </div>
       </div>
     </Form>
