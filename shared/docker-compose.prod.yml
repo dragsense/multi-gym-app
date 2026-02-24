@@ -27,7 +27,7 @@ services:
     container_name: formance-redis-staging
     restart: unless-stopped
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -44,7 +44,7 @@ services:
     environment:
       - REDIS_HOSTS=local:formance-dragonfly-staging:6379
     ports:
-      - "8082:8081"
+      - "8081:8081"
     depends_on:
       - dragonfly
     restart: unless-stopped
@@ -60,7 +60,7 @@ services:
       dragonfly
       --maxmemory=5g # slightly less than container memory
     ports:
-      - "6381:6379"
+      - "6380:6379"
     networks:
       - app-network
 
