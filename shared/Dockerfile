@@ -114,8 +114,8 @@ COPY backend/.env* ./backend/
 # Create logs directory
 RUN mkdir -p ./backend/logs
 
-COPY ecosystem.config.js ./ecosystem.config.js
+COPY ecosystem.config.js ./
 
 # Start with PM2 (can be restarted via deploy script)
-CMD ["pm2", "start", "ecosystem.config.js", "--only", "formance-prod", "--no-daemon"]
+CMD ["pm2", "start", "ecosystem.config.js", "--only", "formance-staging", "--no-daemon"]
 
