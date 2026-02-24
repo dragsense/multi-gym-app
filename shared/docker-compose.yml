@@ -113,26 +113,26 @@ services:
       - app-network
 
   # SRS    
-  srs:
-    image: ossrs/srs:latest
-    container_name: formance-app-srs
-    ports:
-      - "1935:1935"   # RTMP
-      - "8080:8080"   # HTTP API
-      - "1985:1985"   # SRS API
-      - "8000:8000/udp" # WebRTC UDP
-    environment:
-      # Candidate IP for WebRTC - must be an IP address that clients can connect to
-      # Using * for auto-detection - SRS will detect the network interface IP
-      # For localhost development, this should work automatically
-      CANDIDATE: "*"
-    volumes:
-      - ./srs_conf:/usr/local/srs/conf
-    command: >
-      ./objs/srs -c conf/srs.conf
-    restart: unless-stopped
-    networks:
-      - app-network
+  # srs:
+  #   image: ossrs/srs:latest
+  #   container_name: formance-app-srs
+  #   ports:
+  #     - "1935:1935"   # RTMP
+  #     - "8080:8080"   # HTTP API
+  #     - "1985:1985"   # SRS API
+  #     - "8000:8000/udp" # WebRTC UDP
+  #   environment:
+  #     # Candidate IP for WebRTC - must be an IP address that clients can connect to
+  #     # Using * for auto-detection - SRS will detect the network interface IP
+  #     # For localhost development, this should work automatically
+  #     CANDIDATE: "*"
+  #   volumes:
+  #     - ./srs_conf:/usr/local/srs/conf
+  #   command: >
+  #     ./objs/srs -c conf/srs.conf
+  #   restart: unless-stopped
+  #   networks:
+  #     - app-network
 
 volumes:
   postgres_data:
