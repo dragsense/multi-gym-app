@@ -27,6 +27,7 @@ export default defineConfig({
     allowedHosts: [
       "localhost",
       "app.local",
+      "staging.template.io",
     ],
     
   },

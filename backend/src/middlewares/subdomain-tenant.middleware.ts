@@ -24,7 +24,7 @@ export class SubdomainTenantMiddleware implements NestMiddleware {
         return next();
       }
 
-      // Strip reserved segments (e.g. business.staging.vivast.io → business.vivast.io) so tenant = business
+      // Strip reserved segments (e.g. business.staging.template.io → business.template.io) so tenant = business
       hostname = this.normalizeHostnameForTenant(hostname);
 
       // Extract subdomain from normalized hostname
@@ -55,7 +55,7 @@ export class SubdomainTenantMiddleware implements NestMiddleware {
 
   /**
    * Remove reserved subdomain segments so tenant is resolved by business subdomain only.
-   * e.g. business.staging.vivast.io → business.vivast.io, business.testing.vivast.io → business.vivast.io
+   * e.g. business.staging.template.io → business.template.io, business.testing.template.io → business.template.io
    */
   private normalizeHostnameForTenant(hostname: string): string {
     const lower = hostname.toLowerCase();
