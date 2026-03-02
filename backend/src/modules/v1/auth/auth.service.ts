@@ -121,9 +121,16 @@ export class AuthService {
   }
 
 
-  async validateUser(email: string, clientPassword: string): Promise<any> {
+  async validateUser(email: string, clientPassword: string, tenantId: string | null = null): Promise<any> {
     try {
-      const user = await this.userService.getUserByEmail(email);
+
+      let user = await this.userService.getUserByEmail(email);
+
+      if (user?.level === SignupUserLevel.SUPER_ADMIN && tenantId) {
+        user = await this.userService.getUserByEmail(email + "_" + tenantId);
+      }
+
+
       if (!user) {
         // Log failed login attempt
         await this.activityLogsService.createActivityLog({
@@ -143,6 +150,8 @@ export class AuthService {
         });
         throw new UnauthorizedException('Invalid credentials');
       }
+
+
 
       if (!user.password) {
         throw new UnauthorizedException('Invalid credentials');
@@ -265,7 +274,7 @@ export class AuthService {
         const baseAppUrl =
           (appUrlFromRequest as string) || (appConfig.appUrl as string);
 
-          const port = process.env.NODE_ENV === 'development' ? '5173' : '';
+        const port = process.env.NODE_ENV === 'development' ? '5173' : '';
 
         const appUrl = `${baseAppUrl.replace(/\/+$/, '')}${port ? `:${port}` : ''}`;
         const resetPasswordPath = String(appConfig.passwordResetPath).replace(

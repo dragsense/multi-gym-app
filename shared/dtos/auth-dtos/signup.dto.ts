@@ -122,5 +122,8 @@ export class SignupResponseDto {
   message: string;
 
   @ApiProperty()
+  tokenId?: string | null;
+
+  @ApiProperty()
   requiredOtp: boolean;
 }

@@ -30,6 +30,7 @@ import { UserRole } from '@/common/roles/entities/user-role.entity';
 import { UserPermission } from '@/common/roles/entities/user-permission.entity';
 import { PrivilegeAssignmentService } from './services/privilege-assignment.service';
 import { UserAvailabilityService } from '../user-availability/user-availability.service';
+import { CrudMethodConfig } from '@/common/crud/interfaces/crud.interface';
 
 @Injectable()
 export class UsersService {
@@ -91,8 +92,8 @@ export class UsersService {
     return this.baseUsersService.getUserByEmailWithPassword(email);
   }
 
-  async getUser(payload: any, query?: SingleQueryDto<User>): Promise<User> {
-    const user = await this.baseUsersService.getSingle(payload, query);
+  async getUser(payload: any, query?: SingleQueryDto<User>, config?: CrudMethodConfig): Promise<User> {
+    const user = await this.baseUsersService.getSingle(payload, query, undefined, undefined, config);
     if (!user) throw new NotFoundException('User not found');
 
     return user;
