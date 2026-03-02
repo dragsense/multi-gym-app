@@ -3,6 +3,7 @@ import {
   NestInterceptor,
   ExecutionContext,
   CallHandler,
+  BadRequestException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { Request } from 'express';
@@ -12,7 +13,9 @@ interface RequestWithUser extends Request {
   user?: {
     id?: string;
     level?: number;
+    tenantId?: string;
   };
+  tenantId?: string;
 }
 
 @Injectable()
@@ -21,6 +24,7 @@ export class UserContextInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest();
     const userId = (request as RequestWithUser).user?.id;
     const userLevel = (request as RequestWithUser).user?.level;
+    const tenantId = (request as RequestWithUser).user?.tenantId;
 
     if (userId) {
       RequestContext.set('userId', userId);

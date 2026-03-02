@@ -74,6 +74,10 @@ export class BillingsService extends CrudService<Billing> {
     // Check if trainer exists and is actually a trainer
     const recipientUser = await this.usersService.getUser(
       createBillingDto.recipientUser.id,
+      undefined,
+      {
+        skipSuperAdminOwnDataOnly: true
+      }
     );
 
     if (!recipientUser) {

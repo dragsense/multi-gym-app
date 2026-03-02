@@ -121,8 +121,9 @@ export class AuthService {
   }
 
 
-  async validateUser(email: string, clientPassword: string): Promise<any> {
+  async validateUser(email: string, clientPassword: string, tenantId: string | null = null): Promise<any> {
     try {
+      email = tenantId ? email + "_" + tenantId : email;  
       const user = await this.userService.getUserByEmail(email);
       if (!user) {
         // Log failed login attempt
@@ -265,7 +266,7 @@ export class AuthService {
         const baseAppUrl =
           (appUrlFromRequest as string) || (appConfig.appUrl as string);
 
-          const port = process.env.NODE_ENV === 'development' ? '5173' : '';
+        const port = process.env.NODE_ENV === 'development' ? '5173' : '';
 
         const appUrl = `${baseAppUrl.replace(/\/+$/, '')}${port ? `:${port}` : ''}`;
         const resetPasswordPath = String(appConfig.passwordResetPath).replace(

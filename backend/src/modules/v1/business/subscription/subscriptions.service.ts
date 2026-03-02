@@ -20,6 +20,7 @@ export class SubscriptionsService extends CrudService<Subscription> {
     const crudOptions: CrudOptions = {
       restrictedFields: [],
       searchableFields: ['name', 'description'],
+      superAdminOwnDataOnly: false
     };
     super(subscriptionRepo, moduleRef, crudOptions);
   }

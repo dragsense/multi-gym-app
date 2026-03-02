@@ -56,10 +56,10 @@ export default function SignupPage() {
       validationMode={EVALIDATION_MODES.OnChange}
       dto={SignupDto}
       onSuccess={(res: ISignupResponse) => {
-        toast.success(res.message || 'Registration successful');
+        toast.success(res?.message || 'Registration successful');
         startTransition(() => {
           const result: ISignupResponse = res as ISignupResponse;
-          if (result.requiredOtp) {
+          if (result?.requiredOtp) {
             localStorage.setItem('member_onboarding_step', '1');
             localStorage.setItem('business_onboarding_step', '1');
             navigate(buildRoutePath(PUBLIC_ROUTES.VERIFY_OTP, undefined, { token: result.token || '' }));

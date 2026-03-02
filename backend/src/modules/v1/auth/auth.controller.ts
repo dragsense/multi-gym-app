@@ -92,7 +92,7 @@ export class AuthController {
 
     RequestContext.set('tenantId', tenantId);
 
-    let { user, token } = await this.authService.validateUser(
+    let { user, token, } = await this.authService.validateUser(
       email,
       password,
     );
@@ -273,9 +273,12 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User found', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
   async findMe(@AuthUser() currentUser: User) {
+
     const user = await this.baseUsersService.getSingle(currentUser.id, {
       _relations: ['roles.role', 'permissions.permission', 'privileges.permissions.permission'],
       _select: ['id', 'email', 'firstName', 'lastName', 'gender', 'dateOfBirth', 'level', 'roles.id', 'roles.role.name', 'permissions.id', 'permissions.permission.name', 'privileges.id', 'privileges.permissions.id', 'privileges.permissions.permission.name'],
+    }, undefined, undefined, {
+      skipSuperAdminOwnDataOnly: true
     });
     if (!user) throw new NotFoundException('User not found');
 

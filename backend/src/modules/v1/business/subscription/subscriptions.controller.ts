@@ -49,7 +49,9 @@ export class SubscriptionsController {
   @MinUserLevel(EUserLevels.SUPER_ADMIN)
   @SkipBusinessCheck()
   findAll(@Query() query: SubscriptionListDto) {
-    return this.subscriptionsService.get(query, SubscriptionListDto);
+    return this.subscriptionsService.get(query, SubscriptionListDto, undefined, {
+      skipSuperAdminOwnDataOnly: true
+    });
   }
 
   @ApiOperation({ summary: 'Get a subscription by ID' })
