@@ -123,8 +123,14 @@ export class AuthService {
 
   async validateUser(email: string, clientPassword: string, tenantId: string | null = null): Promise<any> {
     try {
-      email = tenantId ? email + "_" + tenantId : email;  
-      const user = await this.userService.getUserByEmail(email);
+
+      let user = await this.userService.getUserByEmail(email);
+
+      if (user?.level === SignupUserLevel.SUPER_ADMIN && tenantId) {
+        user = await this.userService.getUserByEmail(email + "_" + tenantId);
+      }
+
+
       if (!user) {
         // Log failed login attempt
         await this.activityLogsService.createActivityLog({
@@ -144,6 +150,8 @@ export class AuthService {
         });
         throw new UnauthorizedException('Invalid credentials');
       }
+
+
 
       if (!user.password) {
         throw new UnauthorizedException('Invalid credentials');

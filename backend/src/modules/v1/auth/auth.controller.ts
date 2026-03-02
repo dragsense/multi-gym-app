@@ -88,13 +88,19 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto, @Req() req: any, @Res() res: Response) {
     const { email, password, deviceId, business } = loginDto;
 
-    const tenantId = business?.tenantId || null;
+
+    let tenantId = business?.tenantId || null;
+
+    if (!tenantId && process.env.APP_MODE === APP_MODE.MULTI_DOMAIN_TENANT) {
+      tenantId = (req as any).tenantId || RequestContext.get<string>('tenantId') || null;
+    }
 
     RequestContext.set('tenantId', tenantId);
 
     let { user, token, } = await this.authService.validateUser(
       email,
       password,
+      tenantId
     );
 
     if (tenantId) {
