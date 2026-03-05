@@ -14,7 +14,7 @@ cp -f ../shared/.env.dev ./frontend/.env.dev
 cp -f ../shared/.env.shared ./shared/.env
 
 # Build and start Docker
-make setup-prod
+make safe-setup-prod
 
 # Show last 15 lines of logs from formance-app container
 docker logs --tail 15 formance-app-staging
