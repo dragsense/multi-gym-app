@@ -25,7 +25,7 @@ export function setupBullBoard(
 
   // Get all registered queues dynamically
   const queues: Queue[] = [];
-  const queueNames = ['schedule', 'billing', 'session', 'user', 'task'];
+  const queueNames = ['schedule', 'billing', 'session', 'user'];
 
   for (const queueName of queueNames) {
     try {
