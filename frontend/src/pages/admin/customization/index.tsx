@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTransition } from "react";
 import { PageInnerLayout } from "@/layouts";
 import { FormHandler } from "@/handlers/form-handler";
@@ -13,10 +13,8 @@ import { CustomizationPreview } from "@/components/admin/customization";
 import { toast } from "sonner";
 import { strictDeepMerge } from "@/utils";
 import { FONT_OPTIONS } from "@/config/fonts.config";
-import { useRegisteredStore, type TSingleHandlerStore } from "@/stores";
 import { BUSINESS_THEME_STORE_KEY } from "@/components/layout-ui/business-theme";
-import type { IBusinessTheme } from "@shared/interfaces";
-import { useShallow } from "zustand/shallow";
+import { fetchMyBusinessTheme } from "@/services/business/business-theme.api";
 
 const Header = () => null;
 
@@ -26,8 +24,10 @@ export default function CustomizationPage() {
   const [, startTransition] = useTransition();
   
   // Get theme from store
-  const themeStore = useRegisteredStore<TSingleHandlerStore<IBusinessTheme | null, {}>>(BUSINESS_THEME_STORE_KEY + "-single");
-  const currentTheme = themeStore ? themeStore(useShallow((state) => state.response)) : null;
+  const {data: myBusinessTheme} = useQuery({
+    queryKey: [BUSINESS_THEME_STORE_KEY + "-single"],
+    queryFn: fetchMyBusinessTheme,
+  });
 
 
   const STORE_KEY = "business-customization";
@@ -44,10 +44,10 @@ export default function CustomizationPage() {
       favicon: null,
     };
 
-    if (!currentTheme) return INITIAL_VALUES;
+    if (!myBusinessTheme) return INITIAL_VALUES;
 
-    return strictDeepMerge<CreateBusinessThemeDto | UpdateBusinessThemeDto>(INITIAL_VALUES, currentTheme as CreateBusinessThemeDto | UpdateBusinessThemeDto);
-  }, [currentTheme]);
+    return strictDeepMerge<CreateBusinessThemeDto | UpdateBusinessThemeDto>(INITIAL_VALUES, myBusinessTheme as CreateBusinessThemeDto | UpdateBusinessThemeDto);
+  }, [myBusinessTheme]);
 
   return (
     <PageInnerLayout Header={<Header />}>
@@ -70,7 +70,7 @@ export default function CustomizationPage() {
         initialValues={initialValues}
         validationMode={EVALIDATION_MODES.OnSubmit}
         dto={CreateBusinessThemeDto}
-        isEditing={!!currentTheme}
+        isEditing={!!myBusinessTheme}
                 onSuccess={(response) => {
                   toast.success(buildSentence(t, "theme", "saved", "successfully"));
                   queryClient.invalidateQueries({ queryKey: [BUSINESS_THEME_STORE_KEY + "-single"] });

@@ -137,7 +137,8 @@ export function AppComboBox<T>({
           style={{ textAlign: "left" }}
           data-component-id={componentId}
         >
-          <span className="flex flex-wrap gap-1 items-center w-full">
+          {/* <span className="flex flex-wrap gap-1 items-center w-full "> */}
+          <span className="block max-w-[250px] truncate">
             {multiple ? (
               <>
                 {selectedValues.length === 0 && (

@@ -196,17 +196,17 @@ const baseNavItems: NavItemGroup[] = [
         url: ADMIN_ROUTES.NOTIFICATIONS,
         icon: Bell, // Assuming Bell icon is imported
       },
-      {
+/*       {
         title: "automation",
         url: ADMIN_ROUTES.AUTOMATION,
         icon: Bot,
         roles: [EUserLevels.ADMIN, EUserLevels.STAFF],
         requiredAction: 'read',
         requiredFeature: ESubscriptionFeatures.EMAIL_TEMPLATES
-      },
+      }, */
     ],
   },
-  {
+/*   {
     groupTitle: "Store",
     items: [
       {
@@ -238,25 +238,25 @@ const baseNavItems: NavItemGroup[] = [
         requiredFeature: ESubscriptionFeatures.E_COMMERCE,
       },
     ],
-  },
+  }, */
   {
     groupTitle: "Content Management",
     items: [
-      {
+ /*      {
         title: "emailTemplates",
         url: ADMIN_ROUTES.CMS.EMAIL_TEMPLATES,
         icon: Mail,
         roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.STAFF, EUserLevels.ADMIN,],
         requiredFeature: ESubscriptionFeatures.EMAIL_TEMPLATES,
         requiredAction: 'read'
-      },
+      }, */
       {
         title: "pages",
         url: ADMIN_ROUTES.CMS.PAGES,
         icon: LayoutGrid,
         roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.STAFF, EUserLevels.ADMIN],
         requiredFeature: ESubscriptionFeatures.PAGES,
-        requiredAction: 'read'
+        requiredAction: ['read']
       },
       {
         title: "faqs",
@@ -264,7 +264,7 @@ const baseNavItems: NavItemGroup[] = [
         icon: FileText,
         requiredFeature: ESubscriptionFeatures.FAQS,
         roles: [EUserLevels.PLATFORM_OWNER, EUserLevels.STAFF, EUserLevels.ADMIN],
-        requiredAction: 'read'
+        requiredAction: ['read']
       },
     ],
   },

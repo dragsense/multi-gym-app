@@ -8,6 +8,7 @@ services:
       context: ..
       dockerfile: shared/Dockerfile
       target: dev
+      no_cache: true
     container_name: formance-app
     ports:
       - "3000:3000" # Backend port
@@ -16,6 +17,10 @@ services:
       - ./.env
       - ../backend/.env
       - ../frontend/.env.dev
+    environment:
+      # MediaMTx Control API (must match mediamtx service auth)
+      MEDIAMTX_API_USER: "admin"
+      MEDIAMTX_API_PASS: "admin123"
     volumes:
       - ../frontend:/app/frontend
       - ../backend:/app/backend
@@ -32,6 +37,11 @@ services:
         condition: service_started
       mailpit:
         condition: service_started
+      mqtt:
+        condition: service_started
+      mediamtx:
+        condition: service_started
+    # command: ["sh", "-c", "cd /app/backend && npm run dev & cd /app/frontend && npm run dev & wait"]
     restart: unless-stopped
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -112,30 +122,42 @@ services:
     networks:
       - app-network
 
-  # SRS    
-  # srs:
-  #   image: ossrs/srs:latest
-  #   container_name: formance-app-srs
-  #   ports:
-  #     - "1935:1935"   # RTMP
-  #     - "8080:8080"   # HTTP API
-  #     - "1985:1985"   # SRS API
-  #     - "8000:8000/udp" # WebRTC UDP
-  #   environment:
-  #     # Candidate IP for WebRTC - must be an IP address that clients can connect to
-  #     # Using * for auto-detection - SRS will detect the network interface IP
-  #     # For localhost development, this should work automatically
-  #     CANDIDATE: "*"
-  #   volumes:
-  #     - ./srs_conf:/usr/local/srs/conf
-  #   command: >
-  #     ./objs/srs -c conf/srs.conf
-  #   restart: unless-stopped
-  #   networks:
-  #     - app-network
+  # MQTT Broker (Eclipse Mosquitto)
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: template-app-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"   # MQTT
+      - "9001:9001"   # WebSocket
+    volumes:
+      - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - app-network
+
+
+  # MediaMTx: RTSP → HLS/WebRTC; path-per-camera for thousands of streams
+  # Auth: shared/mediamtx.yml allows anonymous playback, admin/admin123 for Control API.
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: vivast-mediamtx
+    restart: unless-stopped
+    ports:
+      - "8888:8888"   # HLS
+      - "8889:8889"   # WebRTC (WHEP)
+      - "9997:9997"   # Control API
+      - "8189:8189/udp" # WebRTC ICE
+      - "8189:8189/tcp" # WebRTC ICE TCP fallback
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    command: ["/mediamtx.yml"]
+    # No healthcheck: official image has no wget/curl; app uses depends_on service_started
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
+  rabbitmq_data:
 
 networks:
   app-network:

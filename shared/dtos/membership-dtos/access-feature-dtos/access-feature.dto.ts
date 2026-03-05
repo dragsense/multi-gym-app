@@ -16,7 +16,7 @@ import { FieldType } from "../../../decorators/field.decorator";
 export class CreateAccessFeatureDto {
   @ApiProperty({ example: "Gym Access", description: "Access feature name" })
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({message: 'Name is required'})
   @FieldType("text", true)
   name: string;
 

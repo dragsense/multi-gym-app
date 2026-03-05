@@ -175,8 +175,8 @@ export class BillingNotificationService {
   }
 
   /**
-   * Send notification to Super Admins and Admins when billing is created
-   * This notification includes the due date
+   * Send notification to Super Admins and Admins when billing is created.
+   * Not used: would spam all business owners; only platform owner and recipient are notified (see handleBillingCreated).
    */
   async notifySuperAdminsBillingCreated(
     billing: Billing,

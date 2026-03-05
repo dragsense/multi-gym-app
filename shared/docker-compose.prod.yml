@@ -12,11 +12,14 @@ services:
       - ../backend/.env
     volumes:
       - app_logs:/app/logs
+      - app_uploads:/app/backend/public/uploads
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mqtt:
+        condition: service_started
     restart: unless-stopped
     networks:
       - app-network
@@ -98,26 +101,41 @@ services:
     networks:
       - app-network
 
-   # SRS - Host network for WebRTC ICE (UDP works); app reaches via host.docker.internal
-  # srs:
-  #   image: ossrs/srs:latest
-  #   container_name: formance-srs-staging
-  #   environment:
-  #     CANDIDATE: "35.84.225.108"
-  #     SRS_RTC_SERVER_CANDIDATE: "35.84.225.108"
-  #     SRS_RTC_SERVER_USE_AUTO_DETECT_NETWORK_IP: "off"
-  #   volumes:
-  #     - ./srs_conf:/usr/local/srs/conf
-  #   command: >
-  #     ./objs/srs -c conf/srs.conf
-  #   restart: unless-stopped
-  #   networks:
-  #     - app-network
+  # MQTT Broker (Eclipse Mosquitto)
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: template-mqtt-staging
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - app-network
+
+  # MediaMTx: RTSP → HLS/WebRTC for camera streams (auth: shared/mediamtx.yml)
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: vivast-mediamtx
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+      - "9997:9997"
+      - "8189:8189/udp"
+      - "8189:8189/tcp"
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    command: ["/mediamtx.yml"]
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
   redis_data:
   app_logs:
+  app_uploads:
 
 networks:
   app-network:

@@ -89,7 +89,7 @@ export function SubscriptionForm({ storeKey, store }: ISubscriptionFormProps) {
     discountPercentage: 0, // optional
     frequency: [ESubscriptionFrequency.MONTHLY], // required enum
     features: [], // required non-empty array (can start empty)
-    autoRenewal: false, // optional boolean
+    autoRenewal: true, // optional boolean
     trialPeriod: 0, // optional
   };
 

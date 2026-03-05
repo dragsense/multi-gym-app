@@ -193,7 +193,7 @@ export class ProductService extends CrudService<Product> {
     if (defaultSku) {
       const existing = await this.getSingle({
         defaultSku,
-      }, undefined, undefined, undefined, true);
+      }, undefined, undefined, undefined, { includeDeleted: true });
 
       if (existing) throw new ConflictException(`A product with default SKU "${defaultSku}" already exists. Default SKU must be unique.`);
     }
@@ -283,7 +283,7 @@ export class ProductService extends CrudService<Product> {
     if (defaultSku !== undefined && defaultSku !== '') {
       const existing = await this.getSingle({
         defaultSku,
-      }, undefined, undefined, undefined, true);
+      }, undefined, undefined, undefined, { includeDeleted: true });
       if (existing && existing.id !== id) {
         throw new ConflictException(
           `A product with default SKU "${defaultSku}" already exists. Default SKU must be unique.`,

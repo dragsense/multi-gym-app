@@ -16,7 +16,6 @@ import type { ISubscriptionResponse } from "@shared/interfaces";
 import { Button } from "@/components/ui/button";
 import { ModalForm } from "@/components/form-ui/modal-form";
 import type { THandlerComponentProps } from "@/@types/handler-types";
-import { addRenderItem } from "@/lib/fields/dto-to-feilds";
 import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 
 import {
@@ -24,6 +23,7 @@ import {
   TooltipTrigger,
   TooltipContent
 } from "@/components/ui/tooltip"
+import { FormErrors } from "@/components/shared-ui/form-errors";
 
 export interface ISubscriptionFormModalExtraProps {
   open: boolean;

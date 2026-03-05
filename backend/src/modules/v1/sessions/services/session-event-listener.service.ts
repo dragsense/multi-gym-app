@@ -20,7 +20,7 @@ import { SessionEmailService } from './session-email.service';
 import { UsersService } from '@/modules/v1/users/users.service';
 import { ActionRegistryService } from '@/common/helper/services/action-registry.service';
 import { SessionNotificationService } from './session-notification.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Injectable()
 export class SessionEventListenerService implements OnModuleInit {

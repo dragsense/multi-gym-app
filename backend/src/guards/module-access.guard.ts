@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '@/decorators/access.decorator';
 import { SKIP_MODULE_CHECK_KEY } from '@/decorators/skip-module-check.decorator';
 import { REQUIRE_MODULE_KEY } from '@/decorators/require-module.decorator';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { BusinessSubscriptionService } from '@/modules/v1/business/services/business-subscription.service';
 import { ESubscriptionFeatures } from '@shared/enums/business/subscription.enum';
 import { EUserLevels } from '@shared/enums/user.enum';

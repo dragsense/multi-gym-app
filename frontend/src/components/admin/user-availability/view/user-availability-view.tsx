@@ -11,11 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { AppCard } from "@/components/layout-ui/app-card";
 
 // Icons
-import { Calendar, Clock, Edit, Plus } from "lucide-react";
+import { Calendar, Clock, Edit, Plus, Trash2 } from "lucide-react";
 
 // Utils
 import { useShallow } from "zustand/shallow";
 import { useUserSettings } from "@/hooks/use-user-settings";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 import { formatDate, formatDateString, formatTimeString } from "@/lib/utils";
 
 export type TUserAvailabilityViewExtraProps = {};
@@ -30,16 +32,18 @@ export default function UserAvailabilityView({
     const componentId = useId();
     const [, startTransition] = useTransition();
     const { settings } = useUserSettings();
+    const { t } = useI18n();
 
     if (!store) {
         return <div>Single store "{storeKey}" not found. Did you forget to register it?</div>;
     }
 
-    const { response, isLoading, error, setAction } = store(useShallow(state => ({
+    const { response, isLoading, error, setAction, setExtra } = store(useShallow(state => ({
         response: state.response,
         isLoading: state.isLoading,
         error: state.error,
-        setAction: state.setAction
+        setAction: state.setAction,
+        setExtra: state.setExtra,
     })));
 
     const handleUpdateAvailability = () => {
@@ -54,6 +58,13 @@ export default function UserAvailabilityView({
         });
     };
 
+    const handleDeletePeriod = (index: number) => {
+        startTransition(() => {
+            setExtra('deletePeriodIndex', index);
+            setAction('deleteUnavailablePeriod');
+        });
+    };
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -64,8 +75,6 @@ export default function UserAvailabilityView({
             </div>
         );
     }
-
-
 
     if (!response) {
         return (
@@ -168,21 +177,32 @@ export default function UserAvailabilityView({
                                     <div className="space-y-2">
                                         {response.unavailablePeriods.map((period, index) => (
                                             <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-3">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="font-medium text-red-800">{period.reason}</span>
-                                                    <Badge variant="destructive" className="text-xs">
-                                                        Unavailable
-                                                    </Badge>
-                                                </div>
-                                                <div className="text-sm text-red-600 mt-1">
-
-                                                    {formatDateString(period.dateRange?.[0], settings)} - {formatDateString(period.dateRange?.[1], settings)}
-
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="min-w-0 flex-1">
+                                                        <span className="font-medium text-red-800">{period.reason}</span>
+                                                        <div className="text-sm text-red-600 mt-1">
+                                                            {formatDateString(period.dateRange?.[0], settings)} - {formatDateString(period.dateRange?.[1], settings)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 shrink-0">
+                                                        <Badge variant="destructive" className="text-xs">
+                                                            Unavailable
+                                                        </Badge>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-100"
+                                                            onClick={() => handleDeletePeriod(index)}
+                                                            aria-label={buildSentence(t, "delete")}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-
                                 </div>
                             </div>
                         )}

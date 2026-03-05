@@ -69,7 +69,7 @@ export class BusinessController {
     @Public()
     findAllList() {
         return this.businessService.get({
-            _select: ['id', 'name', 'subdomain'],
+            _select: ['id', 'name', 'subdomain', 'tenantId'],
         }, BusinessListDto);
     }
 
@@ -233,8 +233,11 @@ export class BusinessController {
     @MinUserLevel(EUserLevels.SUPER_ADMIN)
     async loginToMyBusiness(
         @AuthUser() currentUser: User,
+        @Req() req: any,
     ): Promise<BusinessImpersonateResponseDto> {
-        return this.businessService.loginToMyBusiness(currentUser);
+        const response = await this.businessService.loginToMyBusiness(currentUser);
+        req.tenantId = response.tenantId;
+        return response;
     }
 
     @ApiOperation({

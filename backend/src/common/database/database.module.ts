@@ -7,7 +7,6 @@ import { DatabaseService } from './database.service';
 import { DatabaseController } from './database.controller';
 import { EntityRouterService } from './entity-router.service';
 import { DatabaseConnectionEntity } from './entities/database-connection.entity';
-import { SubdomainTenantMiddleware } from './subdomain-tenant.middleware';
 import { Business } from '@/modules/v1/business/entities/business.entity';
 import { SeedsModule } from '@/seeds/seeds.module';
 
@@ -34,13 +33,11 @@ export class DatabaseModule {
         DatabaseManager,
         DatabaseService,
         EntityRouterService,
-        SubdomainTenantMiddleware,
       ],
       exports: [
         DatabaseManager,
         DatabaseService,
         EntityRouterService,
-        SubdomainTenantMiddleware,
         TypeOrmModule,
       ],
     };

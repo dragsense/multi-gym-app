@@ -10,7 +10,7 @@ import {
   Shield,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
 } from "lucide-react";
 
 // Components
@@ -22,11 +22,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 // Types
-import type { IRole } from '@shared/interfaces';
-import type { IUserSettings } from '@shared/interfaces/settings.interface';
+import type { IRole } from "@shared/interfaces";
+import type { IUserSettings } from "@shared/interfaces/settings.interface";
 
 // Utils
-import { formatDate } from '@/lib/utils';
+import { formatDate } from "@/lib/utils";
+import { CustomTooltip } from "@/components/shared-ui/custom-tooltip";
 
 export const itemViews = ({
   editRole,
@@ -36,28 +37,24 @@ export const itemViews = ({
 }: {
   editRole: (roleId: string) => void;
   deleteRole: (roleId: string) => void;
-  viewPermissions: (roleId: string) => void;
+  viewPermissions: (roleId: string, roleName: string) => void;
   settings?: IUserSettings;
 }) => {
   const columns: ColumnDef<IRole>[] = [
-    {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => {
-        const id = row.getValue<string>("id");
-        return (
-          <span className="font-mono text-sm">{id}</span>
-        );
-      },
-    },
+    // {
+    //   accessorKey: "id",
+    //   header: "ID",
+    //   cell: ({ row }) => {
+    //     const id = row.getValue<string>("id");
+    //     return <span className="font-mono text-sm">{id}</span>;
+    //   },
+    // },
     {
       accessorKey: "name",
       header: "Role Name",
       cell: ({ row }) => {
         const name = row.getValue<string>("name");
-        return (
-          <span className="font-medium">{name}</span>
-        );
+        return <span className="font-medium">{name}</span>;
       },
     },
     {
@@ -66,7 +63,9 @@ export const itemViews = ({
       cell: ({ row }) => {
         const code = row.getValue<string>("code");
         return (
-          <span className="font-mono text-sm bg-muted px-2 py-1 rounded">{code}</span>
+          <span className="font-mono text-sm bg-muted px-2 py-1 rounded">
+            {code}
+          </span>
         );
       },
     },
@@ -75,34 +74,35 @@ export const itemViews = ({
       header: "Description",
       cell: ({ row }) => {
         const description = row.getValue<string>("description");
-        return (
-          <span className="text-muted-foreground">{description || 'No description'}</span>
-        );
+        return <CustomTooltip text={description} trimCount={100} />;
       },
     },
-    
-    {
-      accessorKey: "isSystem",
-      header: "System Role",
-      cell: ({ row }) => {
-        const isSystem = row.getValue<boolean>("isSystem");
-        return (
-          <Badge variant={isSystem ? "destructive" : "secondary"}>
-            {isSystem ? "System" : "Custom"}
-          </Badge>
-        );
-      },
-    },
+
+    // {
+    //   accessorKey: "isSystem",
+    //   header: "System Role",
+    //   cell: ({ row }) => {
+    //     const isSystem = row.getValue<boolean>("isSystem");
+    //     return (
+    //       <Badge variant={isSystem ? "destructive" : "secondary"}>
+    //         {isSystem ? "System" : "Custom"}
+    //       </Badge>
+    //     );
+    //   },
+    // },
     {
       accessorKey: "rolePermissionsCount",
       header: "Permissions",
       cell: ({ row }) => {
-        const rolePermissionsCount = row.getValue<number>("rolePermissionsCount");
+        const rolePermissionsCount = row.getValue<number>(
+          "rolePermissionsCount",
+        );
         return (
           <div className="flex items-center gap-1">
             <Shield className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">
-              {rolePermissionsCount} permission{rolePermissionsCount !== 1 ? 's' : ''}
+              {rolePermissionsCount} permission
+              {rolePermissionsCount !== 1 ? "s" : ""}
             </span>
           </div>
         );
@@ -135,7 +135,9 @@ export const itemViews = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => viewPermissions(role.id)}>
+              <DropdownMenuItem
+                onClick={() => viewPermissions(role.id, role.name)}
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 View Permissions
               </DropdownMenuItem>

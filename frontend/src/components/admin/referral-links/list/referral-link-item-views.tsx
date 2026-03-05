@@ -14,6 +14,8 @@ import type { IUserSettings } from "@shared/interfaces/settings.interface";
 
 // Utils
 import { formatDateTime, formatDate } from "@/lib/utils";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 
 interface IReferralItemViewsProps {
   handleEdit: (id: string) => void;
@@ -26,6 +28,7 @@ interface IReferralItemViewsProps {
 // Component for link cell with copy functionality
 function LinkCell({ linkUrl }: { linkUrl: string }) {
   const [copied, setCopied] = useState(false);
+  const { t } = useI18n();
 
   // Helper function to shorten URL for display
   const shortenUrl = (url: string, maxLength: number = 30) => {
@@ -71,7 +74,7 @@ function LinkCell({ linkUrl }: { linkUrl: string }) {
           size="sm"
           onClick={handleCopy}
           className="h-6 w-6 p-0 hover:bg-gray-100"
-          title="Copy link"
+          title={buildSentence(t, "copy", "link")}
         >
           {copied ? (
             <Check className="h-3 w-3 text-green-600" />
@@ -86,11 +89,13 @@ function LinkCell({ linkUrl }: { linkUrl: string }) {
 
 export function referralLinkItemViews({ handleEdit, handleDelete, handleView, settings, componentId = "referral-link-item-views" }: IReferralItemViewsProps) {
 
+  const { t } = useI18n();
+
   // Table columns
   const columns: ColumnDef<IReferralLink>[] = [
     {
       accessorKey: 'title',
-      header: 'Title',
+      header: buildSentence(t, "title"),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Link className="h-4 w-4 text-muted-foreground" />
@@ -100,12 +105,12 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
     },
     {
       accessorKey: 'linkUrl',
-      header: 'Link',
+      header: buildSentence(t, "link"),
       cell: ({ row }) => <LinkCell linkUrl={row.original.linkUrl} />,
     },
     {
       accessorKey: 'expiresAt',
-      header: "Expired At",
+      header: buildSentence(t, "expires", "at"),
       cell: ({ row }) => (
         <span className="text-sm">
           {formatDateTime(row.original.expiresAt, settings)}
@@ -114,7 +119,7 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
     },
     {
       accessorKey: 'maxUses',
-      header: "Max Uses",
+      header: buildSentence(t, "max", "uses"),
       cell: ({ row }) => (
         <span className="text-sm">
           {row.original.maxUses}
@@ -123,7 +128,7 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
     },
     {
       accessorKey: 'currentUses',
-      header: "Current Uses",
+      header: buildSentence(t, "current", "uses"),
       cell: ({ row }) => (
         <span className="text-sm">
           {row.original.currentUses}
@@ -132,7 +137,7 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
     },
     {
       id: 'type',
-      header: 'Type',
+      header: buildSentence(t, "type"),
       cell: ({ row }) => {
         const typeColors = {
           [EReferralLinkType.CLIENT]: 'bg-blue-100 text-blue-800',
@@ -149,7 +154,7 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
     },
     {
       id: 'status',
-      header: 'Status',
+      header: buildSentence(t, "status"),
       cell: ({ row }) => {
         const referralLink = row.original;
         const statusColors = {
@@ -170,7 +175,7 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
 
     {
       id: 'actions',
-      header: 'Actions',
+      header: buildSentence(t, "actions"),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           <Button
@@ -178,7 +183,7 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
             size="sm"
             onClick={() => navigator.clipboard.writeText(row.original.linkUrl)}
             data-component-id={componentId}
-            title="Copy link"
+            title={buildSentence(t, "copy", "link")}
           >
             <Copy className="h-4 w-4" />
           </Button>
@@ -237,13 +242,18 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
 
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
-                <span><strong>Referrals:</strong> {referralLink.referralCount}</span>
+                <span>
+                  <strong>{buildSentence(t, "referrals")}:</strong> {referralLink.referralCount}
+                </span>
               </div>
 
               {referralLink.expiresAt && (
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span><strong>Expires:</strong> {formatDate(referralLink.expiresAt, settings)}</span>
+                  <span>
+                    <strong>{buildSentence(t, "expires")}:</strong>{" "}
+                    {formatDate(referralLink.expiresAt, settings)}
+                  </span>
                 </div>
               )}
               <div className="flex items-center gap-2">
@@ -264,7 +274,7 @@ export function referralLinkItemViews({ handleEdit, handleDelete, handleView, se
               size="sm"
               onClick={() => navigator.clipboard.writeText(referralLink.linkUrl)}
               data-component-id={componentId}
-              title="Copy link"
+              title={buildSentence(t, "copy", "link")}
             >
               <Copy className="h-4 w-4" />
             </Button>

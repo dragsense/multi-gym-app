@@ -4,12 +4,13 @@ import { Repository } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { randomUUID } from 'crypto';
 import { CrudService } from '@/common/crud/crud.service';
-import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
+import { CrudMethodConfig, CrudOptions } from '@/common/crud/interfaces/crud.interface';
 import { Business } from './entities/business.entity';
 
 import { CreateBusinessDto, CreateBusinessWithUserDto, UpdateBusinessDto, UpdateBusinessWithUserDto, BusinessImpersonateResponseDto } from '@shared/dtos';
 import { User } from '@/common/base-user/entities/user.entity';
 import { PaymentProcessorsService } from '@/common/payment-processors/payment-processors.service';
+import { AIProcessorsService } from '@/common/ai-processors/ai-processors.service';
 import { EBusinessStatus } from '@shared/enums/business/business.enum';
 import { EPaymentProcessorType, EUserLevels } from '@shared/enums';
 import { DatabaseManager } from '@/common/database/database-manager.service';
@@ -19,6 +20,7 @@ import { UsersService } from '../users/users.service';
 import { IMessageResponse } from '@shared/interfaces';
 import { BusinessSubscriptionService } from './services/business-subscription.service';
 import { BaseUsersService } from '@/common/base-user/base-users.service';
+import { APP_MODE } from '@/config/app.config';
 
 @Injectable()
 export class BusinessService extends CrudService<Business> {
@@ -34,6 +36,7 @@ export class BusinessService extends CrudService<Business> {
         @Inject(forwardRef(() => BusinessSubscriptionService))
         private readonly businessSubscriptionService: BusinessSubscriptionService,
         private readonly baseUsersService: BaseUsersService,
+        private readonly aiProcessorsService: AIProcessorsService,
     ) {
         const crudOptions: CrudOptions = {
             restrictedFields: [],
@@ -47,21 +50,21 @@ export class BusinessService extends CrudService<Business> {
     }
 
     async createBusiness(createDto: CreateBusinessDto, currentUser: User): Promise<Business> {
-       /*  if (createDto.paymentProcessorId) {
-            await this.validatePaymentProcessorId(createDto.paymentProcessorId);
-        } else {
-            const paymentProcessor = await this.paymentProcessorsService.getSingle({
-                type: EPaymentProcessorType.CASH,
-            });
-            createDto.paymentProcessorId = paymentProcessor?.id;
-        } */
+        /*  if (createDto.paymentProcessorId) {
+             await this.validatePaymentProcessorId(createDto.paymentProcessorId);
+         } else {
+             const paymentProcessor = await this.paymentProcessorsService.getSingle({
+                 type: EPaymentProcessorType.CASH,
+             });
+             createDto.paymentProcessorId = paymentProcessor?.id;
+         } */
 
-            const paymentProcessor = await this.paymentProcessorsService.getSingle({
-                type: EPaymentProcessorType.STRIPE,
-            });
-    
+        const paymentProcessor = await this.paymentProcessorsService.getSingle({
+            type: EPaymentProcessorType.STRIPE,
+        });
 
-        return this.create({...createDto, paymentProcessor: {id: paymentProcessor?.id}}, {
+
+        const savedBusiness = await this.create({ ...createDto, paymentProcessor: { id: paymentProcessor?.id } }, {
             beforeCreate: async (dto, manager) => {
                 const business = await manager.findOne(Business, {
                     where: { user: { id: currentUser.id } },
@@ -81,9 +84,17 @@ export class BusinessService extends CrudService<Business> {
                 };
             },
             afterCreate: async (savedEntity, manager) => {
-                await this.businessSubscriptionService.activateBusiness(savedEntity.id, manager);
             },
         });
+
+        this.businessSubscriptionService.activateBusiness(savedBusiness.id).then(() => {
+            this.logger.log(`Business subscription activated for business ${savedBusiness.id}`);
+        }).catch((error) => {
+            this.logger.error(`Failed to activate business subscription for business ${savedBusiness.id}: ${error.message}`);
+        });
+
+        return savedBusiness;
+
     }
 
     async createBusinessWithUser(
@@ -91,9 +102,9 @@ export class BusinessService extends CrudService<Business> {
     ): Promise<IMessageResponse & { business: Business }> {
         const { user, ...businessData } = createDto;
 
-      /*   if (createDto.paymentProcessorId) {
-            await this.validatePaymentProcessorId(createDto.paymentProcessorId);
-        }  */
+        /*   if (createDto.paymentProcessorId) {
+              await this.validatePaymentProcessorId(createDto.paymentProcessorId);
+          }  */
 
         const paymentProcessor = await this.paymentProcessorsService.getSingle({
             type: EPaymentProcessorType.STRIPE,
@@ -111,7 +122,7 @@ export class BusinessService extends CrudService<Business> {
         const savedBusiness = await this.create(
             {
                 ...businessData,
-                paymentProcessor: {id: paymentProcessor?.id}
+                paymentProcessor: { id: paymentProcessor?.id }
             },
             {
                 beforeCreate: async (dto, manager) => {
@@ -138,7 +149,6 @@ export class BusinessService extends CrudService<Business> {
 
                         savedEntity.user = savedUser.user;
 
-                        await this.businessSubscriptionService.activateBusiness(savedEntity.id, manager);
 
 
                     } catch (error) {
@@ -149,6 +159,13 @@ export class BusinessService extends CrudService<Business> {
                 },
             },
         );
+
+
+        this.businessSubscriptionService.activateBusiness(savedBusiness.id).then(() => {
+            this.logger.log(`Business subscription activated for business ${savedBusiness.id}`);
+        }).catch((error) => {
+            this.logger.error(`Failed to activate business subscription for business ${savedBusiness.id}: ${error.message}`);
+        });
 
         return {
             message: 'Business created successfully',
@@ -210,6 +227,19 @@ export class BusinessService extends CrudService<Business> {
     }
 
     /**
+     * Validate that aiProcessorId exists and is enabled when provided.
+     */
+    private async validateAIProcessorId(aiProcessorId: string): Promise<void> {
+        const processor = await this.aiProcessorsService.getSingle(aiProcessorId);
+        if (!processor) {
+            throw new BadRequestException('AI processor not found');
+        }
+        if (!processor.enabled) {
+            throw new BadRequestException('Selected AI processor is not enabled');
+        }
+    }
+
+    /**
      * Find business by subdomain
      * @param subdomain - The subdomain to search for (e.g., 'mygym' from 'mygym.example.com')
      * @returns Business entity if found, null otherwise
@@ -236,62 +266,9 @@ export class BusinessService extends CrudService<Business> {
             _relations: ['user'],
         });
 
-        if (!business) {
-            throw new NotFoundException('Business not found');
-        }
 
-        if (!business.tenantId) {
-            throw new BadRequestException('Business does not have a tenant database');
-        }
+        return this.generateBusinessLoginUrl(business, adminUser)
 
-        if (!business.subdomain) {
-            throw new BadRequestException('Business does not have a subdomain configured');
-        }
-
-        // 2. Get the business owner user
-        const businessUser = business.user;
-        if (!businessUser) {
-            throw new NotFoundException('Business owner user not found');
-        }
-
-        // 3. Switch to tenant database and find the super admin user
-        const tenantUserRepo = this.databaseManager.getRepository<User>(
-            User,
-            { tenantId: business.tenantId }
-        );
-
-        // Find user in tenant DB where refUserId matches business owner and level is SUPER_ADMIN
-        const tenantAdmin = await tenantUserRepo.findOne({
-            where: {
-                refUserId: businessUser.id,
-                level: EUserLevels.ADMIN
-            },
-        });
-
-        if (!tenantAdmin) {
-            throw new NotFoundException('admin user not found in tenant database');
-        }
-
-        // 4. Generate short-lived impersonation token (60 seconds)
-        const impersonationToken = this.tokenService.generateImpersonationToken({
-            userId: adminUser.id,
-            tenantId: business.tenantId,
-            targetUserId: tenantAdmin.id,
-            subdomain: business.subdomain,
-            purpose: 'impersonation',
-        }, '60s');
-
-        // 5. Build redirect URL
-        const host = this.configService.get('app.host') || 'localhost';
-        const port = process.env.NODE_ENV === 'development' ? (process.env.SUBDOMAIN_PORT || '5173') : '';
-        const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
-        const redirectUrl = `${protocol}://${business.subdomain}.${host}${port ? `:${port}` : ''}/auth/impersonate?token=${impersonationToken}`;
-
-        return {
-            redirectUrl,
-            token: impersonationToken,
-            subdomain: business.subdomain,
-        };
     }
 
     /**
@@ -306,6 +283,12 @@ export class BusinessService extends CrudService<Business> {
             relations: ['user'],
         });
 
+        return this.generateBusinessLoginUrl(business, currentUser)
+
+    }
+
+    async generateBusinessLoginUrl(business: Business | null, currentUser: User): Promise<BusinessImpersonateResponseDto> {
+
         if (!business) {
             throw new NotFoundException('Business not found for current user');
         }
@@ -314,7 +297,10 @@ export class BusinessService extends CrudService<Business> {
             throw new BadRequestException('Business does not have a tenant database');
         }
 
-        if (!business.subdomain) {
+        const appMode = this.configService.get('app.appMode');
+        const isMultiDomain = appMode === APP_MODE.MULTI_DOMAIN_TENANT;
+
+        if (!business.subdomain && isMultiDomain) {
             throw new BadRequestException('Business does not have a subdomain configured');
         }
 
@@ -363,11 +349,15 @@ export class BusinessService extends CrudService<Business> {
 
         // 4. Build redirect URL
         const host = this.configService.get('app.host') || 'localhost';
-        const port = process.env.SUBDOMAIN_PORT || '5173';
-        const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-        const redirectUrl = `${protocol}://${business.subdomain}.${host}:${port}/auth/impersonate?token=${loginToken}`;
+        const port = process.env.NODE_ENV === 'development' ? (process.env.SUBDOMAIN_PORT || '5173') : '';
+        const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+        const redirectUrl = `${protocol}://${isMultiDomain ? `${business.subdomain}.` : 'impersonate.'}${host}${port ? `:${port}` : ''}/auth/impersonate?token=${loginToken}&tenantId=${business.tenantId}`;
+
+
+
 
         return {
+            tenantId: business.tenantId,
             redirectUrl,
             token: loginToken,
             subdomain: business.subdomain,
@@ -376,7 +366,10 @@ export class BusinessService extends CrudService<Business> {
 
     async getMyBusiness(currentUser: User): Promise<Business> {
         const relations = { _relations: ['paymentProcessor'] };
-        let business = await this.getSingle({ userId: currentUser.id }, relations);
+        let business = await this.getSingle({ userId: currentUser.id }, relations, undefined, undefined, {
+            skipTenantScope: true,
+            skipSuperAdminOwnDataOnly: true,
+        });
 
         if (!business) {
             if (currentUser.refUserId) {
@@ -435,15 +428,21 @@ export class BusinessService extends CrudService<Business> {
     ): Promise<Business> {
         const business = await this.getMyBusiness(currentUser);
         const allowedData: Partial<UpdateBusinessDto> = {};
-    /*     if (updateDto.paymentProcessorId !== undefined) {
-            allowedData.paymentProcessorId = updateDto.paymentProcessorId;
-        }
-        if (Object.keys(allowedData).length === 0) {
-            return business;
-        }
-        if (allowedData.paymentProcessorId) {
-            await this.validatePaymentProcessorId(allowedData.paymentProcessorId);
-        } */
+        /*     if (updateDto.paymentProcessorId !== undefined) {
+                allowedData.paymentProcessorId = updateDto.paymentProcessorId;
+            }
+            if (updateDto.aiProcessorId !== undefined) {
+                allowedData.aiProcessorId = updateDto.aiProcessorId;
+            }
+            if (updateDto.defaultAiModel !== undefined) {
+                allowedData.defaultAiModel = updateDto.defaultAiModel;
+            }
+            if (Object.keys(allowedData).length === 0) {
+                return business;
+            }
+            if (allowedData.paymentProcessorId) {
+                await this.validatePaymentProcessorId(allowedData.paymentProcessorId);
+            } */
         await this.update(business.id, allowedData);
         return this.getSingle(business.id) as Promise<Business>;
     }
@@ -458,12 +457,15 @@ export class BusinessService extends CrudService<Business> {
             beforeUpdate?: (processedData: TUpdateDto, existingEntity: Business, manager: any) => any | Promise<any>;
             afterUpdate?: (updatedEntity: Business, manager: any) => any | Promise<any>;
         },
-        deleted?: boolean,
+        config?: CrudMethodConfig,
     ): Promise<Business> {
         const dto = updateDto as Record<string, unknown>;
         if (dto?.paymentProcessorId && typeof dto.paymentProcessorId === 'string') {
             await this.validatePaymentProcessorId(dto.paymentProcessorId);
         }
-        return super.update(key, updateDto, callbacks, deleted);
+        if (dto?.aiProcessorId && typeof dto.aiProcessorId === 'string') {
+            await this.validateAIProcessorId(dto.aiProcessorId);
+        }
+        return super.update(key, updateDto, callbacks, config);
     }
 }

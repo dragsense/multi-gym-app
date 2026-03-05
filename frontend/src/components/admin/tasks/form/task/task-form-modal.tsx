@@ -19,6 +19,7 @@ import type { TCreateTaskData } from "@shared/interfaces/task.interface";
 import type { ITask } from "@shared/interfaces/task.interface";
 import { RecurrenceConfigDto } from "@shared/dtos";
 import { EScheduleFrequency } from "@shared/enums/schedule.enum";
+import { EUserLevels } from "@shared/enums/user.enum";
 import { useFormContext } from "react-hook-form";
 
 // Components
@@ -41,7 +42,7 @@ import { TaskConfirmModal } from "@/components/admin/tasks/components/task-confi
 
 // Custom component - must be defined before early return
 const AssignedToSelect = React.memo((props: any) => {
-  const searchableUsers = useSearchableUsers({});
+  const searchableUsers = useSearchableUsers({ level: EUserLevels.STAFF });
   const { t } = useI18n();
   return (
     <SearchableInputWrapper<UserDto>
@@ -70,7 +71,7 @@ const LocationSelect = React.memo((props: TCustomInputWrapper) => {
   const searchableLocations = useSearchableLocations({});
   const { t } = useI18n();
   const selectedLocation = getSelectedLocation();
-  
+
   // Set default value if location is selected in localStorage
   React.useEffect(() => {
     if (selectedLocation && !props.value && props.onChange) {
@@ -110,7 +111,7 @@ const DoorSelect = React.memo((props: TCustomInputWrapper) => {
   const locationId = location?.id;
   const searchableDoors = useSearchableDoors({ locationId: locationId || undefined });
   const { t } = useI18n();
-  
+
   return (
     <SearchableInputWrapper<IDoor>
       {...props}
@@ -179,104 +180,104 @@ const TaskFormModal = React.memo(function TaskFormModal({
   // React 19: Memoized fields for better performance
   const fields = useMemo(
     () =>
-      ({
-        ...(storeFields as TFieldConfigObject<TCreateTaskData>),
-        title: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).title,
-          label: buildSentence(t, "title"),
-        },
-        description: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).description,
-          label: buildSentence(t, "description"),
-        },
-        status: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).status,
-          label: buildSentence(t, "status"),
-        },
-        priority: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).priority,
-          label: buildSentence(t, "priority"),
-        },
-        startDateTime: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).startDateTime,
-          label: buildSentence(t, "start", "date", "and", "time"),
-        },
-        dueDate: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).dueDate,
-          label: buildSentence(t, "due", "date"),
-        },
-        assignedTo: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).assignedTo,
-          type: "custom" as const,
-          label: buildSentence(t, "assigned", "to"),
-          Component: AssignedToSelect,
-        },
-        location: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).location,
-          type: "custom" as const,
-          Component: LocationSelect,
-          label: buildSentence(t, 'location'),
-          disabled: !!getSelectedLocation(),
-        },
-        door: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).door,
-          type: "custom" as const,
-          Component: DoorSelect,
-          label: buildSentence(t, 'door'),
-        },
-        tags: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).tags,
-          label: buildSentence(t, "tags"),
-        },
-        recurrenceEndDate: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).recurrenceEndDate,
-          visible: (ctx: { values: Record<string, unknown> }) =>
-            ctx.values.enableRecurrence,
-          label: buildSentence(t, "end", "date"),
-        },
-        enableRecurrence: {
-          ...(storeFields as TFieldConfigObject<TCreateTaskData>).enableRecurrence,
-          label: buildSentence(t, "enable", "recurrence"),
-        },
-        recurrenceConfig: {
-          ...(storeFields as any).recurrenceConfig,
-          subFields: {
-            frequency: {
-              ...(storeFields as any).recurrenceConfig.subFields.frequency,
-              label: buildSentence(t, "frequency"),
-            },
-            weekDays: {
-              ...(storeFields as any).recurrenceConfig.subFields.weekDays,
-              label: buildSentence(t, "week", "days"),
-            },
-            monthDays: {
-              ...(storeFields as any).recurrenceConfig.subFields.monthDays,
-              label: buildSentence(t, "month", "days"),
-            },
+    ({
+      ...(storeFields as TFieldConfigObject<TCreateTaskData>),
+      title: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).title,
+        label: buildSentence(t, "title"),
+      },
+      description: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).description,
+        label: buildSentence(t, "description"),
+      },
+      status: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).status,
+        label: buildSentence(t, "status"),
+      },
+      priority: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).priority,
+        label: buildSentence(t, "priority"),
+      },
+      startDateTime: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).startDateTime,
+        label: buildSentence(t, "start", "date", "and", "time"),
+      },
+      dueDate: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).dueDate,
+        label: buildSentence(t, "due", "date"),
+      },
+      assignedTo: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).assignedTo,
+        type: "custom" as const,
+        label: buildSentence(t, "assigned", "to"),
+        Component: AssignedToSelect,
+      },
+      location: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).location,
+        type: "custom" as const,
+        Component: LocationSelect,
+        label: buildSentence(t, 'location'),
+        disabled: !!getSelectedLocation(),
+      },
+      door: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).door,
+        type: "custom" as const,
+        Component: DoorSelect,
+        label: buildSentence(t, 'door'),
+      },
+      tags: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).tags,
+        label: buildSentence(t, "tags"),
+      },
+      recurrenceEndDate: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).recurrenceEndDate,
+        visible: (ctx: { values: Record<string, unknown> }) =>
+          ctx.values.enableRecurrence,
+        label: buildSentence(t, "end", "date"),
+      },
+      enableRecurrence: {
+        ...(storeFields as TFieldConfigObject<TCreateTaskData>).enableRecurrence,
+        label: buildSentence(t, "enable", "recurrence"),
+      },
+      recurrenceConfig: {
+        ...(storeFields as any).recurrenceConfig,
+        subFields: {
+          frequency: {
+            ...(storeFields as any).recurrenceConfig.subFields.frequency,
+            label: buildSentence(t, "frequency"),
           },
-          visible: (ctx: { values: Record<string, unknown> }) =>
-            ctx.values.enableRecurrence,
-          renderItem: (items: RecurrenceConfigDto) => {
-            // Create a wrapper component that watches the frequency
-            const RecurrenceConfigWrapper = () => {
-              const { watch } = useFormContext<TCreateTaskData>();
-              const frequency = watch("recurrenceConfig.frequency");
-              const isWeekly = frequency === EScheduleFrequency.WEEKLY;
-              const isMonthly = frequency === EScheduleFrequency.MONTHLY;
+          weekDays: {
+            ...(storeFields as any).recurrenceConfig.subFields.weekDays,
+            label: buildSentence(t, "week", "days"),
+          },
+          monthDays: {
+            ...(storeFields as any).recurrenceConfig.subFields.monthDays,
+            label: buildSentence(t, "month", "days"),
+          },
+        },
+        visible: (ctx: { values: Record<string, unknown> }) =>
+          ctx.values.enableRecurrence,
+        renderItem: (items: RecurrenceConfigDto) => {
+          // Create a wrapper component that watches the frequency
+          const RecurrenceConfigWrapper = () => {
+            const { watch } = useFormContext<TCreateTaskData>();
+            const frequency = watch("recurrenceConfig.frequency");
+            const isWeekly = frequency === EScheduleFrequency.WEEKLY;
+            const isMonthly = frequency === EScheduleFrequency.MONTHLY;
 
-              return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {items.frequency as ReactNode}
-                  {isWeekly && (items.weekDays as ReactNode)}
-                  {isMonthly && (items.monthDays as ReactNode)}
-                </div>
-              );
-            };
-            return <RecurrenceConfigWrapper />;
-          },
-          label: buildSentence(t, "recurrence", "config"),
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {items.frequency as ReactNode}
+                {isWeekly && (items.weekDays as ReactNode)}
+                {isMonthly && (items.monthDays as ReactNode)}
+              </div>
+            );
+          };
+          return <RecurrenceConfigWrapper />;
         },
-      } as TFieldConfigObject<TCreateTaskData>),
+        label: buildSentence(t, "recurrence", "config"),
+      },
+    } as TFieldConfigObject<TCreateTaskData>),
     [storeFields, t]
   );
 
@@ -324,7 +325,6 @@ const TaskFormModal = React.memo(function TaskFormModal({
     <>
       <ModalForm<TCreateTaskData, ITask, ITaskFormModalExtraProps>
         title={buildSentence(t, isEditing ? "edit" : "add", "task")}
-        description={buildSentence(t, isEditing ? "update" : "add", "a", "new", "task")}
         open={open}
         onOpenChange={onOpenChange}
         formStore={store}

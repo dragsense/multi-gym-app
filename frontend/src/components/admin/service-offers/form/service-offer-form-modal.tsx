@@ -124,6 +124,7 @@ const ServiceOfferFormModal = React.memo(function ServiceOfferFormModal({
 
       trainer: {
         ...baseFields.trainer,
+        label: t("Trainer"),
         type: "custom" as const,
         Component: TrainerSelect,
         visible: () => user?.level !== EUserLevels.STAFF,

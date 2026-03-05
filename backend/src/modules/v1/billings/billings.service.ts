@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, EntityManager } from 'typeorm';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { ModuleRef } from '@nestjs/core';
 import { Billing } from './entities/billing.entity';
 import {
@@ -74,6 +74,10 @@ export class BillingsService extends CrudService<Billing> {
     // Check if trainer exists and is actually a trainer
     const recipientUser = await this.usersService.getUser(
       createBillingDto.recipientUser.id,
+      undefined,
+      {
+        skipSuperAdminOwnDataOnly: true
+      }
     );
 
     if (!recipientUser) {
@@ -491,7 +495,9 @@ export class BillingsService extends CrudService<Billing> {
     }
 
     const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
+      currentUser.level === EUserLevels.PLATFORM_OWNER ||
+      currentUser.level === EUserLevels.SUPER_ADMIN ||
+      currentUser.level === EUserLevels.ADMIN;
     const isOwner =
       billing.recipientUser?.id === currentUser.id ||
       billing.createdByUserId === currentUser.id;
@@ -707,7 +713,9 @@ export class BillingsService extends CrudService<Billing> {
     }
 
     const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
+      currentUser.level === EUserLevels.PLATFORM_OWNER ||
+      currentUser.level === EUserLevels.SUPER_ADMIN ||
+      currentUser.level === EUserLevels.ADMIN;
     const isCreator = billing.createdBy?.id === currentUser.id;
     const isRecipient = billing.recipientUser?.id === currentUser.id;
 

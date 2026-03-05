@@ -15,7 +15,7 @@ import { EventService } from '@/common/helper/services/event.service';
 import { EMembershipExpiry, EMembershipStatus } from '@shared/enums/membership.enum';
 import { CurrentMembershipSummaryDto, MemberMembershipStatusDto, AdminAssignMembershipDto } from '@shared/dtos';
 import { IMessageResponse } from '@shared/interfaces/api/response.interface';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Injectable()
 export class MemberMembershipService extends CrudService<MemberMembership> {

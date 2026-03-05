@@ -13,6 +13,7 @@ export * from "./billing.enum";
 export * from "./order.enum";
 export * from "./referral-link.enum";
 export * from "./payment-processors.enum";
+export * from "./ai-processors.enum";
 export * from "./user-availability.enum";
 export * from "./health.enum";
 export * from "./products";

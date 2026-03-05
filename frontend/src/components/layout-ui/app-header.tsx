@@ -92,7 +92,8 @@ export function AppHeader() {
   const memoizedUserData = useMemo(() => {
     const firstName = deferredUser?.firstName || "Unknown";
     const fullName = deferredUser ? `${deferredUser.firstName} ${deferredUser.lastName}` : "Unknown";
-    const email = deferredUser?.email || "Unknown";
+    let email = deferredUser?.email || "Unknown";
+    email = email.split("_", 1)[0];
     return { firstName, fullName, email };
   }, [deferredUser]);
 

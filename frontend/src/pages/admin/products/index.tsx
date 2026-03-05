@@ -4,7 +4,11 @@ import type { IProduct } from "@shared/interfaces/products/product.interface";
 import { ListHandler, SingleHandler } from "@/handlers";
 import { ProductList, ProductView } from "@/components/admin/products";
 import { ProductForm } from "@/page-components/products";
-import { fetchProducts, fetchProduct, deleteProduct } from "@/services/products/product.api";
+import {
+  fetchProducts,
+  fetchProduct,
+  deleteProduct,
+} from "@/services/products/product.api";
 import { PageInnerLayout } from "@/layouts";
 import { ProductListDto } from "@shared/dtos";
 import type { IProductListExtraProps } from "@/components/admin/products";
@@ -19,18 +23,19 @@ export default function ProductsPage() {
       <SingleHandler<IProduct, Record<string, unknown>>
         queryFn={(id, params) => fetchProduct(id, params as any)}
         storeKey={STORE_KEY}
-        initialParams={{ _relations: "defaultImages,variants.attributeValues.attribute",
-          _select: "variants.sku, variants.price, variants.quantity, variants.attributeValues.id, variants.attributeValues.value, variants.attributeValues.attribute.id, variants.attributeValues.attribute.name, variants.attributeValues.attribute.type"
-         }}
+        initialParams={{
+          _relations:
+            "productType,defaultImages,variants.attributeValues.attribute",
+          _select:
+            "variants.sku, variants.price, variants.quantity, variants.attributeValues.id, variants.attributeValues.value, variants.attributeValues.attribute.id, variants.attributeValues.attribute.name, variants.attributeValues.attribute.type",
+        }}
         SingleComponent={ProductView}
-        actionComponents={[
-          { action: "createOrUpdate", comp: ProductForm },
-        ]}
-      /> 
+        actionComponents={[{ action: "createOrUpdate", comp: ProductForm }]}
+      />
       <ListHandler<IProduct, any, IProductListExtraProps, IProduct, unknown>
         queryFn={fetchProducts}
         initialParams={{
-          _relations: "defaultImages",
+          _relations: "productType,defaultImages",
           sortBy: "createdAt",
           sortOrder: "DESC",
         }}

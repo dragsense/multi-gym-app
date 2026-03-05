@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import type { ChatMessage } from "@/@types/socket.types";
 import type { INotification } from "@shared/interfaces/notification.interface";
 
-export const SOCKET_API_URL = config.baseUrl || "http://localhost:5000";
+export const SOCKET_API_URL = config.baseUrl;
 
 interface ServerToClientEvents {
   connect_error: (error: Error) => void;

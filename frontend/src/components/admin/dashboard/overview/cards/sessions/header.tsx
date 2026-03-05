@@ -102,7 +102,7 @@ function SessionsHeader({ data, isLoading, error }: SessionsHeaderProps) {
     <AppCard className="mb-4">
       <div className="flex items-center justify-between ">
         <div className="flex items-center gap-4">
-          <div className="bg-red-600 rounded-full w-10 h-10 flex items-center justify-center text-white">
+          <div className="bg-primary rounded-full w-10 h-10 flex items-center justify-center text-white">
             <Calendar className="h-5 w-5" />
           </div>
           <div>

@@ -23,10 +23,6 @@ import { AppCard } from "@/components/layout-ui/app-card";
 // Local
 import { CheckinFilters } from "./checkin-filters";
 import { checkinItemViews } from "./checkin-item-views";
-import { CheckinTestButton } from "./checkin-test-button";
-import { CheckinRfidButton } from "./checkin-rfid-button";
-import { CheckinMainDoorButton } from "./checkin-main-door-button";
-import { CheckinBackDoorButton } from "./checkin-back-door-button";
 
 // Stores
 import { type TListHandlerStore, type TSingleHandlerStore } from "@/stores";
@@ -115,15 +111,6 @@ export default function CheckinList({
       <div className="flex flex-1 justify-between items-start md:items-center gap-2 flex-wrap">
         <CheckinFilters store={store} />
         <div className="flex items-center gap-2">
-          <CheckinTestButton onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: [storeKey + "-list"] });
-          }} />
-          <CheckinMainDoorButton onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: [storeKey + "-list"] });
-          }} />
-          <CheckinBackDoorButton onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: [storeKey + "-list"] });
-          }} />
           <ViewToggle componentId={componentId} />
           {user?.level <= EUserLevels.ADMIN && <Button
             onClick={handleCreate}

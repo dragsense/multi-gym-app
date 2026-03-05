@@ -16,19 +16,20 @@ export default function ImpersonatePage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string>("");
   const hasValidatedRef = useRef(false);
 
   useEffect(() => {
     const token = searchParams.get("token");
-    
+    const tenantId = searchParams.get("tenantId");
+
     // Prevent multiple calls - check if already validated
     if (hasValidatedRef.current) {
       return;
     }
-    
+
     if (!token) {
       setStatus("error");
       setErrorMessage("No impersonation token provided");
@@ -40,8 +41,8 @@ export default function ImpersonatePage() {
 
     const validateToken = async () => {
       try {
-        const response = await validateImpersonation(token);
-        
+        const response = await validateImpersonation(token, tenantId);
+
         if (response.accessToken?.token) {
           queryClient.invalidateQueries({ queryKey: ["me"] });
           setStatus("success");
@@ -89,7 +90,7 @@ export default function ImpersonatePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <AppCard 
+      <AppCard
         className="w-full max-w-md"
         header={renderHeader()}
       >

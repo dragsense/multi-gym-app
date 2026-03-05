@@ -76,7 +76,13 @@ export class RolesController {
   })
   @ApiResponse({ status: 404, description: 'Role not found' })
   async findRole(@Param('id') id: string) {
-    return await this.rolesService.getSingle(id);
+    return await this.rolesService.getSingle(
+      id,
+      {
+        _relations: ['rolePermissions', 'rolePermissions.permission'],
+      },
+      RoleDto,
+    );
   }
 
   @Post()
@@ -112,7 +118,7 @@ export class RolesController {
   @ApiResponse({ status: 200, description: 'Role deleted successfully' })
   @ApiResponse({ status: 404, description: 'Role not found' })
   async deleteRole(@Param('id') id: string) {
-    await this.rolesService.delete(id);
+    await this.rolesService.permanentlyDelete(id);
     return { message: 'Role deleted successfully' };
   }
 
@@ -158,12 +164,13 @@ export class RolesController {
     @Query() queryDto: PermissionListDto,
   ) {
     return await this.permissionService.get(
-      {
-        ...queryDto,
-        roleId,
-        _relations: [...(queryDto._relations || []), 'role'],
-      },
+      queryDto,
       PermissionListDto,
+      {
+        beforeQuery: (query) => {
+          query.innerJoin('entity.rolePermissions', 'rolePermissions', 'rolePermissions.roleId = :roleId', { roleId });
+        },
+    }
     );
   }
 

@@ -110,7 +110,7 @@ export class User extends GeneralBaseEntity {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {
-    if (this.password) {
+    if (this.password && !this.refUserId) {
       const salt = await bcrypt.genSalt();
       this.password = await bcrypt.hash(this.password, salt);
       this.lastPasswordChange = new Date();

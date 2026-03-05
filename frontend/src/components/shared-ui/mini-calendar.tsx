@@ -25,14 +25,13 @@ export interface MiniCalendarProps {
 }
 
 const dayNames = [
-  "saturday",
-  "sunday",
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
- 
+  "sunday",    // 0 - JavaScript getDay() returns 0 for Sunday
+  "monday",    // 1
+  "tuesday",   // 2
+  "wednesday", // 3
+  "thursday",  // 4
+  "friday",    // 5
+  "saturday",   // 6
 ] as const;
 
 export function MiniCalendar({
@@ -81,12 +80,32 @@ export function MiniCalendar({
   );
 
   // Get calendar days for the month
+  // Calculate week start (Sunday) to match JavaScript's getDay() which uses Sunday=0
+  // Luxon weekday: 1=Monday, 2=Tuesday, ..., 7=Sunday
   const dt = DateTime.fromJSDate(month);
-  const calendarStart = dt.startOf("month").startOf("week");
-  const calendarEnd = dt.endOf("month").endOf("week");
+  const monthStart = dt.startOf("month").startOf("day");
+  const monthEnd = dt.endOf("month").startOf("day");
+  
+  // Calculate week start (Sunday) for the first day of month
+  const firstDayWeekday = monthStart.weekday; // Luxon: 1-7 (Mon-Sun)
+  const daysToSubtract = firstDayWeekday === 7 ? 0 : firstDayWeekday;
+  const calendarStart = monthStart.minus({ days: daysToSubtract });
+  
+  // Calculate week end (Saturday) for the last day of month
+  const lastDayWeekday = monthEnd.weekday;
+  const daysToAdd = lastDayWeekday === 7 ? 6 : (6 - lastDayWeekday);
+  const calendarEnd = monthEnd.plus({ days: daysToAdd });
+  
   const days = Interval.fromDateTimes(calendarStart, calendarEnd)
     .splitBy({ days: 1 })
-    .map((d) => d.start?.toJSDate() || new Date());
+    .map((d) => {
+      const date = d.start?.toJSDate();
+      if (!date) return new Date();
+      // Normalize to start of day to avoid timezone issues
+      const normalized = new Date(date);
+      normalized.setHours(0, 0, 0, 0);
+      return normalized;
+    });
 
   // Navigation
   const goToPreviousMonth = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -106,9 +125,11 @@ export function MiniCalendar({
       if (disabled?.(date)) return true;
 
       // Check if it's an off day
-      const dayIndex = DateTime.fromJSDate(date).weekday % 7; // Luxon weekday is 1-7 (Mon-Sun), convert to 0-6 (Sun-Sat)
+      // Use JavaScript's getDay() which returns 0-6 (Sunday-Saturday)
+      const dayIndex = date.getDay();
       const dayName = dayNames[dayIndex];
-      if (offDays.includes(dayName)) return true;
+      // Normalize comparison to handle case-insensitive matching and trim whitespace
+      if (offDays.some(offDay => offDay.trim().toLowerCase() === dayName.toLowerCase())) return true;
 
       // Check if it's in unavailable ranges
       const dateString = DateTime.fromJSDate(date).toFormat("yyyy-MM-dd");
@@ -187,7 +208,8 @@ export function MiniCalendar({
           // Use JavaScript's getDay() which returns 0-6 (Sunday-Saturday)
           const dayIndex = date.getDay();
           const dayName = dayNames[dayIndex];
-          const isOffDay = offDays.includes(dayName);
+          // Normalize comparison to handle case-insensitive matching and trim whitespace
+          const isOffDay = offDays.some(offDay => offDay.trim().toLowerCase() === dayName.toLowerCase());
 
           // Check if it's in an unavailable range
           const dateString = dtDate.toFormat("yyyy-MM-dd");

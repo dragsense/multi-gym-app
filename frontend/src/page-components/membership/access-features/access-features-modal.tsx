@@ -3,7 +3,7 @@ import { useId, useTransition } from "react";
 import { useShallow } from "zustand/shallow";
 
 // Types
-import type { IAccessFeature } from '@shared/interfaces/access-feature.interface';
+import type { IAccessFeature } from "@shared/interfaces/access-feature.interface";
 
 // Handlers
 import { ListHandler, SingleHandler } from "@/handlers";
@@ -14,7 +14,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AppDialog } from "@/components/layout-ui/app-dialog";
 
 // Services
-import { fetchAccessFeatures, fetchAccessFeature, deleteAccessFeature } from '@/services/membership/access-feature.api';
+import {
+  fetchAccessFeatures,
+  fetchAccessFeature,
+  deleteAccessFeature,
+} from "@/services/membership/access-feature.api";
 
 // Page Components
 import AccessFeaturesForm from "@/page-components/membership/access-features/access-features-form";
@@ -30,7 +34,9 @@ import { AccessFeatureListDto } from "@shared/dtos";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 
-interface IAccessFeaturesModalProps extends THandlerComponentProps<TListHandlerStore<any, any, any>> { }
+interface IAccessFeaturesModalProps extends THandlerComponentProps<
+  TListHandlerStore<any, any, any>
+> {}
 
 export default function AccessFeaturesModal({
   storeKey,
@@ -45,29 +51,35 @@ export default function AccessFeaturesModal({
     return null;
   }
 
-  const { action, setAction } = store(useShallow(state => ({
-    action: state.action,
-    setAction: state.setAction,
-  })));
+  const { action, setAction } = store(
+    useShallow((state) => ({
+      action: state.action,
+      setAction: state.setAction,
+    })),
+  );
 
-  const ACCESS_FEATURES_STORE_KEY = 'access-feature';
+  const ACCESS_FEATURES_STORE_KEY = "access-feature";
 
   const handleClose = () => {
     startTransition(() => {
-      setAction('none');
+      setAction("none");
     });
   };
 
-  const isOpen = action === 'manageAccessFeatures';
+  const isOpen = action === "manageAccessFeatures";
 
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()} data-component-id={componentId}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => !open && handleClose()}
+      data-component-id={componentId}
+    >
       <DialogContent className="min-w-4xl max-h-[90vh] overflow-y-auto">
         <AppDialog
-          title={buildSentence(t, 'manage', 'access', 'features')}
-          description={buildSentence(t, 'manage', 'access', 'features', 'for', 'memberships')}
+          title={buildSentence(t, "manage", "access", "features")}
+          // description={buildSentence(t, 'manage', 'access', 'features', 'for', 'memberships')}
         >
           <SingleHandler<IAccessFeature>
             queryFn={fetchAccessFeature}
@@ -76,24 +88,32 @@ export default function AccessFeaturesModal({
             SingleComponent={() => null}
             actionComponents={[
               {
-                action: 'createOrUpdate',
-                comp: AccessFeaturesForm
+                action: "createOrUpdate",
+                comp: AccessFeaturesForm,
               },
             ]}
           />
 
-          <ListHandler<IAccessFeature, TAccessFeatureListData, IAccessFeaturesListExtraProps, IAccessFeature, any>
+          <ListHandler<
+            IAccessFeature,
+            TAccessFeatureListData,
+            IAccessFeaturesListExtraProps,
+            IAccessFeature,
+            any
+          >
             queryFn={fetchAccessFeatures}
             initialParams={{
-              sortBy: 'createdAt',
-              sortOrder: 'DESC',
+              sortBy: "createdAt",
+              sortOrder: "DESC",
             }}
             ListComponent={AccessFeaturesList}
             dto={AccessFeatureListDto}
             deleteFn={deleteAccessFeature}
             onDeleteSuccess={() => {
               startTransition(() => {
-                queryClient.invalidateQueries({ queryKey: [ACCESS_FEATURES_STORE_KEY + "-list"] });
+                queryClient.invalidateQueries({
+                  queryKey: [ACCESS_FEATURES_STORE_KEY + "-list"],
+                });
               });
             }}
             storeKey={ACCESS_FEATURES_STORE_KEY}
@@ -104,4 +124,3 @@ export default function AccessFeaturesModal({
     </Dialog>
   );
 }
-

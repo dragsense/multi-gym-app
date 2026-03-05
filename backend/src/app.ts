@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Transport } from '@nestjs/microservices';
 import { RedisIoAdapter } from './common/gateways/redis-io.adapter';
 
 import { AppModule } from './app.module';
@@ -9,11 +10,11 @@ import { LoggerService } from './common/logger/logger.service';
 
 // Bootstrap components
 import { setupCors } from './common/bootstrap/cors.setup';
-import { setupSecurity } from './common/bootstrap/security.middleware';
+import { setupSecurity } from './common/bootstrap/security.setup';
 import { setupApiDocumentation } from './common/bootstrap/api-documentation.setup';
 import { setupInterceptors } from './common/bootstrap/interceptors.setup';
 import { setupBullBoard } from './common/bootstrap/bull-board.setup';
-import { setupRequestContext } from './common/bootstrap/request-context.setup';
+import { setupMiddleware } from './common/bootstrap/middleware.setup';
 
 export async function app() {
   const app = await NestFactory.create(AppModule, {
@@ -29,10 +30,10 @@ export async function app() {
 
   // Setup application components
   setupCors(app, configService);
-  setupRequestContext(app);
   setupSecurity(app, configService);
-  setupApiDocumentation(app, configService, loggerService);
+  setupMiddleware(app);
   setupInterceptors(app, loggerService);
+  setupApiDocumentation(app, configService, loggerService);
   setupBullBoard(app, loggerService, configService);
 
   // Socket.IO adapter (Redis) per Nest WebSockets Adapter docs
@@ -53,6 +54,23 @@ export async function app() {
   );
 
   app.setGlobalPrefix('api');
+
+  // MQTT microservice (hybrid app)
+/*   const mqttConfig = configService.get('mqtt');
+  if (mqttConfig?.enabled) {
+    app.connectMicroservice(
+      {
+        transport: Transport.MQTT,
+        options: {
+          url: mqttConfig.url,
+          clientId: mqttConfig.clientId,
+        },
+      },
+      { inheritAppConfig: true },
+    );
+    await app.startAllMicroservices();
+    loggerService.log(`MQTT microservice connected to ${mqttConfig.url}`);
+  } */
 
   const port = configService.get<number>('app.port', 3000);
   await app.listen(port, '0.0.0.0');

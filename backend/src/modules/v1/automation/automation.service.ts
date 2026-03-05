@@ -13,7 +13,7 @@ import {
 import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
 import { EmailTemplateService } from '../cms/services/email-template.service';
 import { EAutomationStatus } from '@shared/enums';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Injectable()
 export class AutomationService extends CrudService<Automation> {

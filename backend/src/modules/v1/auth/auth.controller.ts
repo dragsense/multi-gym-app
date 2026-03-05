@@ -50,8 +50,9 @@ import { AuthUser } from '@/decorators/user.decorator';
 import { JwtService } from '@nestjs/jwt';
 import { BusinessSubscriptionService } from '../business/services/business-subscription.service';
 import { BusinessService } from '../business/business.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { Business } from '../business/entities/business.entity';
+import { APP_MODE } from '@/config/app.config';
 
 @Public()
 @ApiTags('Auth')
@@ -85,12 +86,28 @@ export class AuthController {
   })
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Req() req: any, @Res() res: Response) {
-    const { email, password, deviceId } = loginDto;
+    const { email, password, deviceId, business } = loginDto;
 
-    let { user, token } = await this.authService.validateUser(
+
+    let tenantId = business?.tenantId || null;
+
+    if (!tenantId && process.env.APP_MODE === APP_MODE.MULTI_DOMAIN_TENANT) {
+      tenantId = (req as any).tenantId || RequestContext.get<string>('tenantId') || null;
+    }
+
+    RequestContext.set('tenantId', tenantId);
+
+    let { user, token, } = await this.authService.validateUser(
       email,
       password,
+      tenantId
     );
+
+    if (tenantId) {
+      const business = await this.businessService.getSingle({ tenantId });
+      if (!business)
+        throw new UnauthorizedException('Invalid credentials: Business not found');
+    }
 
     const trusted = await this.mfaService.isDeviceTrusted(user.id, deviceId);
 
@@ -106,19 +123,37 @@ export class AuthController {
         throw new UnauthorizedException('Invalid credentials');
       }
 
+
       res.cookie('refresh_token', refreshToken.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: refreshToken.expiresIn * 1000,
-
       });
+
+      if (tenantId) {
+        res.cookie('tenant_id', tenantId, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        });
+      } else {
+        res.clearCookie('tenant_id', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+
+        });
+      }
 
       res.setHeader('Authorization', `Bearer ${accessToken.token}`);
 
 
       return res.status(HttpStatus.OK).json({
         accessToken,
+        refreshToken,
+        tenantId,
         message: 'Logged in successfully',
         requiredOtp: false,
       });
@@ -126,8 +161,26 @@ export class AuthController {
 
     await this.mfaService.generateEmailOtp(user.email, deviceId);
 
+    if (tenantId) {
+      res.cookie('tenant_id', tenantId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      });
+    } else {
+      res.clearCookie('tenant_id', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+
+      });
+    }
+
+
     return res.status(HttpStatus.OK).json({
       accessToken: { token },
+      tenantId,
       requiredOtp: true,
       message: 'OTP sent successfully',
     });
@@ -187,9 +240,18 @@ export class AuthController {
   @Post('signup')
   async signup(@Body() signupDto: SignupDto, @Req() req: Request, @Res() res: Response) {
     // Get tenantId from request (set by SubdomainTenantMiddleware)
-    const tenantId = (req as any).tenantId || null;
 
-    const { message, user } = await this.authService.signup(signupDto, tenantId);
+    const { business, ...signupDtoRest } = signupDto;
+
+    let tenantId = business?.tenantId || null;
+
+    if (!tenantId && process.env.APP_MODE === APP_MODE.MULTI_DOMAIN_TENANT) {
+      tenantId = (req as any).tenantId || RequestContext.get<string>('tenantId') || null;
+    }
+
+    RequestContext.set('tenantId', tenantId);
+
+    const { message, user } = await this.authService.signup(signupDtoRest, tenantId);
 
     const token = this.jwtService.sign(
       {
@@ -204,6 +266,7 @@ export class AuthController {
 
     return res.status(HttpStatus.OK).json({
       token,
+      tenantId,
       requiredOtp: true,
       message: message,
     });
@@ -215,9 +278,12 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User found', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
   async findMe(@AuthUser() currentUser: User) {
+
     const user = await this.baseUsersService.getSingle(currentUser.id, {
       _relations: ['roles.role', 'permissions.permission', 'privileges.permissions.permission'],
       _select: ['id', 'email', 'firstName', 'lastName', 'gender', 'dateOfBirth', 'level', 'roles.id', 'roles.role.name', 'permissions.id', 'permissions.permission.name', 'privileges.id', 'privileges.permissions.id', 'privileges.permissions.permission.name'],
+    }, undefined, undefined, {
+      skipSuperAdminOwnDataOnly: true
     });
     if (!user) throw new NotFoundException('User not found');
 
@@ -293,6 +359,13 @@ export class AuthController {
 
     });
 
+    res.clearCookie('tenant_id', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+
+    });
+
     res.setHeader('Authorization', '');
 
     // Log successful logout activity
@@ -330,6 +403,14 @@ export class AuthController {
       sameSite: 'lax',
 
     });
+
+    res.clearCookie('tenant_id', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+
+    });
+
     res.setHeader('Authorization', '');
     return res
       .status(HttpStatus.OK)
@@ -346,8 +427,30 @@ export class AuthController {
     type: MessageResponseDto,
   })
   async forgotPassword(@Body() dto: ForgotPasswordDto, @Req() req: Request) {
-    const tenantId = (req as any).tenantId || null;
-    return this.authService.sendResetLink(dto.email, tenantId);
+
+    const { business } = dto;
+
+    let tenantId = business?.tenantId || null;
+
+    if (!tenantId && process.env.APP_MODE === APP_MODE.MULTI_DOMAIN_TENANT) {
+      tenantId = (req as any).tenantId || RequestContext.get<string>('tenantId') || null;
+    }
+
+    RequestContext.set('tenantId', tenantId);
+
+    // Derive the application URL from the request hostname so that the reset link
+    // points to the correct (possibly business-specific) subdomain.
+    const forwardedProto = req.headers['x-forwarded-proto'] as
+      | string
+      | undefined;
+    const protocol = forwardedProto || req.protocol || 'http';
+    const hostname = req.hostname;
+
+    const appUrlFromRequest = hostname
+      ? `${protocol}://${hostname}`
+      : undefined;
+
+    return this.authService.sendResetLink(dto.email, tenantId, appUrlFromRequest);
   }
 
   @Post('reset-password')
@@ -360,7 +463,7 @@ export class AuthController {
   })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async setNewPassword(@Body() resetDto: ResetPasswordWithTokenDto, @Req() req: Request) {
-    const tenantId = (req as any).tenantId || null;
+    const tenantId = resetDto.tenantId || (req as any).tenantId || RequestContext.get<string>('tenantId') || null;
     return this.authService.resetPassword(resetDto, tenantId);
   }
 
@@ -375,6 +478,8 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid OTP' })
   async verifyOtp(@Body() dto: VerifyOtpDto, @Req() req: any, @Res() res: Response) {
     const { token, code, deviceId, rememberDevice } = dto;
+
+    const tenantId = (req as any).tenantId || RequestContext.get<string>('tenantId') || null;
 
     const { isValid, email } = await this.mfaService.verifyOtp(
       token,
@@ -413,6 +518,8 @@ export class AuthController {
 
     });
 
+
+
     res.setHeader('Authorization', `Bearer ${accessToken.token}`);
 
     // If user is not verified, mark as verified
@@ -423,7 +530,7 @@ export class AuthController {
 
     return res
       .status(HttpStatus.OK)
-      .json({ accessToken, message: 'Logged in successfully' });
+      .json({ accessToken, refreshToken, message: 'Logged in successfully' });
   }
 
   @ApiOperation({
@@ -506,6 +613,22 @@ export class AuthController {
       sameSite: 'lax',
       maxAge: refreshToken.expiresIn * 1000,
     });
+
+    if (decoded.tenantId) {
+      res.cookie('tenant_id', decoded.tenantId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: refreshToken.expiresIn * 1000,
+      });
+    } else {
+      res.clearCookie('tenant_id', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+
+      });
+    }
 
     res.setHeader('Authorization', `Bearer ${accessToken.token}`);
 

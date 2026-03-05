@@ -31,11 +31,13 @@ import { useUserSettings } from "@/hooks/use-user-settings";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import { buildSentence } from "@/locales/translations";
 import { EAttributeType } from "@shared/enums";
+import QuillViewer from "@/components/shared-ui/quill-viewer";
 
 export type TProductViewExtraProps = Record<string, unknown>;
 
-interface IProductViewProps
-  extends THandlerComponentProps<TSingleHandlerStore<IProduct, TProductViewExtraProps>> {}
+interface IProductViewProps extends THandlerComponentProps<
+  TSingleHandlerStore<IProduct, TProductViewExtraProps>
+> {}
 
 export default function ProductView({ storeKey, store }: IProductViewProps) {
   const componentId = useId();
@@ -45,18 +47,24 @@ export default function ProductView({ storeKey, store }: IProductViewProps) {
   if (!store) {
     return (
       <div>
-        {buildSentence(t, "single", "store")} "{storeKey}" {buildSentence(t, "not", "found")}.
+        {buildSentence(t, "single", "store")} "{storeKey}"{" "}
+        {buildSentence(t, "not", "found")}.
       </div>
     );
   }
 
-  const { response: product, action, reset, setAction } = store(
+  const {
+    response: product,
+    action,
+    reset,
+    setAction,
+  } = store(
     useShallow((s) => ({
       response: s.response,
       action: s.action,
       reset: s.reset,
       setAction: s.setAction,
-    }))
+    })),
   );
 
   if (!product) return null;
@@ -74,13 +82,21 @@ export default function ProductView({ storeKey, store }: IProductViewProps) {
   };
 
   return (
-    <Dialog open={action === "view"} onOpenChange={handleCloseView} data-component-id={componentId}>
+    <Dialog
+      open={action === "view"}
+      onOpenChange={handleCloseView}
+      data-component-id={componentId}
+    >
       <DialogContent className="min-w-5xl max-h-[90vh] overflow-y-auto">
         <AppDialog
           title={t("productDetails")}
           description={t("viewDetailedInformationAboutThisProduct")}
         >
-          <ProductDetailContent product={product} onEdit={onEdit} onDelete={onDelete} />
+          <ProductDetailContent
+            product={product}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         </AppDialog>
       </DialogContent>
     </Dialog>
@@ -93,7 +109,11 @@ interface IProductDetailContentProps {
   onDelete: () => void;
 }
 
-function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailContentProps) {
+function ProductDetailContent({
+  product,
+  onEdit,
+  onDelete,
+}: IProductDetailContentProps) {
   const componentId = useId();
   const { t } = useI18n();
   const { settings } = useUserSettings();
@@ -106,17 +126,29 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
         header={
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3 flex-wrap">
-              <h2 className="text-2xl font-semibold truncate">{product.name}</h2>
+              <h2 className="text-2xl font-semibold truncate">
+                {product.name}
+              </h2>
               <Badge variant={product.isActive ? "default" : "secondary"}>
                 {product.isActive ? t("active") : t("inactive")}
               </Badge>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <Button variant="outline" size="sm" onClick={onEdit} className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onEdit}
+                className="gap-2"
+              >
                 <Pencil className="w-4 h-4" />
                 {buildSentence(t, "edit")}
               </Button>
-              <Button variant="outline" size="sm" onClick={onDelete} className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onDelete}
+                className="gap-2"
+              >
                 <Trash2 className="w-4 h-4" />
                 {buildSentence(t, "delete")}
               </Button>
@@ -134,13 +166,15 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
                 undefined,
                 2,
                 2,
-                settings as any
+                settings as any,
               )}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <Package className="w-4 h-4" />
-            <span>{t("qty")}: {product.totalQuantity ?? 0}</span>
+            <span>
+              {t("qty")}: {product.totalQuantity ?? 0}
+            </span>
           </div>
           {product.createdAt && (
             <>
@@ -171,7 +205,9 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
               <div className="flex items-center gap-3">
                 <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
                 <div>
-                  <div className="text-xs text-muted-foreground">{t("defaultSku")}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {t("defaultSku")}
+                  </div>
                   <div className="font-medium">{product.defaultSku}</div>
                 </div>
               </div>
@@ -179,23 +215,27 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
             <div className="flex items-center gap-3">
               <DollarSign className="w-4 h-4 text-muted-foreground shrink-0" />
               <div>
-                <div className="text-xs text-muted-foreground">{t("defaultPrice")}</div>
-              <div className="font-medium">
-                {formatCurrency(
-                  Number(product.defaultPrice ?? 0),
-                  undefined,
-                  undefined,
-                  2,
-                  2,
-                  settings as any
-                )}
-              </div>
+                <div className="text-xs text-muted-foreground">
+                  {t("defaultPrice")}
+                </div>
+                <div className="font-medium">
+                  {formatCurrency(
+                    Number(product.defaultPrice ?? 0),
+                    undefined,
+                    undefined,
+                    2,
+                    2,
+                    settings as any,
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <Package className="w-4 h-4 text-muted-foreground shrink-0" />
               <div>
-                <div className="text-xs text-muted-foreground">{t("totalQuantity")}</div>
+                <div className="text-xs text-muted-foreground">
+                  {t("totalQuantity")}
+                </div>
                 <div className="font-medium">{product.totalQuantity ?? 0}</div>
               </div>
             </div>
@@ -203,8 +243,11 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
               <div className="flex items-start gap-3">
                 <FileText className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">{t("description")}</div>
-                  <div className="text-sm" dangerouslySetInnerHTML={{ __html: product.description }} />
+                  <div className="text-xs text-muted-foreground mb-1">
+                    {t("description")}
+                  </div>
+                  {/* <div className="text-sm" dangerouslySetInnerHTML={{ __html: product.description }} /> */}
+                  <QuillViewer value={product.description} />
                 </div>
               </div>
             )}
@@ -218,11 +261,22 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
           {product.defaultImages?.length ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {product.defaultImages.map((img, idx) => {
-                const url = typeof img === "object" && (img as any)?.url ? (img as any).url : null;
+                const url =
+                  typeof img === "object" && (img as any)?.url
+                    ? (img as any).url
+                    : null;
                 if (!url) return null;
                 return (
-                  <div key={idx} className="aspect-square rounded-lg overflow-hidden border bg-muted">
-                    <img src={url} alt="" className="w-full h-full object-cover" crossOrigin="anonymous" />
+                  <div
+                    key={idx}
+                    className="aspect-square rounded-lg overflow-hidden border bg-muted"
+                  >
+                    <img
+                      src={url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      crossOrigin="anonymous"
+                    />
                   </div>
                 );
               })}
@@ -232,7 +286,7 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
               <ImageIcon className="w-10 h-10 text-muted-foreground/50" />
             </div>
           )}
-          
+
           {product.variants?.length ? (
             <div className="pt-4 border-t">
               <VariantsDisplay variants={product.variants} t={t} />
@@ -247,17 +301,17 @@ function ProductDetailContent({ product, onEdit, onDelete }: IProductDetailConte
 // Helper function to normalize color values (handles hex, rgb, color names)
 function normalizeColor(colorValue: string): string {
   if (!colorValue) return "#000000";
-  
+
   // If it's already a valid hex color
   if (/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(colorValue)) {
     return colorValue;
   }
-  
+
   // If it's rgb/rgba format
   if (colorValue.startsWith("rgb")) {
     return colorValue;
   }
-  
+
   // Try to convert color name to hex (basic common colors)
   const colorMap: Record<string, string> = {
     red: "#FF0000",
@@ -275,7 +329,7 @@ function normalizeColor(colorValue: string): string {
     cyan: "#00FFFF",
     magenta: "#FF00FF",
   };
-  
+
   const lowerColor = colorValue.toLowerCase().trim();
   return colorMap[lowerColor] || colorValue;
 }
@@ -288,7 +342,7 @@ interface IVariantsDisplayProps {
 function VariantsDisplay({ variants, t }: IVariantsDisplayProps) {
   // Get all unique attributes from all variants to create dynamic columns
   const allAttributes = new Map<string, { name: string; type: string }>();
-  
+
   variants.forEach((variant: any) => {
     (variant.attributeValues || []).forEach((av: any) => {
       const attrId = av.attribute?.id;
@@ -346,7 +400,7 @@ interface IVariantRowProps {
 
 function VariantRow({ variant, attributeColumns, t }: IVariantRowProps) {
   const attributeValues = variant.attributeValues || [];
-  
+
   // Create a map of attribute ID to values for quick lookup
   const attrValueMap = new Map<string, any[]>();
   attributeValues.forEach((av: any) => {
@@ -371,7 +425,7 @@ function VariantRow({ variant, attributeColumns, t }: IVariantRowProps) {
             undefined,
             2,
             2,
-            settings as any
+            settings as any,
           )}
         </div>
       </TableCell>
@@ -384,7 +438,7 @@ function VariantRow({ variant, attributeColumns, t }: IVariantRowProps) {
       {attributeColumns.map(([attrId, attr]) => {
         const values = attrValueMap.get(attrId) || [];
         const isColor = attr.type === EAttributeType.COLOR;
-        
+
         return (
           <TableCell key={attrId} className="text-sm">
             {values.length > 0 ? (
@@ -410,7 +464,6 @@ function VariantRow({ variant, attributeColumns, t }: IVariantRowProps) {
           </TableCell>
         );
       })}
-
     </TableRow>
   );
 }

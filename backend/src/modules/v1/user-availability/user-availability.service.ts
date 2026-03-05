@@ -138,4 +138,64 @@ export class UserAvailabilityService extends CrudService<UserAvailability> {
 
     return { isAvailable: true };
   }
+
+
+  getDefaultAvailability() {
+    return {
+      "weeklySchedule": {
+        "monday": {
+          "enabled": true,
+          "timeSlots": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        "tuesday": {
+          "enabled": true,
+          "timeSlots": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        "wednesday": {
+          "enabled": true,
+          "timeSlots": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        "thursday": {
+          "enabled": true,
+          "timeSlots": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        "friday": {
+          "enabled": true,
+          "timeSlots": [
+            {
+              "start": "09:00",
+              "end": "17:00"
+            }
+          ]
+        },
+        "saturday": {
+          "enabled": false
+        },
+        "sunday": {
+          "enabled": false
+        }
+      },
+      "unavailablePeriods": []
+    }
+  }
 }

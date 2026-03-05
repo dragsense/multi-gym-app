@@ -26,7 +26,7 @@ import { EBillingType } from '@shared/enums/billing.enum';
 import { MemberMembershipBilling } from '../entities/member-membership-billing.entity';
 import { EntityRouterService } from '@/common/database/entity-router.service';
 import { User } from '@/common/base-user/entities/user.entity';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { MembershipNotificationService } from './membership-notification.service';
 
 @Injectable()
@@ -104,6 +104,7 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
           await this.membershipNotificationService.notifyAdminsMembershipCancelled(
             memberMembership,
             (payload.data as any)?.cancelledBy,
+            tenantId,
           );
         }
 
@@ -208,11 +209,12 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
           return;
         }
 
-        // Send notifications
+        // Send notifications (business admins get member-related notifications; member gets welcome)
         await Promise.all([
           this.membershipNotificationService.notifyAdminsMembershipActivated(
             memberMembership,
             (payload.data as any)?.activatedBy || (payload.data as any)?.createdBy,
+            tenantId,
           ),
           this.membershipNotificationService.notifyMemberMembershipActivated(
             memberMembership,

@@ -117,7 +117,7 @@ export class CreateRoleDto {
   @Type(() => PermissionDto)
   @FieldType("nested", true, PermissionDto)
   @IsArray()
-  @ArrayMinSize(1, { message: "At least one client must be selected" })
+  @ArrayMinSize(1, { message: "At least one permission must be selected" })
   rolePermissions: PermissionDto[];
 }
 

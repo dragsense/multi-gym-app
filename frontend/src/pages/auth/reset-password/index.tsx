@@ -36,11 +36,13 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const tenantId = searchParams.get('tenantId');
 
   const RESET_PASSWORD_INITIAL_VALUES: TAuthResetPasswordData = {
     token: token ?? "",
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
+    tenantId: tenantId ?? ""
   };
   
   if (!token) {
@@ -50,7 +52,7 @@ export default function ResetPasswordPage() {
 
   return (
     <FormHandler<TAuthResetPasswordData, IMessageResponse>
-      mutationFn={resetPassword}
+      mutationFn={(data) => resetPassword(data, tenantId)}
       FormComponent={ResetPasswordForm}
       initialValues={RESET_PASSWORD_INITIAL_VALUES}
       validationMode={EVALIDATION_MODES.OnChange}

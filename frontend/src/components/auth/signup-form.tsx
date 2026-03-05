@@ -12,6 +12,12 @@ import { type TSignupData } from "@shared/types/auth.type";
 import { type IMessageResponse } from "@shared/interfaces/api/response.interface";
 import { type TFormHandlerStore } from "@/stores";
 import { type THandlerComponentProps } from "@/@types/handler-types";
+import type { BusinessDto } from '@shared/dtos';
+
+import type {
+  TCustomInputWrapper,
+  TFieldConfigObject,
+} from "@/@types/form/field-config.type";
 
 // External Libraries
 import { Eye, EyeOff, Mail, Loader2, User } from "lucide-react";
@@ -20,21 +26,48 @@ import { Link } from "react-router-dom";
 // Components
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/form-ui/form";
+import { AppCard } from "../layout-ui/app-card";
+import { SearchableInputWrapper } from "@/components/shared-ui/searchable-input-wrapper";
 
 // Hooks
 import { type FormInputs, useInput } from "@/hooks/use-input";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { useI18n } from "@/hooks/use-i18n";
+import { useSearchableBusiness } from "@/hooks/use-searchable";
 
-// Stores
-import { AppCard } from "../layout-ui/app-card";
-import { SignupUserLevel } from "@shared/enums/user.enum";
-import { EUserLevels } from "@shared/enums/user.enum";
 import { PUBLIC_ROUTES } from "@/config/routes.config";
+import { buildSentence } from "@/locales/translations";
 
 interface ISignupFormProps extends THandlerComponentProps<
   TFormHandlerStore<TSignupData, IMessageResponse, any>
-> {}
+> { }
+
+
+// Custom component - must be defined before early return
+const BusinessSelect = React.memo((props: TCustomInputWrapper) => {
+  const searchableBusinesses = useSearchableBusiness({});
+  const { t } = useI18n();
+  return (
+    <SearchableInputWrapper<BusinessDto>
+      {...props}
+      modal={true}
+      useSearchable={() => searchableBusinesses}
+      getLabel={(item) => {
+        if (!item) return buildSentence(t, "select", "business");
+        return `${item.name} (${item.tenantId})`;
+      }}
+      getKey={(item) => item.id.toString()}
+      getValue={(item) => {
+        return {
+          id: item.id,
+          tenantId: item.tenantId,
+          name: item.name,
+        };
+      }}
+      shouldFilter={false}
+    />
+  );
+});
 
 const SignupForm = React.memo(function SignupForm({
   storeKey,
@@ -123,6 +156,12 @@ const SignupForm = React.memo(function SignupForm({
         label: t("Last Name"),
         startAdornment: <User className="h-4 w-4 text-muted-foreground" />,
       },
+      business: {
+        ...originalFields.business,
+        type: 'custom',
+        Component: BusinessSelect,
+        placeholder: t("selectBusiness"),
+      },
       // trainer: {
       //   ...originalFields.trainer,
       //   renderItem: (item) => {
@@ -143,7 +182,7 @@ const SignupForm = React.memo(function SignupForm({
   );
 
   const inputs = useInput<TSignupData>({
-    fields: fields as any,
+    fields: fields  as TFieldConfigObject<TSignupData>,
     showRequiredAsterisk: true,
   }) as FormInputs<TSignupData>;
 
@@ -235,6 +274,12 @@ const SignupForm = React.memo(function SignupForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {inputs.firstName}
               {inputs.lastName}
+            </div>
+          </div>
+
+          <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {inputs.business}
             </div>
           </div>
           {/* <div>

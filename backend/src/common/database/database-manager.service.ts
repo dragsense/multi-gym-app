@@ -163,7 +163,10 @@ export class DatabaseManager implements OnModuleInit {
       ConnectionStatus.READY,
       'Connection restored successfully',
     );
-    
+
+    // Run seeding for the new tenant (non-blocking)
+    void this.runTenantSeeding(dataSource, connEntity.tenantId ?? undefined);
+
     this.logger.log(
       `Restored connection: ${connEntity.connectionName} for tenant: ${connEntity.tenantId}`,
     );
@@ -190,6 +193,8 @@ export class DatabaseManager implements OnModuleInit {
         // Test connection
         await connection.query('SELECT 1');
         readyConnections.push(connectionName);
+
+
 
         // Update status in database
         await this.updateConnectionStatus(

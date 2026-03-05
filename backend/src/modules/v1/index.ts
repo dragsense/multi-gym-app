@@ -1,5 +1,6 @@
 // V1 API Modules
 export { UsersModule } from './users/users.module';
+export { AIAdapterModule } from './ai-adapter/ai-adapter.module';
 export { AuthModule } from './auth/auth.module';
 export { ChatModule } from './chat/chat.module';
 export { MembersModule } from './members/members.module';

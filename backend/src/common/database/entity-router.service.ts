@@ -1,7 +1,7 @@
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { DatabaseManager, TenantContext } from './database-manager.service';
 import { Repository } from 'typeorm';
-import { RequestContext } from '../context/request-context';
+import { RequestContext } from '../../context/request-context';
 
 /**
  * Transparent Entity Router - Automatically routes entities to correct database/schema

@@ -22,7 +22,7 @@ import { MembersService } from '../members/members.service';
 import { MemberMembershipService } from '../memberships/services/member-membership.service';
 
 import { FileUploadService } from '@/common/file-upload/file-upload.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
@@ -52,9 +52,7 @@ export class CheckinsService extends CrudService<Checkin> {
       restrictedFields: ['user.password'],
       searchableFields: [
         'user.email',
-        'user.profile.firstName',
-        'user.profile.lastName',
-        'location',
+        'locationText',
         'deviceId',
       ],
     };
@@ -421,7 +419,16 @@ export class CheckinsService extends CrudService<Checkin> {
       }
 
       // When check-in is at a specific door, require member to have active membership with access to that door
-      if (door?.id) {
+      if (!door) {
+        return {
+          ResultCode: '0',
+          ActIndex: '1',
+          Audio: '04',
+          Msg: 'No door found',
+        };
+      }
+
+      if (user.level === EUserLevels.MEMBER) {
         const member = await this.membersService.getSingle(
           { userId: user.id },
           { _relations: ['user'] }
@@ -451,7 +458,7 @@ export class CheckinsService extends CrudService<Checkin> {
         const hasAllDoors = !doors || (Array.isArray(doors) && doors.length === 0);
         const hasAccessToDoor =
           hasAllDoors ||
-          (Array.isArray(doors) && doors.some((d: any) => d?.id === door?.id));
+          (Array.isArray(doors) && doors.some((d: any) => d.id === door.id));
         if (!hasAccessToDoor) {
           return {
             ResultCode: '0',
@@ -462,23 +469,21 @@ export class CheckinsService extends CrudService<Checkin> {
         }
       }
 
+
       const checkinData: any = {
         user: { id: user.id } as any,
         checkInTime: currentDateTime,
-        // Store macAddress in deviceId field for reference
         deviceId: macAddress,
         timezone: timezone,
+        door: { id: door.id } as any
       };
 
-      // Link door if found
-      if (door && door.id) {
-        checkinData.door = { id: door.id } as any;
-        
-        // Link location from door if door has a location
-        if (door.locationId) {
-          checkinData.location = { id: door.locationId } as any;
-        }
+
+      // Link location from door if door has a location
+      if (door.locationId) {
+        checkinData.location = { id: door.locationId } as any;
       }
+
 
       const newCheckin = await this.create<CreateCheckinDto>(
         checkinData,
@@ -540,7 +545,7 @@ export class CheckinsService extends CrudService<Checkin> {
 
         // Use macAddress from parameter or from checkin (stored in deviceId field)
         const checkinMacAddress = macAddress || (checkin as any).deviceId;
-        
+
         if (!checkinMacAddress) {
           this.logger.warn(`No macAddress found for checkin ${checkinId}, skipping snapshot`);
           return;
@@ -569,7 +574,7 @@ export class CheckinsService extends CrudService<Checkin> {
 
         // Trigger camera snapshot capture - add job directly
         this.logger.log(`Triggering camera snapshot capture for checkin ${checkinId} from camera ${door.cameraId}`);
-        
+
         const jobId = `snapshot-${checkinId}-${door.cameraId}`;
         const existingJob = await this.cameraSnapshotQueue.getJob(jobId);
         if (existingJob) {

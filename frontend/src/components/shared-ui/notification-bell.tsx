@@ -88,15 +88,15 @@ export function NotificationBell() {
                   key={notification.id}
                   className={cn(
                     "p-4 hover:bg-muted/50 transition-colors cursor-pointer",
-                    !notification.isRead && "bg-muted/30"
+                    !notification.isRead && "bg-muted/30",
                   )}
                   onClick={() => {
                     if (!notification.isRead) {
                       markAsRead(notification.id);
                     }
-                    if (notification.entityId && notification.entityType) {
-                      window.location.href = `/${notification.entityType}s/${notification.entityId}`;
-                    }
+                    // if (notification.entityId && notification.entityType) {
+                    //   window.location.href = `/${notification.entityType}s/${notification.entityId}`;
+                    // }
                     setOpen(false);
                   }}
                 >

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
@@ -26,8 +26,9 @@ export class ReferralLinksService extends CrudService<ReferralLink> {
     // Generate unique referral code
     const referralCode = await this.generateUniqueReferralCode();
 
-    // Generate referral link URL
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    // Generate referral link URL using frontend app URL from backend env
+    const baseUrl =
+      process.env.APP_URL ||'http://localhost:5173';
     const linkUrl = `${baseUrl}/signup?ref=${referralCode}`;
 
     // Create referral link
@@ -64,6 +65,8 @@ export class ReferralLinksService extends CrudService<ReferralLink> {
   private async generateUniqueReferralCode(): Promise<string> {
     let referralCode: string = '';
     let isUnique = false;
+
+    const repository = this.getRepository();
 
     while (!isUnique) {
       // Generate a random 8-character code

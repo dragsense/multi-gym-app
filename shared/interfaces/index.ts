@@ -1,5 +1,6 @@
 export * from "./user.interface";
 export * from "./payment-processors.interface";
+export * from "./ai-processors.interface";
 export * from "./member.interface";
 export * from "./api/error.interface";
 export * from "./api/param.interface";

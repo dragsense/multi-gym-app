@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { User } from '@/common/base-user/entities/user.entity';
 import { EPaymentProcessorType } from '@shared/enums';
 import type { IPaymentCard, IPaymentCardsResponse } from '@shared/interfaces';

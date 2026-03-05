@@ -38,22 +38,8 @@ export function SubscriptionFilters({
   const filters = store(state => state.filters);
   const setFilters = store.getState().setFilters;
 
-  // React 19: Memoized fields for better performance
-  const fields = useMemo(() => ({
-    ...filteredFields,
-    search: {
-      ...filteredFields.search,
-      placeholder: 'Search by title',
-    },
-    status: {
-      ...filteredFields.status,
-      placeholder: 'Select status',
-    },
-
-  } as TFieldConfigObject<TSubscriptionListData>), [filteredFields]);
-
   const inputs = useInput<TSubscriptionListData>({
-    fields: fields as TFieldConfigObject<TSubscriptionListData>,
+    fields: filteredFields as TFieldConfigObject<TSubscriptionListData>,
   });
 
   // React 19: Memoized active filters check for better performance
@@ -66,9 +52,7 @@ export function SubscriptionFilters({
   return (
     <div className="flex-1 flex items-end gap-2 flex-wrap" data-component-id={componentId}>
       {inputs.search}
-      <div className="min-w-xs">
-        {inputs.status}
-      </div>
+      {inputs.status}
       {hasActiveFilters && (
         <Button variant="outline" onClick={handleClearFilters} className="hidden lg:flex">
           <XIcon className="h-4 w-4 mr-2" />

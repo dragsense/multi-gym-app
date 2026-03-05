@@ -60,7 +60,24 @@ export default function RoleForm({
       description: "",
       rolePermissions: [],
     };
-    return strictDeepMerge<TRoleData>(INITIAL_VALUES, response ?? {});
+
+    const sanitizedResponse =
+      response && (response as any).rolePermissions
+        ? {
+            ...response,
+            rolePermissions: (response as any).rolePermissions.map((p: any) => {
+              const permission = p?.permission ?? p;
+
+              return {
+                id: permission?.id,
+                name: permission?.name,
+                displayName: permission?.displayName,
+              };
+            }),
+          }
+        : response;
+
+    return strictDeepMerge<TRoleData>(INITIAL_VALUES, sanitizedResponse ?? {});
   }, [response]);
 
   // React 19: Handlers with transitions

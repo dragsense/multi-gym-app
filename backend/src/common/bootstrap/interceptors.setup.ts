@@ -1,19 +1,14 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication,NestInterceptor } from '@nestjs/common';
 import { LoggerService } from '../logger/logger.service';
-import { ResponseEncryptionInterceptor } from '../../interceptors/response-encryption-interceptor';
-import { BrowserHtmlInterceptor } from '../../interceptors/browser-html-interceptor';
-import { RequestContextInterceptor } from '../context/request-context.interceptor';
-
-import { NestInterceptor } from '@nestjs/common';
+import { UserContextInterceptor, BrowserHtmlInterceptor, ResponseEncryptionInterceptor } from '@/interceptors';
 
 export function setupInterceptors(
   app: INestApplication,
   loggerService: LoggerService,
 ) {
-  const requestContextInterceptor = app.get(RequestContextInterceptor);
-
+  const userContextInterceptor = app.get(UserContextInterceptor);
   const interceptors: NestInterceptor[] = [
-    requestContextInterceptor,
+    userContextInterceptor,
     new BrowserHtmlInterceptor(),
   ];
 

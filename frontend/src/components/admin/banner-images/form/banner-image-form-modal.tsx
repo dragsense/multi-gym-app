@@ -100,7 +100,7 @@ const BannerImageFormModal = React.memo(function BannerImageFormModal({
   return (
     <ModalForm<TCreateBannerImageData | TUpdateBannerImageData, IMessageResponse, IBannerImageFormModalExtraProps>
       title={isEditing ? t('updateBannerImage') : t('createBannerImage')}
-      description={isEditing ? t('updateBannerImageInformation') : t('uploadNewBannerImage')}
+      // description={isEditing ? t('updateBannerImageInformation') : t('uploadNewBannerImage')}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -114,7 +114,17 @@ const BannerImageFormModal = React.memo(function BannerImageFormModal({
           <h3 className="text-sm font-semibold mb-3">{t('bannerImageDetails')}</h3>
           <div className="grid grid-cols-1 gap-4">
             {inputs.name}
-            {inputs.image as React.ReactNode}
+            <div className="space-y-2">
+              {inputs.image as React.ReactNode}
+              <div className="text-xs text-muted-foreground">
+                <span className="font-medium block">
+                  {t('bannerFormat')}
+                </span>
+                <span>
+                  {t('bannerFormatDescription')} (e.g. 1600x800px or 1200x600px)
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

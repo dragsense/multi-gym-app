@@ -45,7 +45,7 @@ class EndTimeAfterStartTimeConstraint implements ValidatorConstraintInterface {
 export class CreateAccessHourDto {
   @ApiProperty({ example: "Morning Hours", description: "Access hours name" })
   @IsString()
-  @IsNotEmpty()
+  @IsNotEmpty({message:"Name is required"})
   @FieldType("text", true)
   name: string;
 
@@ -57,10 +57,10 @@ export class CreateAccessHourDto {
     description: "Start time in HH:mm format",
   })
   @IsString()
-  @IsNotEmpty()
   @Matches(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, {
-    message: "Start time must be in HH:mm format",
+    message: "Start time must be in HH:MM format",
   })
+  @IsNotEmpty({message:"Start time is required"})
   @FieldType("time", true)
   startTime: string;
 
@@ -69,10 +69,10 @@ export class CreateAccessHourDto {
     description: "End time in HH:mm format",
   })
   @IsString()
-  @IsNotEmpty()
   @Matches(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, {
-    message: "End time must be in HH:mm format",
+    message: "End time must be in HH:MM format",
   })
+  @IsNotEmpty({message:"End time is required"})
   @Validate(EndTimeAfterStartTimeConstraint)
   @FieldType("time", true)
   endTime: string;

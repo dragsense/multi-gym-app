@@ -75,18 +75,20 @@ export class UnavailablePeriodDto {
     example: "Vacation",
     description: "Reason for unavailability",
   })
+  @IsOptional()
   @IsString()
   @FieldType("text", true)
-  reason!: string;
+  reason?: string;
 
   @ApiProperty({
     type: String,
     example: ["2024-07-01", "2024-07-05"],
     description: "Date range of the unavailable period (YYYY-MM-DD)",
   })
+  @IsOptional()
   @IsArray()
   @FieldType("dateRangeString", true)
-  dateRange!: [string | null, string | null];
+  dateRange?: [string | null, string | null];
 }
 
 export class WeeklyScheduleDto {

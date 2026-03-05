@@ -45,6 +45,7 @@ export default function LoginPage() {
     email: "",
     password: "",
     deviceId: getOrCreateDeviceId(),
+    business: undefined
   };
 
   return (

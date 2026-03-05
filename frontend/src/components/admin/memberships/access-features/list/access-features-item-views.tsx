@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 // Types
 import type { IAccessFeature } from "@shared/interfaces/access-feature.interface";
 import { formatDate } from "@/lib/utils";
-
+import { CustomTooltip } from "@/components/shared-ui/custom-tooltip";
 
 export const accessFeaturesItemViews = ({
   handleEdit,
@@ -25,9 +25,7 @@ export const accessFeaturesItemViews = ({
       header: "Name",
       cell: ({ row }) => {
         const accessFeature = row.original;
-        return (
-          <div className="font-medium">{accessFeature.name}</div>
-        );
+        return <div className="font-medium">{accessFeature.name}</div>;
       },
     },
     {
@@ -36,7 +34,11 @@ export const accessFeaturesItemViews = ({
       cell: ({ row }) => {
         const accessFeature = row.original;
         return (
-          <div className="text-muted-foreground">{accessFeature.description || "-"}</div>
+          <CustomTooltip
+            text={accessFeature.description || ""}
+            trimCount={50}
+            className="text-muted-foreground"
+          />
         );
       },
     },
@@ -72,4 +74,3 @@ export const accessFeaturesItemViews = ({
 
   return { columns };
 };
-

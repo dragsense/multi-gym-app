@@ -6,7 +6,7 @@ import { RefreshToken } from '@/modules/v1/auth/entities/tokens.entity';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { LoggerService } from '@/common/logger/logger.service';
 import { EntityRouterService } from '@/common/database/entity-router.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { Business } from '@/modules/v1/business/entities/business.entity';
 import { Repository, Not, IsNull } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -242,7 +242,7 @@ export class TokenService {
 
     // Loop through each tenant and cleanup their tokens
     for (const business of businesses) {
-      const tenantResult = await this.cleanupTokensForTenant(business.tenantId, cutoffDate);
+      const tenantResult = await this.cleanupTokensForTenant(business.tenantId ?? null, cutoffDate);
       totalCleaned += tenantResult;
     }
 

@@ -363,11 +363,11 @@ export default function FileUpload({
       {preview ? renderPreview() : renderUploadZone()}
 
       {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-      {!error && preview && (
+      {/* {!error && preview && (
         <p className="text-sm text-gray-500 text-center">
           {preview.type.startsWith("image/") ? "Change image" : "Change file"}
         </p>
-      )}
+      )} */}
     </div>
   );
 }

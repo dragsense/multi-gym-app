@@ -10,8 +10,6 @@ import {
   ArrayNotEmpty,
   Matches,
   Max,
-  ArrayMinSize,
-  MaxLength,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type, Expose } from "class-transformer";
@@ -30,7 +28,6 @@ export class CreateSubscriptionDto {
   @IsString()
   @IsNotEmpty()
   @FieldType("text", true)
-  @MaxLength(100)
   title: string;
 
   @ApiPropertyOptional({
@@ -57,7 +54,7 @@ export class CreateSubscriptionDto {
   )
   status: ESubscriptionStatus;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 0,
     description: 'Sorting order for listing the subscription',
   })
@@ -69,17 +66,18 @@ export class CreateSubscriptionDto {
   @Min(0)
   sortOrder: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "#3366ff",
     description: "Color code for subscription representation (hex)",
   })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   @FieldType("color", false)
   @Matches(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, {
     message: 'color must be a valid hex color code (e.g., #3B82F6 or #FFF)',
   })
-  color: string;
+  color?: string;
 
   @ApiProperty({
     example: 99.99,
@@ -93,10 +91,11 @@ export class CreateSubscriptionDto {
   @Min(0.50, { message: "Price must be greater than 0.50" })
   price: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 20,
     description: "Discount percentage for the subscription (0-100)",
   })
+  @IsOptional()
   @IsNumber()
   @IsNotEmpty()
   @FieldType("number", false)
@@ -104,14 +103,15 @@ export class CreateSubscriptionDto {
   @Type(() => Number)
   @Min(0)
   @Max(100)
-  discountPercentage: number;
+  @FieldType("number", false)
+  @Type(() => Number)
+  discountPercentage?: number;
 
   @ApiProperty({
     example: [ESubscriptionFrequency.MONTHLY, ESubscriptionFrequency.YEARLY],
     enum: ESubscriptionFrequency,
     description: "Frequency of subscription renewal",
   })
-  @IsNotEmpty()
   @IsArray()
   @IsEnum(ESubscriptionFrequency, { each: true })
   @FieldType("multiSelect", true)
@@ -121,7 +121,6 @@ export class CreateSubscriptionDto {
       label: v.charAt(0).toUpperCase() + v.slice(1),
     }))
   )
-  @ArrayMinSize(1, { message: "At least one frequency must be selected" })
   frequency: ESubscriptionFrequency[];
 
   @ApiProperty({
@@ -141,27 +140,30 @@ export class CreateSubscriptionDto {
   )
   features?: ESubscriptionFeatures[];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: true,
     description: 'Should this subscription automatically renew when expired?',
   })
+  @IsOptional()
   @IsBoolean()
-  @IsNotEmpty()
-  @FieldType("switch", true)
-  autoRenewal: boolean;
+  @FieldType("switch", false)
+  autoRenewal?: boolean;
 
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 10,
     description: 'Trial period in days',
   })
+  @IsOptional()
   @IsNumber()
   @IsNotEmpty()
   @FieldType("number", false)
   @Expose()
   @Type(() => Number)
   @Min(0)
-  trialPeriod: number;
+  @FieldType("number", false)
+  @Type(() => Number)
+  trialPeriod?: number;
 }
 
 export class UpdateSubscriptionDto extends PartialType(CreateSubscriptionDto) { }
@@ -178,10 +180,10 @@ export class SubscriptionDto {
 
   @ApiProperty({
     example: "Premium Plan",
-    description: "Subscription title",
+    description: "Subscription name",
   })
   @IsString()
-  title: string;
+  name: string;
 
   @ApiPropertyOptional({
     example: "Access to all premium features.",
@@ -252,8 +254,15 @@ export class SubscriptionDto {
   })
   @IsArray()
   @IsEnum(ESubscriptionFeatures, { each: true })
-  features: ESubscriptionFeatures[];
+  accessModules?: ESubscriptionFeatures[];
 
+  @ApiProperty({
+    example: ESubscriptionType.PAID,
+    enum: ESubscriptionType,
+    description: "Subscription type (paid or trial)",
+  })
+  @IsEnum(ESubscriptionType)
+  type: ESubscriptionType;
 
   @ApiProperty({
     example: true,

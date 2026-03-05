@@ -106,7 +106,7 @@ export default function SubscriptionList({
     <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as ViewType)} data-component-id={componentId}>
       <div className="flex flex-1 justify-between items-start md:items-center gap-2 flex-wrap">
         <SubscriptionFilters store={store} />
-        {/* <ViewToggle componentId={componentId} /> */}
+        <ViewToggle componentId={componentId} />
         <Button
           onClick={handleCreate}
           data-component-id={componentId}

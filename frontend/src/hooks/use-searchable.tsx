@@ -58,6 +58,7 @@ import {
 } from "@/services/products";
 import type { IAttribute, IAttributeValue } from "@shared/interfaces";
 import { fetchCameras } from "@/services/camera.api";
+import { fetchBusinessesList } from "@/services/business/business.api";
 
 export function useSearchableResource<T>(
   key: string,
@@ -105,6 +106,23 @@ export function useSearchableUsers({
   const memoizedFetcher = useMemo(
     () => (params: IListQueryParams) => fetchUsers(params, level),
     [level],
+  );
+
+  return useSearchableResource<IUser>(memoizedKey, memoizedFetcher, {
+    ...initialParams,
+  });
+}
+
+export function useSearchableChatUsers({
+  initialParams,
+}: {
+  initialParams?: IListQueryParams;
+} = {}) {
+  const memoizedKey = "searchable-chat-users";
+
+  const memoizedFetcher = useMemo(
+    () => (params: IListQueryParams) => fetchChatUsers(params),
+    [],
   );
 
   return useSearchableResource<IUser>(memoizedKey, memoizedFetcher, {
@@ -613,6 +631,25 @@ export function useSearchableEmailTemplates({
   );
 
   return useSearchableResource<IEmailTemplate>(
+    memoizedKey,
+    memoizedFetcher,
+    initialParams,
+  );
+}
+
+
+
+export function useSearchableBusiness({
+  initialParams,
+}: {
+  initialParams?: IListQueryParams;
+}) {
+  const memoizedKey = "businesses";
+  const memoizedFetcher = useMemo(
+    () => (params: IListQueryParams) => fetchBusinessesList(params),
+    [],
+  );
+  return useSearchableResource<IAttribute>(
     memoizedKey,
     memoizedFetcher,
     initialParams,

@@ -22,6 +22,26 @@ import { toast } from "sonner";
 // Hooks
 import { useI18n } from "@/hooks/use-i18n";
 import { useStripeConnect } from "@/hooks/use-stripe-connect";
+import { useTheme } from "@/hooks/use-theme";
+
+const CARD_ELEMENT_STYLE_LIGHT = {
+  base: {
+    fontSize: "16px",
+    color: "#424770",
+    "::placeholder": { color: "#aab7c4" },
+  },
+  invalid: { color: "#9e2146" },
+} as const;
+
+const CARD_ELEMENT_STYLE_DARK = {
+  base: {
+    fontSize: "16px",
+    color: "#ffffff",
+    "::placeholder": { color: "rgba(255, 255, 255, 0.6)" },
+    iconColor: "#ffffff",
+  },
+  invalid: { color: "#f87171", iconColor: "#f87171" },
+} as const;
 
 interface AddCardFormData {
   setAsDefault: boolean;
@@ -41,7 +61,10 @@ function AddCardModalContent({
   const { t } = useI18n();
   const stripe = useStripe();
   const elements = useElements();
+  const { resolvedTheme } = useTheme();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isDark = resolvedTheme === "dark";
+  const cardStyle = isDark ? CARD_ELEMENT_STYLE_DARK : CARD_ELEMENT_STYLE_LIGHT;
 
   const formMethods = useForm<AddCardFormData>({
     defaultValues: {
@@ -117,22 +140,10 @@ function AddCardModalContent({
             {/* Stripe Card Element */}
             <div className="space-y-2">
               <Label>Card Details</Label>
-              <div className="p-4 border rounded-md">
+              <div className="p-4 border rounded-md bg-background">
                 <CardElement
-                  options={{
-                    style: {
-                      base: {
-                        fontSize: "16px",
-                        color: "#424770",
-                        "::placeholder": {
-                          color: "#aab7c4",
-                        },
-                      },
-                      invalid: {
-                        color: "#9e2146",
-                      },
-                    },
-                  }}
+                  key={isDark ? "dark" : "light"}
+                  options={{ style: cardStyle }}
                 />
               </div>
             </div>
@@ -203,6 +214,7 @@ export function AddCardModal({
   isLoading = false,
 }: AddCardModalProps) {
   const { t } = useI18n();
+  const { resolvedTheme } = useTheme();
 
   // Fetch connected account and get proper Stripe instance
   const {
@@ -216,6 +228,18 @@ export function AddCardModal({
     onOpenChange(false);
   };
 
+  const isDark = resolvedTheme === "dark";
+  const elementsAppearance = isDark
+    ? {
+        theme: "night" as const,
+        variables: {
+          colorText: "#ffffff",
+          colorTextPlaceholder: "rgba(255, 255, 255, 0.6)",
+          colorBackground: "transparent",
+        },
+      }
+    : { theme: "stripe" as const };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -226,11 +250,7 @@ export function AddCardModal({
         ) : stripePromise ? (
           <Elements
             stripe={stripePromise}
-            options={{
-              appearance: {
-                theme: "stripe",
-              },
-            }}
+            options={{ appearance: elementsAppearance }}
           >
             <AddCardModalContent
               onAddCard={handleAddCard}
