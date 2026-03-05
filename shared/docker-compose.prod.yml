@@ -5,6 +5,7 @@ services:
       context: ..
       dockerfile: shared/Dockerfile
       target: prod
+      no_cache: true
     container_name: formance-app-staging
     ports:
       - "3001:3000" # Backend port
