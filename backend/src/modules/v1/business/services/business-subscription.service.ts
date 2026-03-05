@@ -171,7 +171,6 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       const user = await this.baseUsersService.getUserByIdWithPassword(business.user.id);
 
       const dbMode = this.configService.get<DatabaseMode>('database.mode');
-      console.log(dbMode)
       if (dbMode === DatabaseMode.MULTI_DATABASE) {
         await this.databaseManager.createTenantResources(business.tenantId).then(async () => {
           this.customLogger.log(`Tenant database created for business ${business.id}`);
@@ -278,39 +277,44 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
    */
     async activateBusiness(
       businessId: string,
-      manager: EntityManager,
     ): Promise<void> {
-      const business = await manager.findOne(Business, { where: { id: businessId } });
+      const business = await this.businessService.getSingle(businessId, { _relations: ['user'] });
       if (!business) {
         throw new NotFoundException('Business not found');
       }
   
       // Create tenant database if tenantId exists
       if (business.tenantId) {
-        await this.databaseManager.createTenantResources(business.tenantId).then(async () => {
-          this.customLogger.log(`Tenant database created for business ${business.id}`);
+
+        const user = await this.baseUsersService.getUserByIdWithPassword(business.user.id);
   
-          const user = await this.baseUsersService.getUserByIdWithPassword(business.user.id);
-  
-          const userRepository = this.databaseManager.getRepository(User, { tenantId: business.tenantId });
-          const newUser = userRepository.create({
-            firstName: user?.firstName || business.user.firstName,
-            lastName: user?.lastName || business.user.lastName,
-            email: user?.email || business.user.email,
-            password: user?.password,
-            isActive: true,
-            isVerified: true,
-            level: EUserLevels.ADMIN,
-            refUserId: user?.id || business.user.id || null,
+        const dbMode = this.configService.get<DatabaseMode>('database.mode');
+        if (dbMode === DatabaseMode.MULTI_DATABASE) {
+          await this.databaseManager.createTenantResources(business.tenantId).then(async () => {
+            this.customLogger.log(`Tenant database created for business ${business.id}`);
+            const userRepository = this.databaseManager.getRepository<User>(User, { tenantId: business.tenantId ?? undefined });
+            await this.createUserForBusiness(business, userRepository, user || undefined);
+   
+          }).catch((error: Error) => {
+            this.customLogger.error(
+              `Failed to create tenant database for business ${business.id}: ${error.message}`,
+              error.stack,
+            );
           });
-          await userRepository.save(newUser);
+        } else {
+          const userRepository = this.databaseManager.getRepository<User>(User);
   
-        }).catch((error: Error) => {
-          this.customLogger.error(
-            `Failed to create tenant database for business ${business.id}: ${error.message}`,
-            error.stack,
-          );
-        });
+          const _tenantId = "_" + business.tenantId;
+  
+  
+          if (user) {
+            user.email = user.email + _tenantId;
+          }
+  
+          business.user.email = business.user.email + _tenantId;
+  
+          await this.createUserForBusiness(business, userRepository, user || undefined)
+        }
       }
     
     }

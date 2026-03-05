@@ -16,6 +16,10 @@ const businessThemeService = new BaseService<any, any, any>(BUSINESS_THEME_API_P
 export const fetchCurrentBusinessTheme = (): Promise<IBusinessTheme | null> =>
   businessThemeService.getSingle<IBusinessTheme | null>(undefined, undefined, "/current");
 
+// Get my business theme
+export const fetchMyBusinessTheme = (): Promise<IBusinessTheme | null> =>
+  businessThemeService.getSingle<IBusinessTheme | null>(undefined, undefined, "/my");
+
 // Create or update business theme with file uploads
 export const upsertBusinessTheme = async (
   data: CreateBusinessThemeDto & {

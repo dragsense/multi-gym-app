@@ -193,6 +193,7 @@ export class UsersService {
         if (privilegeName) {
           await this.privilegeAssignmentService.assignPrivilegeToUser(savedUser.id, privilegeName, manager);
         }
+        
 
         return savedUser;
       },

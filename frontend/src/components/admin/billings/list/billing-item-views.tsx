@@ -176,7 +176,7 @@ export function billingItemViews({
             </TooltipContent>
           </Tooltip>
 
-          {user?.level <= EUserLevels.ADMIN && <Tooltip>
+          {handleEdit && <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
@@ -212,7 +212,7 @@ export function billingItemViews({
               </TooltipContent>
             </Tooltip>
           )}
-          {handleSendEmail && isAdmin && (
+          {handleSendEmail && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -248,7 +248,7 @@ export function billingItemViews({
               </TooltipContent>
             </Tooltip>
           )}
-          {handleCashPayment && isAdmin && (
+          {handleCashPayment && (
             <Tooltip>
               <TooltipTrigger asChild>
                 {row.original.isCashable &&
@@ -270,7 +270,7 @@ export function billingItemViews({
               </TooltipContent>
             </Tooltip>
           )}
-          {user?.level === EUserLevels.ADMIN && <Tooltip>
+          {handleDelete && <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
@@ -408,7 +408,7 @@ export function billingItemViews({
             </Tooltip>
 
 
-            {user?.level <= EUserLevels.ADMIN && <Tooltip>
+            {handleEdit && <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
@@ -425,7 +425,7 @@ export function billingItemViews({
             </Tooltip>}
 
 
-            {user?.level <= EUserLevels.ADMIN && <Tooltip>
+            {handleDelete && <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"

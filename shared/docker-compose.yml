@@ -8,6 +8,7 @@ services:
       context: ..
       dockerfile: shared/Dockerfile
       target: dev
+      no_cache: true
     container_name: formance-app
     ports:
       - "3000:3000" # Backend port
@@ -37,8 +38,6 @@ services:
       mailpit:
         condition: service_started
       mqtt:
-        condition: service_started
-      rabbitmq:
         condition: service_started
       mediamtx:
         condition: service_started
@@ -136,22 +135,6 @@ services:
     networks:
       - app-network
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: template-app-rabbitmq
-    restart: unless-stopped
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - app-network
 
   # MediaMTx: RTSP → HLS/WebRTC; path-per-camera for thousands of streams
   # Auth: shared/mediamtx.yml allows anonymous playback, admin/admin123 for Control API.

@@ -56,8 +56,7 @@ export async function app() {
   app.setGlobalPrefix('api');
 
   // MQTT microservice (hybrid app)
-  const mqttConfig = configService.get('mqtt');
-  console.log('mqttConfig', mqttConfig);
+/*   const mqttConfig = configService.get('mqtt');
   if (mqttConfig?.enabled) {
     app.connectMicroservice(
       {
@@ -71,7 +70,7 @@ export async function app() {
     );
     await app.startAllMicroservices();
     loggerService.log(`MQTT microservice connected to ${mqttConfig.url}`);
-  }
+  } */
 
   const port = configService.get<number>('app.port', 3000);
   await app.listen(port, '0.0.0.0');

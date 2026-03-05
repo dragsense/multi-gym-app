@@ -56,35 +56,22 @@ export class BusinessThemeController {
   @Get('current')
   @Public()
   @SkipBusinessCheck()
-  async getCurrentBusinessTheme(@Req() req: Request) {
-    // Extract user from token if provided (optional authentication)
-    let user: User | null = null;
-    
-    try {
-      const authHeader = req.headers['authorization'];
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.replace('Bearer ', '');
-        
-        // Check if token is revoked
-        const isRevoked = await this.tokenService.isTokenInvalidated(token);
-        if (!isRevoked) {
-          // Verify and decode token
-          const secret = this.configService.get('jwt').secret;
-          const payload = this.jwtService.verify(token, { secret });
-          
-          // Get user from database
-          if (payload?.id) {
-            user = await this.usersService.getUserByIdWithRefUserId(payload.id);
-          }
-        }
-      }
-    } catch (error) {
-      // If token is invalid or expired, just continue without user (public endpoint)
-      // Don't throw error, just set user to null
-      user = null;
-    }
-    
-    return this.businessThemeService.getCurrentBusinessTheme(user);
+  async getCurrentBusinessTheme() {
+    return this.businessThemeService.getCurrentBusinessTheme();
+  }
+
+  // get my theme
+  @ApiOperation({ summary: 'Get my business theme' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns my business theme',
+    type: BusinessTheme,
+  })
+  @Get('my')
+  @Public()
+  @SkipBusinessCheck()
+  async getMyBusinessTheme(@AuthUser() user: User) {
+    return this.businessThemeService.getMyBusinessTheme(user);
   }
 
 

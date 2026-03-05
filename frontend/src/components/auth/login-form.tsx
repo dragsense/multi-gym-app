@@ -47,8 +47,8 @@ const BusinessSelect = React.memo((props: TCustomInputWrapper) => {
       modal={true}
       useSearchable={() => searchableBusinesses}
       getLabel={(item) => {
-        if (!item) return buildSentence(t, "select", "tenant");
-        return `${item.name}`;
+        if (!item) return buildSentence(t, "select", "business");
+        return `${item.name} (${item.tenantId})`;
       }}
       getKey={(item) => item.id.toString()}
       getValue={(item) => {
@@ -92,7 +92,7 @@ const LoginForm = React.memo(function LoginForm({
       ...originalFields.business,
       type: 'custom',
       Component: BusinessSelect,
-      placeholder: t("Enter Tenant ID"),
+      placeholder: t("selectBusiness"),
     },
     password: {
       ...originalFields.password,

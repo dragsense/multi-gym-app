@@ -57,8 +57,21 @@ export class TenantMiddleware implements NestMiddleware {
      */
     private extractTenantId(req: Request): string | null {
 
+         // 1. Check query parameters
+         const queryTenantId = req.query.tenantId || req.query.tenant_id;
+         if (queryTenantId) {
+             if (Array.isArray(queryTenantId)) {
+                 const value = queryTenantId[0];
+                 return typeof value === 'string' ? value : null;
+             }
+ 
+             return typeof queryTenantId === 'string'
+                 ? queryTenantId
+                 : null;
+         }
+ 
 
-        // 4. Check cookies
+        // 2. Check cookies
         const cookies: any = (req as any).cookies;
         if (cookies && typeof cookies === 'object') {
             const cookieTenantId = cookies.tenant_id || cookies.tenantId;
@@ -67,7 +80,7 @@ export class TenantMiddleware implements NestMiddleware {
             }
         }
 
-        // 1. Check headers (x-tenant-id or tenant-id)
+        // 3 Check headers (x-tenant-id or tenant-id)
         const headerTenantId =
             req.headers['x-tenant-id'] ||
             req.headers['tenant-id'] ||
@@ -78,22 +91,8 @@ export class TenantMiddleware implements NestMiddleware {
             return Array.isArray(headerTenantId) ? headerTenantId[0] : headerTenantId;
         }
 
-        // 2. Check query parameters
-        const queryTenantId = req.query.tenantId || req.query.tenant_id;
-        if (queryTenantId) {
-            if (Array.isArray(queryTenantId)) {
-                const value = queryTenantId[0];
-                return typeof value === 'string' ? value : null;
-            }
 
-            return typeof queryTenantId === 'string'
-                ? queryTenantId
-                : null;
-        }
-
-
-
-        // 3. Check request body
+        // 4. Check request body
         if (req.body && typeof req.body === 'object') {
             const bodyTenantId = req.body.tenantId || req.body.tenant_id;
             if (bodyTenantId) {

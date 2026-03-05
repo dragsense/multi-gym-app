@@ -58,7 +58,7 @@ export class TenantGuard implements CanActivate {
 
         if (!business) {
           this.logger.warn(`Business not found for ${subdomain || tenantId}`);
-          throw new BadRequestException(`Business not found for ${subdomain || tenantId}`);
+          //throw new BadRequestException(`Business not found for ${subdomain || tenantId}`);
         }
       }
 

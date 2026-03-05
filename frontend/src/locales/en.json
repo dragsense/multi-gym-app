@@ -1108,5 +1108,6 @@
   "maxUses": "Max Uses",
   "enterMaxUses": "Enter max uses",
   "enterTitle": "Enter title",
-  "enterDescription": "Enter description"
+  "enterDescription": "Enter description",
+  "selectBusiness": "Select business"
 }

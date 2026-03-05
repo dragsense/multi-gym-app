@@ -50,21 +50,21 @@ export class BusinessService extends CrudService<Business> {
     }
 
     async createBusiness(createDto: CreateBusinessDto, currentUser: User): Promise<Business> {
-       /*  if (createDto.paymentProcessorId) {
-            await this.validatePaymentProcessorId(createDto.paymentProcessorId);
-        } else {
-            const paymentProcessor = await this.paymentProcessorsService.getSingle({
-                type: EPaymentProcessorType.CASH,
-            });
-            createDto.paymentProcessorId = paymentProcessor?.id;
-        } */
+        /*  if (createDto.paymentProcessorId) {
+             await this.validatePaymentProcessorId(createDto.paymentProcessorId);
+         } else {
+             const paymentProcessor = await this.paymentProcessorsService.getSingle({
+                 type: EPaymentProcessorType.CASH,
+             });
+             createDto.paymentProcessorId = paymentProcessor?.id;
+         } */
 
-            const paymentProcessor = await this.paymentProcessorsService.getSingle({
-                type: EPaymentProcessorType.STRIPE,
-            });
-    
+        const paymentProcessor = await this.paymentProcessorsService.getSingle({
+            type: EPaymentProcessorType.STRIPE,
+        });
 
-        return this.create({...createDto, paymentProcessor: {id: paymentProcessor?.id}}, {
+
+        const savedBusiness = await this.create({ ...createDto, paymentProcessor: { id: paymentProcessor?.id } }, {
             beforeCreate: async (dto, manager) => {
                 const business = await manager.findOne(Business, {
                     where: { user: { id: currentUser.id } },
@@ -84,9 +84,17 @@ export class BusinessService extends CrudService<Business> {
                 };
             },
             afterCreate: async (savedEntity, manager) => {
-                await this.businessSubscriptionService.activateBusiness(savedEntity.id, manager);
             },
         });
+
+        this.businessSubscriptionService.activateBusiness(savedBusiness.id).then(() => {
+            this.logger.log(`Business subscription activated for business ${savedBusiness.id}`);
+        }).catch((error) => {
+            this.logger.error(`Failed to activate business subscription for business ${savedBusiness.id}: ${error.message}`);
+        });
+
+        return savedBusiness;
+
     }
 
     async createBusinessWithUser(
@@ -94,9 +102,9 @@ export class BusinessService extends CrudService<Business> {
     ): Promise<IMessageResponse & { business: Business }> {
         const { user, ...businessData } = createDto;
 
-      /*   if (createDto.paymentProcessorId) {
-            await this.validatePaymentProcessorId(createDto.paymentProcessorId);
-        }  */
+        /*   if (createDto.paymentProcessorId) {
+              await this.validatePaymentProcessorId(createDto.paymentProcessorId);
+          }  */
 
         const paymentProcessor = await this.paymentProcessorsService.getSingle({
             type: EPaymentProcessorType.STRIPE,
@@ -114,7 +122,7 @@ export class BusinessService extends CrudService<Business> {
         const savedBusiness = await this.create(
             {
                 ...businessData,
-                paymentProcessor: {id: paymentProcessor?.id}
+                paymentProcessor: { id: paymentProcessor?.id }
             },
             {
                 beforeCreate: async (dto, manager) => {
@@ -141,7 +149,6 @@ export class BusinessService extends CrudService<Business> {
 
                         savedEntity.user = savedUser.user;
 
-                        await this.businessSubscriptionService.activateBusiness(savedEntity.id, manager);
 
 
                     } catch (error) {
@@ -152,6 +159,13 @@ export class BusinessService extends CrudService<Business> {
                 },
             },
         );
+
+
+        this.businessSubscriptionService.activateBusiness(savedBusiness.id).then(() => {
+            this.logger.log(`Business subscription activated for business ${savedBusiness.id}`);
+        }).catch((error) => {
+            this.logger.error(`Failed to activate business subscription for business ${savedBusiness.id}: ${error.message}`);
+        });
 
         return {
             message: 'Business created successfully',
@@ -352,7 +366,10 @@ export class BusinessService extends CrudService<Business> {
 
     async getMyBusiness(currentUser: User): Promise<Business> {
         const relations = { _relations: ['paymentProcessor'] };
-        let business = await this.getSingle({ userId: currentUser.id }, relations);
+        let business = await this.getSingle({ userId: currentUser.id }, relations, undefined, undefined, {
+            skipTenantScope: true,
+            skipSuperAdminOwnDataOnly: true,
+        });
 
         if (!business) {
             if (currentUser.refUserId) {
@@ -411,21 +428,21 @@ export class BusinessService extends CrudService<Business> {
     ): Promise<Business> {
         const business = await this.getMyBusiness(currentUser);
         const allowedData: Partial<UpdateBusinessDto> = {};
-    /*     if (updateDto.paymentProcessorId !== undefined) {
-            allowedData.paymentProcessorId = updateDto.paymentProcessorId;
-        }
-        if (updateDto.aiProcessorId !== undefined) {
-            allowedData.aiProcessorId = updateDto.aiProcessorId;
-        }
-        if (updateDto.defaultAiModel !== undefined) {
-            allowedData.defaultAiModel = updateDto.defaultAiModel;
-        }
-        if (Object.keys(allowedData).length === 0) {
-            return business;
-        }
-        if (allowedData.paymentProcessorId) {
-            await this.validatePaymentProcessorId(allowedData.paymentProcessorId);
-        } */
+        /*     if (updateDto.paymentProcessorId !== undefined) {
+                allowedData.paymentProcessorId = updateDto.paymentProcessorId;
+            }
+            if (updateDto.aiProcessorId !== undefined) {
+                allowedData.aiProcessorId = updateDto.aiProcessorId;
+            }
+            if (updateDto.defaultAiModel !== undefined) {
+                allowedData.defaultAiModel = updateDto.defaultAiModel;
+            }
+            if (Object.keys(allowedData).length === 0) {
+                return business;
+            }
+            if (allowedData.paymentProcessorId) {
+                await this.validatePaymentProcessorId(allowedData.paymentProcessorId);
+            } */
         await this.update(business.id, allowedData);
         return this.getSingle(business.id) as Promise<Business>;
     }

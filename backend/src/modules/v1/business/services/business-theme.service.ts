@@ -12,6 +12,7 @@ import { FileUpload } from '@/common/file-upload/entities/file-upload.entity';
 import { CreateBusinessThemeDto, UpdateBusinessThemeDto } from '@shared/dtos/business-dtos/business-theme.dto';
 import { User } from '@/common/base-user/entities/user.entity';
 import { BusinessService } from '../business.service';
+import { Business } from '../entities/business.entity';
 
 @Injectable()
 export class BusinessThemeService extends CrudService<BusinessTheme> {
@@ -34,20 +35,38 @@ export class BusinessThemeService extends CrudService<BusinessTheme> {
   /**
    * Get current business theme using businessId from request context
    */
-  async getCurrentBusinessTheme(user: any): Promise<BusinessTheme | null> {
-    let businessId = RequestContext.get<string>('businessId');
+  async getCurrentBusinessTheme(): Promise<BusinessTheme | null> {
+    const businessId = RequestContext.get<string>('businessId');
+    const tenantId = RequestContext.get<string>('tenantId');
 
-    if (!businessId && user && user.level === EUserLevels.SUPER_ADMIN) {
-      const business = await this.businessService.getMyBusiness(user as User);
-      businessId = business.id;
+    let business: Business | null = null;
+
+    if (businessId) {
+      business = await this.businessService.getSingle(businessId);
     }
 
-    if (!businessId) {
+    if (!business && tenantId) {
+      business = await this.businessService.getSingle({ tenantId }, { _relations: ['user'] });
+    }
+
+    if (!business) {
       return null;
     }
 
     return this.getSingle({
-      businessId,
+      businessId: business.id,
+    }, {
+      _relations: ['logoLight', 'logoDark', 'favicon'],
+    });
+  }
+
+  async getMyBusinessTheme(user: User): Promise<BusinessTheme | null> {
+    const business = await this.businessService.getMyBusiness(user);
+    if (!business) {
+      return null;
+    }
+    return this.getSingle({
+      businessId: business.id,
     }, {
       _relations: ['logoLight', 'logoDark', 'favicon'],
     });

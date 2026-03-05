@@ -49,7 +49,7 @@ export default function SignupPage() {
   };
 
   return (
-    <FormHandler<TSignupData, IMessageResponse>
+    <FormHandler<TSignupData, ISignupResponse>
       mutationFn={signup}
       FormComponent={SignupForm}
       initialValues={SIGNUP_INITIAL_VALUES}
