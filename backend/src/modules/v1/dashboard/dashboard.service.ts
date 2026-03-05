@@ -560,10 +560,13 @@ export class DashboardService {
 
     // Build user condition based on role
     let userCondition = '';
-    let queryParams: any[] = [start, end];
+    const queryParams: any[] = [start, end];
 
-    userCondition = `AND mm."memberId" = $3`;
-    queryParams.push(user.id);
+    if (user.level === EUserLevels.MEMBER) {
+      // Filter by the underlying member linked to this user
+      userCondition = `AND mem."userId" = $3`;
+      queryParams.push(user.id);
+    }
 
     // Determine groupBy based on period
     let groupBy = `DATE_TRUNC('month', mm."createdAt")`;

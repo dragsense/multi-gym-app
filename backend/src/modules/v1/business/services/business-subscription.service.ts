@@ -171,10 +171,11 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       const user = await this.baseUsersService.getUserByIdWithPassword(business.user.id);
 
       const dbMode = this.configService.get<DatabaseMode>('database.mode');
+      console.log(dbMode)
       if (dbMode === DatabaseMode.MULTI_DATABASE) {
         await this.databaseManager.createTenantResources(business.tenantId).then(async () => {
           this.customLogger.log(`Tenant database created for business ${business.id}`);
-          const userRepository = this.databaseManager.getRepository(User, { tenantId: business.tenantId ?? undefined });
+          const userRepository = this.databaseManager.getRepository<User>(User, { tenantId: business.tenantId ?? undefined });
           await this.createUserForBusiness(business, userRepository, user || undefined);
 
         }).catch((error: Error) => {
@@ -184,7 +185,7 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
           );
         });
       } else {
-        const userRepository = this.databaseManager.getRepository(User);
+        const userRepository = this.databaseManager.getRepository<User>(User);
 
         const _tenantId = "_" + business.tenantId;
 
@@ -195,7 +196,7 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
 
         business.user.email = business.user.email + _tenantId;
 
-        this.createUserForBusiness(business, userRepository, user || undefined)
+        await this.createUserForBusiness(business, userRepository, user || undefined)
       }
     }
 
@@ -251,7 +252,8 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       source,
       metadata,
     });
-  }
+
+      }
 
 
   async createUserForBusiness(business: Business, repository: Repository<User>, user?: User): Promise<void> {
@@ -263,7 +265,8 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       isActive: true,
       isVerified: true,
       level: EUserLevels.ADMIN,
-      refUserId: user?.id || business.user.id || null,
+      refUserId: user?.id || business.user.id || undefined,
+      tenantId: business.tenantId || undefined,
     });
     await repository.save(newUser);
   }
@@ -288,6 +291,8 @@ export class BusinessSubscriptionService extends CrudService<BusinessSubscriptio
       _relations: ['subscription', 'business'],
       sortBy: 'createdAt',
       sortOrder: 'DESC',
+    }, undefined, undefined, {
+      skipTenantScope: true,
     });
   }
 

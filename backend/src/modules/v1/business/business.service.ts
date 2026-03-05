@@ -10,6 +10,7 @@ import { Business } from './entities/business.entity';
 import { CreateBusinessDto, CreateBusinessWithUserDto, UpdateBusinessDto, UpdateBusinessWithUserDto, BusinessImpersonateResponseDto } from '@shared/dtos';
 import { User } from '@/common/base-user/entities/user.entity';
 import { PaymentProcessorsService } from '@/common/payment-processors/payment-processors.service';
+import { AIProcessorsService } from '@/common/ai-processors/ai-processors.service';
 import { EBusinessStatus } from '@shared/enums/business/business.enum';
 import { EUserLevels } from '@shared/enums';
 import { DatabaseManager } from '@/common/database/database-manager.service';
@@ -30,6 +31,7 @@ export class BusinessService extends CrudService<Business> {
         private readonly configService: ConfigService,
         private readonly usersService: UsersService,
         private readonly paymentProcessorsService: PaymentProcessorsService,
+        private readonly aiProcessorsService: AIProcessorsService,
     ) {
         const crudOptions: CrudOptions = {
             restrictedFields: [],
@@ -45,6 +47,9 @@ export class BusinessService extends CrudService<Business> {
     async createBusiness(createDto: CreateBusinessDto, currentUser: User): Promise<Business> {
         if (createDto.paymentProcessorId) {
             await this.validatePaymentProcessorId(createDto.paymentProcessorId);
+        }
+        if (createDto.aiProcessorId) {
+            await this.validateAIProcessorId(createDto.aiProcessorId);
         }
         return this.create(createDto, {
             beforeCreate: async (dto, manager) => {
@@ -175,6 +180,19 @@ export class BusinessService extends CrudService<Business> {
         }
         if (!processor.enabled) {
             throw new BadRequestException('Selected payment processor is not enabled');
+        }
+    }
+
+    /**
+     * Validate that aiProcessorId exists and is enabled when provided.
+     */
+    private async validateAIProcessorId(aiProcessorId: string): Promise<void> {
+        const processor = await this.aiProcessorsService.getSingle(aiProcessorId);
+        if (!processor) {
+            throw new BadRequestException('AI processor not found');
+        }
+        if (!processor.enabled) {
+            throw new BadRequestException('Selected AI processor is not enabled');
         }
     }
 
@@ -350,11 +368,20 @@ export class BusinessService extends CrudService<Business> {
         if (updateDto.paymentProcessorId !== undefined) {
             allowedData.paymentProcessorId = updateDto.paymentProcessorId;
         }
+        if (updateDto.aiProcessorId !== undefined) {
+            allowedData.aiProcessorId = updateDto.aiProcessorId;
+        }
+        if (updateDto.defaultAiModel !== undefined) {
+            allowedData.defaultAiModel = updateDto.defaultAiModel;
+        }
         if (Object.keys(allowedData).length === 0) {
             return business;
         }
         if (allowedData.paymentProcessorId) {
             await this.validatePaymentProcessorId(allowedData.paymentProcessorId);
+        }
+        if (allowedData.aiProcessorId) {
+            await this.validateAIProcessorId(allowedData.aiProcessorId);
         }
         await this.update(business.id, allowedData);
         return this.getSingle(business.id) as Promise<Business>;
@@ -375,6 +402,9 @@ export class BusinessService extends CrudService<Business> {
         const dto = updateDto as Record<string, unknown>;
         if (dto?.paymentProcessorId && typeof dto.paymentProcessorId === 'string') {
             await this.validatePaymentProcessorId(dto.paymentProcessorId);
+        }
+        if (dto?.aiProcessorId && typeof dto.aiProcessorId === 'string') {
+            await this.validateAIProcessorId(dto.aiProcessorId);
         }
         return super.update(key, updateDto, callbacks, config);
     }

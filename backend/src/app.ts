@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Transport } from '@nestjs/microservices';
 import { RedisIoAdapter } from './common/gateways/redis-io.adapter';
 
 import { AppModule } from './app.module';
@@ -53,6 +54,24 @@ export async function app() {
   );
 
   app.setGlobalPrefix('api');
+
+  // MQTT microservice (hybrid app)
+  const mqttConfig = configService.get('mqtt');
+  console.log('mqttConfig', mqttConfig);
+  if (mqttConfig?.enabled) {
+    app.connectMicroservice(
+      {
+        transport: Transport.MQTT,
+        options: {
+          url: mqttConfig.url,
+          clientId: mqttConfig.clientId,
+        },
+      },
+      { inheritAppConfig: true },
+    );
+    await app.startAllMicroservices();
+    loggerService.log(`MQTT microservice connected to ${mqttConfig.url}`);
+  }
 
   const port = configService.get<number>('app.port', 3000);
   await app.listen(port, '0.0.0.0');

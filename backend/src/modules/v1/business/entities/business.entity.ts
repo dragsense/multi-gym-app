@@ -4,6 +4,7 @@ import { GeneralBaseEntity } from '@/common/entities';
 import { User } from '@/common/base-user/entities/user.entity';
 import { StripeConnectAccount } from '@/modules/v1/stripe/entities/stripe-connect-account.entity';
 import { PaymentProcessor } from '@/common/payment-processors/entities/payment-processor.entity';
+import { AIProcessor } from '@/common/ai-processors/entities/ai-processor.entity';
 
 
 @Entity('businesses')
@@ -39,4 +40,17 @@ export class Business extends GeneralBaseEntity {
     @ManyToOne(() => PaymentProcessor, { nullable: true, eager: false })
     @JoinColumn({ name: 'paymentProcessorId' })
     paymentProcessor: PaymentProcessor | null;
+
+    @ApiPropertyOptional({ description: 'AI processor ID (OpenAI, AWS Bedrock, etc.)' })
+    @Column({ type: 'uuid', nullable: true })
+    aiProcessorId: string | null;
+
+    @ApiPropertyOptional({ type: () => AIProcessor, description: 'AI processor this business uses' })
+    @ManyToOne(() => AIProcessor, { nullable: true, eager: false })
+    @JoinColumn({ name: 'aiProcessorId' })
+    aiProcessor: AIProcessor | null;
+
+    @ApiPropertyOptional({ example: 'gpt-4o-mini', description: 'Default AI model when not specified' })
+    @Column({ type: 'varchar', length: 128, nullable: true })
+    defaultAiModel: string | null;
 }

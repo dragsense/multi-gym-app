@@ -11,11 +11,13 @@ import type { IUserAvailability } from "@shared/interfaces/user-availability.int
 import { Button } from "@/components/ui/button";
 import { ModalForm } from "@/components/form-ui/modal-form";
 import type { THandlerComponentProps } from "@/@types/handler-types";
-import type { FormInputs } from "@/hooks/use-input";
-import { useInput } from "@/hooks/use-input";
+import { type FormInputs, useInput } from "@/hooks/use-input";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 import type { IMessageResponse } from "@shared/interfaces";
 import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 import type { DayScheduleDto, TimeSlotDto } from "@shared/dtos/user-availability-dtos/user-availability.dto";
+
 
 export interface IUserAvailabilityFormModalExtraProps {
   open: boolean;
@@ -32,6 +34,7 @@ const UserAvailabilityFormModal = React.memo(function UserAvailabilityFormModal(
   // React 19: Essential IDs and transitions
   const componentId = useId();
   const [, startTransition] = useTransition();
+  const { t } = useI18n();
 
   if (!store) {
     return `Form store "${storeKey}" not found. Did you forget to register it?`;
@@ -47,15 +50,36 @@ const UserAvailabilityFormModal = React.memo(function UserAvailabilityFormModal(
   // Helper function to create time slot buttons for all days
   const createTimeSlot = (dayFields: DayScheduleDto, day: string) => ({
     ...dayFields,
+    label: t(day),
+    required: false,
+    className: "space-y-2",
     subFields: {
       ...dayFields.subFields,
+      enabled: {
+        ...dayFields.subFields?.enabled,
+        label: t("enabled"),
+        required: false,
+      },
       timeSlots: {
         ...dayFields.subFields?.timeSlots,
+        label: t("timeSlots"),
+        required: false,
         type: 'nestedArray' as const,
         className: "space-y-2",
         visible: (ctx: { values: TUserAvailabilityData }) => ctx.values.weeklySchedule?.[day]?.enabled,
         AddButton: ({ onClick }: { onClick: () => void }) => <Button type="button" onClick={onClick}><Plus /></Button>,
         RemoveButton: ({ onClick, index }: { onClick: () => void, index: number }) => <Button type="button" onClick={() => onClick(index)}><X /></Button>,
+        subFields: {
+          ...dayFields.subFields?.timeSlots?.subFields,
+          start: {
+            ...dayFields.subFields?.timeSlots?.subFields?.start,
+            label: t("start"),
+          },
+          end: {
+            ...dayFields.subFields?.timeSlots?.subFields?.end,
+            label: t("end"),
+          }
+        }
       }
     }
   });
@@ -64,7 +88,9 @@ const UserAvailabilityFormModal = React.memo(function UserAvailabilityFormModal(
     ...storeFields,
     weeklySchedule: {
       ...storeFields.weeklySchedule,
-      className: "space-y-4",
+      label: t("weeklySchedule"),
+      required: false,
+      className: "space-y-10",
       subFields: {
         ...storeFields.weeklySchedule.subFields,
         monday: createTimeSlot(storeFields.weeklySchedule.subFields?.monday, 'monday'),
@@ -78,14 +104,26 @@ const UserAvailabilityFormModal = React.memo(function UserAvailabilityFormModal(
     },
     unavailablePeriods: {
       ...storeFields.unavailablePeriods,
+      label: t("unavailablePeriods"),
+      required: false,
       type: 'nestedArray' as const,
       AddButton: ({ onClick }: { onClick: () => void }) => <Button type="button" onClick={onClick}><Plus /></Button>,
       RemoveButton: ({ onClick, index }: { onClick: () => void, index: number }) => <Button type="button" onClick={() => onClick(index)}><X /></Button>,
       subFields: {
         ...storeFields.unavailablePeriods.subFields,
+        reason: {
+          ...storeFields.unavailablePeriods.subFields?.reason,
+          label: t("reason"),
+          required: false,
+        },
+        dateRange: {
+          ...storeFields.unavailablePeriods.subFields?.dateRange,
+          label: t("DateRange"),
+          required: false,
+        }
       }
     }
-  } as TFieldConfigObject<TUserAvailabilityData>), [storeFields]);
+  } as TFieldConfigObject<TUserAvailabilityData>), [storeFields, t]);
 
   const inputs = useInput<TUserAvailabilityData>({
     fields,
@@ -103,7 +141,7 @@ const UserAvailabilityFormModal = React.memo(function UserAvailabilityFormModal(
 
   // React 19: Memoized form buttons for better performance
   const formButtons = useMemo(() => (
-    <div className="flex justify-end gap-2">
+    <div className="flex justify-end gap-2 ">
       <Button
         type="button"
         variant="outline"
@@ -119,15 +157,14 @@ const UserAvailabilityFormModal = React.memo(function UserAvailabilityFormModal(
       </Button>
       <Button type="submit" disabled={false} data-component-id={componentId}>
         {false && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? "Update" : "Add"}
+        {isEditing ? buildSentence(t, "update") : buildSentence(t, "add")}
       </Button>
     </div>
-  ), [componentId, isEditing, onClose]);
+  ), [componentId, isEditing, onClose, t]);
 
   return (
     <ModalForm<TUserAvailabilityData, IMessageResponse, IUserAvailabilityFormModalExtraProps>
-      title={`${isEditing ? "Edit" : "Add"} User Availability`}
-      description={`${isEditing ? "Edit" : "Add a new"} User Availability`}
+      title={buildSentence(t, isEditing ? "edit" : "add", "userAvailability")}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}

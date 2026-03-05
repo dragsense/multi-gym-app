@@ -104,6 +104,7 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
           await this.membershipNotificationService.notifyAdminsMembershipCancelled(
             memberMembership,
             (payload.data as any)?.cancelledBy,
+            tenantId,
           );
         }
 
@@ -208,11 +209,12 @@ export class MemberMembershipEventListenerService implements OnModuleInit {
           return;
         }
 
-        // Send notifications
+        // Send notifications (business admins get member-related notifications; member gets welcome)
         await Promise.all([
           this.membershipNotificationService.notifyAdminsMembershipActivated(
             memberMembership,
             (payload.data as any)?.activatedBy || (payload.data as any)?.createdBy,
+            tenantId,
           ),
           this.membershipNotificationService.notifyMemberMembershipActivated(
             memberMembership,

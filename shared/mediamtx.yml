@@ -1,0 +1,44 @@
+# MediaMTx config for Vivast (see https://mediamtx.org/docs/usage/authentication)
+
+# Control API: backend (another container) calls this with admin/admin123
+api: true
+apiAddress: ":9997"
+
+# HLS and WebRTC (default ports)
+hlsAddress: ":8888"
+webrtcAddress: ":8889"
+
+# WebRTC connectivity (https://mediamtx.org/docs/other/webrtc-specific-features#solving-webrtc-connectivity-issues)
+# 1) Hosts the browser uses to reach this server (ICE candidates). Add LAN IP if clients on same network,
+#    or public IP / DNS if clients from internet. For local dev (browser on host, MediaMTx in Docker):
+webrtcAdditionalHosts: [localhost, 127.0.0.1]
+# 2) Docker must expose UDP (and TCP if used) on 8189 - see docker-compose ports.
+# 3) STUN for NAT traversal (optional; helps when not on same host):
+webrtcICEServers2:
+  - url: stun:stun.l.google.com:19302
+# 4) TCP fallback when UDP is blocked by firewall/NAT:
+webrtcLocalTCPAddress: ":8189"
+
+# Authentication: internal database
+# Order matters: first matching user wins.
+authInternalUsers:
+  # 1) Allow anonymous playback (HLS/WebRTC) so the browser can play without credentials.
+  #    App auth controls who can open the camera page.
+  - user: any
+    pass:
+    ips: []
+    permissions:
+      - action: publish
+        path:
+      - action: read
+        path:
+      - action: playback
+        path:
+
+  # 2) API user: backend uses this from app container (non-localhost).
+  - user: admin
+    pass: admin123
+    ips: []
+    permissions:
+      - action: api
+        path:

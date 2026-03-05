@@ -121,8 +121,8 @@ export class ResourceSeed {
     {
       name: EResource.LINK_MEMBERS,
       displayName: 'Link Members',
-      description: 'Link member management',
-    }
+      description: 'Link members management',
+    },
    
   ];
 

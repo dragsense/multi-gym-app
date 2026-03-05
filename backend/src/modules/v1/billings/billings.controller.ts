@@ -67,7 +67,7 @@ export class BillingsController {
     const isAdmin =
       currentUser.level === (EUserLevels.PLATFORM_OWNER as number) || currentUser.level === (EUserLevels.ADMIN as number);
 
-    return this.billingsService.get(query, BillingListDto, {
+    const result = await this.billingsService.get(query, BillingListDto, {
       beforeQuery: (query: SelectQueryBuilder<Billing>) => {
         if (!isAdmin) {
           query.leftJoin('entity.recipientUser', '_recipientUser').andWhere(
@@ -81,6 +81,13 @@ export class BillingsController {
         }
       },
     });
+
+    for (const b of result.data) {
+      const { status } = await this.billingsService.getBillingStatus(b.id);
+      (b as Billing & { status?: string }).status = status ?? undefined;
+    }
+
+    return result;
   }
 
   @ApiOperation({ summary: 'Get billings for a specific user' })

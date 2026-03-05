@@ -5,6 +5,7 @@ import { fetchOrders, fetchOrder } from "@/services/order.api";
 import { PageInnerLayout } from "@/layouts";
 import { OrderListDto } from "@shared/dtos";
 import type { IOrderListExtraProps } from "@/components/admin/orders";
+import { OrderStatusUpdate } from "@/page-components";
 
 import { useAuthUser } from "@/hooks/use-auth-user";
 
@@ -25,6 +26,12 @@ export default function OrdersPage() {
           _select: "buyerUser.id,buyerUser.email, buyerUser.firstName, buyerUser.lastName",
         }}
         SingleComponent={OrderView}
+        actionComponents={[
+          {
+            action: "updateStatus",
+            comp: OrderStatusUpdate,
+          },
+        ]}
       />
       <ListHandler<IOrder, OrderListDto, IOrderListExtraProps, IOrder, unknown>
         queryFn={fetchOrders}

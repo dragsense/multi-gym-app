@@ -88,13 +88,19 @@ export class AuthController {
   async login(@Body() loginDto: LoginDto, @Req() req: any, @Res() res: Response) {
     const { email, password, deviceId, business } = loginDto;
 
-    const tenantId = business?.tenantId || null;
+
+    let tenantId = business?.tenantId || null;
+
+    if (!tenantId && process.env.APP_MODE === APP_MODE.MULTI_DOMAIN_TENANT) {
+      tenantId = (req as any).tenantId || RequestContext.get<string>('tenantId') || null;
+    }
 
     RequestContext.set('tenantId', tenantId);
 
-    let { user, token } = await this.authService.validateUser(
+    let { user, token, } = await this.authService.validateUser(
       email,
       password,
+      tenantId
     );
 
     if (tenantId) {
@@ -273,9 +279,12 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User found', type: User })
   @ApiResponse({ status: 404, description: 'User not found' })
   async findMe(@AuthUser() currentUser: User) {
+
     const user = await this.baseUsersService.getSingle(currentUser.id, {
       _relations: ['roles.role', 'permissions.permission', 'privileges.permissions.permission'],
       _select: ['id', 'email', 'firstName', 'lastName', 'gender', 'dateOfBirth', 'level', 'roles.id', 'roles.role.name', 'permissions.id', 'permissions.permission.name', 'privileges.id', 'privileges.permissions.id', 'privileges.permissions.permission.name'],
+    }, undefined, undefined, {
+      skipSuperAdminOwnDataOnly: true
     });
     if (!user) throw new NotFoundException('User not found');
 
@@ -522,7 +531,7 @@ export class AuthController {
 
     return res
       .status(HttpStatus.OK)
-      .json({ accessToken, message: 'Logged in successfully' });
+      .json({ accessToken, refreshToken, message: 'Logged in successfully' });
   }
 
   @ApiOperation({

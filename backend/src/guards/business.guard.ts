@@ -41,10 +41,13 @@ export class BusinessGuard implements CanActivate {
 
         const request = context.switchToHttp().getRequest();
         const user = request.user;
-    
+
         if (user.level <= EUserLevels.PLATFORM_OWNER) {
-          return true;
+            return true;
         }
+
+
+
 
         const businessId =
             (request as any).businessId ||
@@ -57,6 +60,14 @@ export class BusinessGuard implements CanActivate {
                 businessSubscription = await this.businessSubscriptionService.getUserBusinessSubscriptionStatus(user.id);
             } else {
 
+                const tenantId = (request as any).tenantId || RequestContext.get<string>('tenantId');
+
+                if (tenantId && user.tenantId !== tenantId) {
+                    throw new BadRequestException('Tenant ID mismatch');
+                } else {
+                    RequestContext.set('tenantId', user.tenantId);
+                }
+
                 if (!businessId) {
                     throw new BadRequestException(
                         'Business ID is required for this operation. Please provide a business context.',
@@ -65,14 +76,13 @@ export class BusinessGuard implements CanActivate {
 
                 businessSubscription = await this.businessSubscriptionService.getBusinessSubscriptionStatusByBusinessId(businessId);
             }
-            
             if (businessSubscription?.status === ESubscriptionStatus.ACTIVE) {
                 return true;
             } else {
                 throw new ForbiddenException('User must have an active business subscription to access this resource');
             }
         } catch (error) {
-            throw new ForbiddenException('User must have an active business subscription to access this resource');
+            throw new BadRequestException(error.message);
         }
     }
 }

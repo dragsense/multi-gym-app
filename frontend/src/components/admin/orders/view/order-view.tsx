@@ -5,7 +5,7 @@ import { AppDialog } from "@/components/layout-ui/app-dialog";
 import { AppCard } from "@/components/layout-ui/app-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, Calendar, User, Pencil, Trash2, CheckCircle2 } from "lucide-react";
+import { DollarSign, Calendar, User, CheckCircle2 } from "lucide-react";
 import type { IOrder } from "@shared/interfaces/order.interface";
 import type { TSingleHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
@@ -19,7 +19,7 @@ import { EUserLevels } from "@shared/enums/user.enum";
 export type TOrderViewExtraProps = Record<string, unknown>;
 
 interface IOrderViewProps
-  extends THandlerComponentProps<TSingleHandlerStore<IOrder, TOrderViewExtraProps>> {}
+  extends THandlerComponentProps<TSingleHandlerStore<IOrder, TOrderViewExtraProps>> { }
 
 export default function OrderView({ storeKey, store }: IOrderViewProps) {
   const componentId = useId();
@@ -49,14 +49,6 @@ export default function OrderView({ storeKey, store }: IOrderViewProps) {
     startTransition(() => reset());
   };
 
-  const onEdit = () => {
-    startTransition(() => setAction("createOrUpdate", order.id));
-  };
-
-  const onDelete = () => {
-    startTransition(() => setAction("delete", order.id));
-  };
-
   const onUpdateStatus = () => {
     startTransition(() => setAction("updateStatus", order.id));
   };
@@ -70,8 +62,6 @@ export default function OrderView({ storeKey, store }: IOrderViewProps) {
         >
           <OrderDetailContent
             order={order}
-            onEdit={onEdit}
-            onDelete={onDelete}
             onUpdateStatus={onUpdateStatus}
           />
         </AppDialog>
@@ -82,12 +72,10 @@ export default function OrderView({ storeKey, store }: IOrderViewProps) {
 
 interface IOrderDetailContentProps {
   order: IOrder;
-  onEdit: () => void;
-  onDelete: () => void;
   onUpdateStatus: () => void;
 }
 
-function OrderDetailContent({ order, onEdit, onDelete, onUpdateStatus }: IOrderDetailContentProps) {
+function OrderDetailContent({ order, onUpdateStatus }: IOrderDetailContentProps) {
   const componentId = useId();
   const { t } = useI18n();
   const { settings } = useUserSettings();
@@ -120,14 +108,6 @@ function OrderDetailContent({ order, onEdit, onDelete, onUpdateStatus }: IOrderD
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   {buildSentence(t, "update", "status")}
-                </Button>
-                <Button variant="outline" size="sm" onClick={onEdit} className="gap-2">
-                  <Pencil className="w-4 h-4" />
-                  {buildSentence(t, "edit")}
-                </Button>
-                <Button variant="outline" size="sm" onClick={onDelete} className="gap-2">
-                  <Trash2 className="w-4 h-4" />
-                  {buildSentence(t, "delete")}
                 </Button>
               </div>
             )}

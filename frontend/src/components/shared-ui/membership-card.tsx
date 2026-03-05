@@ -1,12 +1,21 @@
 // React
-import { useId, useMemo } from "react";
+import { useId, useMemo, useState } from "react";
 
 // Types
 import type { IMembership } from "@shared/interfaces";
 
 // Components
 import { AppCard } from "@/components/layout-ui/app-card";
-import { Check, Clock, Calendar, Tag, DollarSign, AlertCircle, DoorOpen, MapPin } from "lucide-react";
+import {
+  Check,
+  Clock,
+  Calendar,
+  Tag,
+  DollarSign,
+  AlertCircle,
+  DoorOpen,
+  MapPin,
+} from "lucide-react";
 
 // Utils
 import { formatCurrency } from "@/lib/utils";
@@ -21,16 +30,21 @@ interface IMembershipCardProps {
 
 const formatBillingFrequency = (freq: string | undefined) => {
   if (!freq) return "";
-  return freq.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
+  return freq
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
 const formatTimeRange = (accessHours: any[]) => {
   if (!accessHours || accessHours.length === 0) return null;
-  const times = accessHours.map((hour: any) => {
-    const start = hour.startTime || hour.start || "";
-    const end = hour.endTime || hour.end || "";
-    return start && end ? `${start} - ${end}` : null;
-  }).filter(Boolean);
+  const times = accessHours
+    .map((hour: any) => {
+      const start = hour.startTime || hour.start || "";
+      const end = hour.endTime || hour.end || "";
+      return start && end ? `${start} - ${end}` : null;
+    })
+    .filter(Boolean);
   return times.length > 0 ? times.join(", ") : null;
 };
 
@@ -42,6 +56,7 @@ export function MembershipCard({
   showSelection = true,
 }: IMembershipCardProps) {
   const componentId = useId();
+  const [isExpanded, setIsExpanded] = useState(false);
   const basePrice = Number(membership.calculatedPrice) || 0;
   const signupFee = Number(membership.signupFee) || 0;
   const annualFee = Number(membership.annualFee) || 0;
@@ -68,7 +83,8 @@ export function MembershipCard({
     return undefined;
   }, [membership.color]);
 
-  const borderColor = (isSelected || isActive) && cardColor ? cardColor : undefined;
+  const borderColor =
+    (isSelected || isActive) && cardColor ? cardColor : undefined;
   const accentColor = cardColor || undefined;
 
   return (
@@ -83,10 +99,7 @@ export function MembershipCard({
     >
       {/* Top Colored Bar */}
       {cardColor && (
-        <div
-          className="h-2 w-full"
-          style={{ backgroundColor: cardColor }}
-        />
+        <div className="h-2 w-full" style={{ backgroundColor: cardColor }} />
       )}
       <AppCard
         className="h-full rounded-lg"
@@ -101,9 +114,7 @@ export function MembershipCard({
                     style={{ backgroundColor: cardColor }}
                   />
                 )}
-                <h3 className="text-xl font-semibold">
-                  {membership.title}
-                </h3>
+                <h3 className="text-xl font-semibold">{membership.title}</h3>
                 {isActive && (
                   <span className="text-xs font-semibold px-2 py-1 rounded-full text-white bg-green-500">
                     Active
@@ -111,9 +122,25 @@ export function MembershipCard({
                 )}
               </div>
               {membership.description && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  {membership.description}
-                </p>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  <p>
+                    {isExpanded || membership.description.length <= 150
+                      ? membership.description
+                      : `${membership.description.substring(0, 150)}...`}
+                  </p>
+                  {membership.description.length > 150 && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsExpanded(!isExpanded);
+                      }}
+                      className="text-primary hover:underline font-medium text-xs mt-1 transition-all"
+                    >
+                      {isExpanded ? "Show less" : "Show more"}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
             {showSelection && (isSelected || isActive) && (
@@ -187,7 +214,9 @@ export function MembershipCard({
                     <Calendar className="h-3.5 w-3.5" />
                     Annual Fee:
                   </span>
-                  <span className="font-semibold">{formatCurrency(annualFee)}</span>
+                  <span className="font-semibold">
+                    {formatCurrency(annualFee)}
+                  </span>
                 </div>
               )}
               {cancellationFee > 0 && (
@@ -196,7 +225,9 @@ export function MembershipCard({
                     <AlertCircle className="h-3.5 w-3.5" />
                     Cancellation Fee:
                   </span>
-                  <span className="font-semibold">{formatCurrency(cancellationFee)}</span>
+                  <span className="font-semibold">
+                    {formatCurrency(cancellationFee)}
+                  </span>
                 </div>
               )}
             </div>
@@ -223,15 +254,7 @@ export function MembershipCard({
           )}
 
           {/* Doors / Location access */}
-          {(membership.doors === undefined || membership.doors === null || (Array.isArray(membership.doors) && membership.doors.length === 0)) ? (
-            <div className="pt-3 border-t">
-              <div className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <DoorOpen className="h-4 w-4" />
-                Access:
-              </div>
-              <div className="text-sm text-muted-foreground">All doors / all locations</div>
-            </div>
-          ) : membership.doors && membership.doors.length > 0 && (
+          {membership.doors && membership.doors.length > 0 && (
             <div className="pt-3 border-t">
               <div className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <DoorOpen className="h-4 w-4" />
@@ -239,12 +262,19 @@ export function MembershipCard({
               </div>
               <ul className="text-sm space-y-1.5">
                 {membership.doors.map((door: any, idx: number) => (
-                  <li key={door.id || idx} className="flex items-center gap-2 text-muted-foreground">
+                  <li
+                    key={door.id || idx}
+                    className="flex items-center gap-2 text-muted-foreground"
+                  >
                     <MapPin className="h-3.5 w-3.5 shrink-0" />
                     {door.name || door.id}
                     {door.location && (
                       <span className="text-xs">
-                        ({typeof door.location === "object" ? (door.location.name || door.location.address) : door.location})
+                        (
+                        {typeof door.location === "object"
+                          ? door.location.name || door.location.address
+                          : door.location}
+                        )
                       </span>
                     )}
                   </li>
@@ -267,43 +297,53 @@ export function MembershipCard({
           )}
 
           {/* Access Features */}
-          {membership.accessFeatures && membership.accessFeatures.length > 0 && (
-            <div className="pt-3 border-t">
-              <div className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <span className="w-1 h-4 rounded-full bg-primary" />
-                What's Included:
-              </div>
-              <ul className="text-sm space-y-2.5">
-                {membership.accessFeatures.map((feature: any, idx: number) => (
-                  <li key={idx} className="flex items-start gap-3 bg-muted/20 rounded-md p-2.5">
-                    <Check
-                      className="h-4 w-4 mt-0.5 flex-shrink-0 rounded-full text-primary"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium">{feature.name || feature}</div>
-                      {feature.description && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {feature.description}
+          {membership.accessFeatures &&
+            membership.accessFeatures.length > 0 && (
+              <div className="pt-3 border-t">
+                <div className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <span className="w-1 h-4 rounded-full bg-primary" />
+                  What's Included:
+                </div>
+                <ul className="text-sm space-y-2.5">
+                  {membership.accessFeatures.map(
+                    (feature: any, idx: number) => (
+                      <li
+                        key={idx}
+                        className="flex items-start gap-3 bg-muted/20 rounded-md p-2.5"
+                      >
+                        <Check className="h-4 w-4 mt-0.5 flex-shrink-0 rounded-full text-primary" />
+                        <div className="flex-1">
+                          <div className="font-medium">
+                            {feature.name || feature}
+                          </div>
+                          {feature.description && (
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {feature.description}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                      </li>
+                    ),
+                  )}
+                </ul>
+              </div>
+            )}
 
           {/* Payment Preference */}
-          {membership.paymentPreference && Array.isArray(membership.paymentPreference) && membership.paymentPreference.length > 0 && (
-            <div className="pt-3 border-t">
-              <div className="text-xs text-muted-foreground bg-muted/20 rounded-md px-2 py-1.5 inline-block">
-                Payment Methods: {membership.paymentPreference.map((p: string) => p.replace(/_/g, " ")).join(", ")}
+          {membership.paymentPreference &&
+            Array.isArray(membership.paymentPreference) &&
+            membership.paymentPreference.length > 0 && (
+              <div className="pt-3 border-t">
+                <div className="text-xs text-muted-foreground bg-muted/20 rounded-md px-2 py-1.5 inline-block">
+                  Payment Methods:{" "}
+                  {membership.paymentPreference
+                    .map((p: string) => p.replace(/_/g, " "))
+                    .join(", ")}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
       </AppCard>
     </div>
   );
 }
-

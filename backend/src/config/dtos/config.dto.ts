@@ -341,6 +341,14 @@ export class EnvironmentVariables {
 
   @IsOptional()
   @IsNumber()
+  MEDIAMTX_PUBLIC_HLS_PORT?: number;
+
+  @IsOptional()
+  @IsNumber()
+  MEDIAMTX_PUBLIC_WEBRTC_PORT?: number;
+
+  @IsOptional()
+  @IsNumber()
   MEDIAMTX_API_PORT?: number;
 
   @IsOptional()
@@ -370,4 +378,48 @@ export class EnvironmentVariables {
   @IsOptional()
   @IsNumber()
   MEDIAMTX_HLS_PORT?: number;
+
+  // AI Processors Configuration
+  @IsOptional()
+  @IsString()
+  AI_DEFAULT_MODEL?: string;
+  @IsOptional()
+  @IsString()
+  OPENAI_API_KEY?: string;
+  @IsOptional()
+  @IsString()
+  ANTHROPIC_API_KEY?: string;
+  @IsOptional()
+  @IsString()
+  AWS_ACCESS_KEY_ID?: string;
+  @IsOptional()
+  @IsString()
+  AWS_SECRET_ACCESS_KEY?: string;
+  @IsOptional()
+  @IsString()
+  GOOGLE_AI_API_KEY?: string;
+  @IsOptional()
+  @IsString()
+  AZURE_OPENAI_API_KEY?: string;
+
+  // MQTT Configuration (NestJS Microservice)
+  @IsOptional()
+  @IsString()
+  MQTT_URL?: string;
+
+  @IsOptional()
+  @IsString()
+  MQTT_CLIENT_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  MQTT_PUBLISHER_CLIENT_ID?: string;
+
+  @IsOptional()
+  @IsString()
+  MQTT_TOPICS?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  MQTT_ENABLED?: boolean;
 }

@@ -1,5 +1,5 @@
 // React & Hooks
-import {  useId, useMemo, useTransition } from "react";
+import { useId, useMemo, useTransition } from "react";
 
 // External libraries
 import { XIcon } from "lucide-react";
@@ -7,13 +7,14 @@ import { XIcon } from "lucide-react";
 // UI Components
 import { Button } from "@/components/ui/button";
 
-
 // Custom UI Components
 import { type IReferralLink } from "@shared/interfaces/referral-link.interface";
 import { type TListHandlerStore } from "@/stores/list/list-handler-store";
 import { useInput } from "@/hooks/use-input";
 import { type TFieldConfigObject } from "@/@types/form/field-config.type";
 import type { TReferralLinkListData } from "@shared/types/referral-link.type";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 
 interface IReferralLinkFiltersProps {
   store: TListHandlerStore<IReferralLink, TReferralLinkListData, any>;
@@ -25,6 +26,7 @@ export function ReferralLinkFilters({
   // React 19: Essential IDs and transitions
   const componentId = useId();
   const [, startTransition] = useTransition();
+  const { t } = useI18n();
 
   const filteredFields = store.getState().filteredFields;
   const filters = store(state => state.filters);
@@ -49,7 +51,7 @@ export function ReferralLinkFilters({
       {hasActiveFilters && (
         <Button variant="outline" onClick={handleClearFilters} className="hidden lg:flex">
           <XIcon className="h-4 w-4 mr-2" />
-          Clear Filters
+          {buildSentence(t, "clear", "filters")}
         </Button>
       )}
     </div>

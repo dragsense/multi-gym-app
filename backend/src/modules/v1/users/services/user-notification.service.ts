@@ -81,12 +81,23 @@ export class UserNotificationService {
   }
 
   /**
-   * Send notification to all admins when a user is created
+   * Send notification to admins when a user is created.
+   *
+   * - When called without tenantId/isMemberContext: behaves as a global "new user created"
+   *   notification to SUPER_ADMIN + ADMIN.
+   * - When called with tenantId and isMemberContext=true: behaves like
+   *   "New Member Registered" to tenant-scoped business ADMINs only.
    */
-  async notifyAdminsUserCreated(user: User, createdBy?: string): Promise<void> {
+  async notifyAdminsUserCreated(
+    user: User,
+    createdBy?: string,
+    tenantId?: string,
+    isMemberContext = false,
+  ): Promise<void> {
     try {
-      // Find all admin users (PLATFORM_OWNER = 0, SUPER_ADMIN = 1, ADMIN = 2)
-      const userRepo = this.entityRouterService.getRepository<User>(User);
+ // Find all admin users (PLATFORM_OWNER = 0, SUPER_ADMIN = 1, ADMIN = 2)
+ const userRepo = this.entityRouterService.getRepository<User>(User);
+
       const adminUsers = await userRepo.find({
         where: {
           id: Not(user.id),
@@ -100,6 +111,8 @@ export class UserNotificationService {
         this.logger.warn('No admin users found to notify');
         return;
       }
+
+
 
       // Send notification to each admin
       const notificationPromises = adminUsers.map((admin) =>
@@ -250,16 +263,17 @@ export class UserNotificationService {
   }
 
   /**
-   * Send notifications to both user and admins when user is created
-   * Also notifies Platform Owner if the new user is a Super Admin
+   * Send notifications when user is created.
+   * - New user always receives welcome notification.
+   * - Platform owner receives "New Business Onboarded" only when the new user is a Super Admin (new business).
+   * - "New User Created" is NOT sent to all admins/business owners to avoid spamming every admin on each signup.
    */
   async handleUserCreated(user: User, createdBy?: string): Promise<void> {
     const notifications: Promise<void>[] = [
       this.notifyUserCreated(user, createdBy),
-      this.notifyAdminsUserCreated(user, createdBy),
     ];
 
-    // If the new user is a Super Admin, notify Platform Owners
+    // Only notify platform owner when a new business (Super Admin) is onboarded
     if (user.level === EUserLevels.SUPER_ADMIN) {
       notifications.push(this.notifyPlatformOwnerSuperAdminCreated(user, createdBy));
     }
@@ -271,10 +285,9 @@ export class UserNotificationService {
    * Send notifications to both user and admins when user is updated
    */
   async handleUserUpdated(user: User, updatedBy?: string): Promise<void> {
-    await Promise.all([
-      this.notifyUserUpdated(user, updatedBy),
-      this.notifyAdminsUserUpdated(user, updatedBy),
-    ]);
+    // Only notify the affected user about their own account update.
+    // Admin-wide notifications for every update are noisy and can overwhelm inboxes.
+    await this.notifyUserUpdated(user, updatedBy);
   }
 
   /**
@@ -365,10 +378,9 @@ export class UserNotificationService {
    * Send notifications to both user and admins when password is reset
    */
   async handlePasswordReset(user: User, resetBy?: string): Promise<void> {
-    await Promise.all([
-      this.notifyUserPasswordReset(user, resetBy),
-      this.notifyAdminsPasswordReset(user, resetBy),
-    ]);
+    // Only notify the user whose password was reset.
+    // Admin-wide notifications for every password reset are disabled to reduce noise.
+    await this.notifyUserPasswordReset(user, resetBy);
   }
 
   /**

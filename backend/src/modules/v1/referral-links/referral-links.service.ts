@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
@@ -26,8 +26,9 @@ export class ReferralLinksService extends CrudService<ReferralLink> {
     // Generate unique referral code
     const referralCode = await this.generateUniqueReferralCode();
 
-    // Generate referral link URL
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    // Generate referral link URL using frontend app URL from backend env
+    const baseUrl =
+      process.env.APP_URL ||'http://localhost:5173';
     const linkUrl = `${baseUrl}/signup?ref=${referralCode}`;
 
     // Create referral link
@@ -65,21 +66,19 @@ export class ReferralLinksService extends CrudService<ReferralLink> {
     let referralCode: string = '';
     let isUnique = false;
 
+    const repository = this.getRepository();
+
     while (!isUnique) {
       // Generate a random 8-character code
       referralCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
-      try {
-        // Check if code already exists
-        await this.getSingle({
-          referralCode,
-        });
-      } catch (error: unknown) {
-        if (error instanceof NotFoundException) isUnique = true;
-        else
-          throw new Error('Failed to generate unique referral code', {
-            cause: error,
-          });
+      // Check if code already exists without throwing/logging errors
+      const existing = await repository.findOne({
+        where: { referralCode },
+      });
+
+      if (!existing) {
+        isUnique = true;
       }
     }
 

@@ -25,7 +25,7 @@ import type { TUserAvailabilityData } from '@shared/types';
 import { UserAvailabilityFormModal, type IUserAvailabilityFormModalExtraProps } from '@/components/admin';
 import type { IMessageResponse } from '@shared/interfaces';
 
-
+export type TUserAvailabilityExtraProps = { deletePeriodIndex?: number };
 
 interface IUserAvailabilityFormProps extends THandlerComponentProps<TSingleHandlerStore<IUserAvailability, TUserAvailabilityExtraProps>> {
 }

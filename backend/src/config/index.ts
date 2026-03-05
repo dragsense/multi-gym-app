@@ -12,4 +12,6 @@ export { default as platformOwnerConfig } from './platform-owner-user.config';
 export { default as paymentProcessorsConfig } from './payment-processors.config';
 export { default as healthConfig } from './health.config';
 export { default as twilioConfig } from './twilio.config';
-export { default as srsConfig } from './srs.config';
+export { default as mqttConfig, type MqttConfig } from './mqtt.config';
+export { default as aiProcessorsConfig, type AIProcessorsConfig } from './ai-processors.config';
+export { default as mediamtxConfig } from './mediamtx.config';

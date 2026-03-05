@@ -113,8 +113,9 @@ const CARD_ELEMENT_STYLE_DARK = {
     fontSize: "16px",
     color: "#ffffff",
     "::placeholder": { color: "rgba(255, 255, 255, 0.6)" },
+    iconColor: "#ffffff",
   },
-  invalid: { color: "#f87171" },
+  invalid: { color: "#f87171", iconColor: "#f87171" },
 } as const;
 
 function StripeCardForm({
@@ -143,8 +144,8 @@ function StripeCardForm({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="p-4 border rounded-md">
-        <CardElement options={{ style: cardStyle }} />
+      <div className="p-4 border rounded-md bg-background">
+        <CardElement key={isDark ? "dark" : "light"} options={{ style: cardStyle }} />
       </div>
       {showSaveOptions && (
         <div className="space-y-3 pt-2">
@@ -358,12 +359,24 @@ export function StripePaymentModal({
     defaultValues: { saveAsDefault: false, saveForFutureUse: false },
     mode: "onChange",
   });
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     if (!open) formMethods.reset({ saveAsDefault: false, saveForFutureUse: false });
   }, [open, formMethods]);
 
   const { stripePromise, isLoading: isLoadingConnect } = useStripeConnect();
+  const isDark = resolvedTheme === "dark";
+  const elementsAppearance = isDark
+    ? {
+        theme: "night" as const,
+        variables: {
+          colorText: "#ffffff",
+          colorTextPlaceholder: "rgba(255, 255, 255, 0.6)",
+          colorBackground: "transparent",
+        },
+      }
+    : { theme: "stripe" as const };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -373,7 +386,7 @@ export function StripePaymentModal({
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : stripePromise ? (
-          <Elements stripe={stripePromise} options={{ appearance: { theme: "stripe" } }}>
+          <Elements stripe={stripePromise} options={{ appearance: elementsAppearance }}>
             <StripePaymentModalContent
               cards={cards}
               onPay={onPay}

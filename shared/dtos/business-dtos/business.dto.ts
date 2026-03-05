@@ -52,6 +52,23 @@ export class CreateBusinessDto {
     @IsUUID()
     @FieldType("custom", false)
     paymentProcessorId?: string | null;
+
+    @ApiPropertyOptional({
+        example: "550e8400-e29b-41d4-a716-446655440003",
+        description: "AI processor ID (OpenAI, AWS Bedrock, etc.)",
+    })
+    @IsOptional()
+    @IsUUID()
+    @FieldType("custom", false)
+    aiProcessorId?: string | null;
+
+    @ApiPropertyOptional({
+        example: "gpt-4o-mini",
+        description: "Default AI model when not specified",
+    })
+    @IsOptional()
+    @IsString()
+    defaultAiModel?: string | null;
 }
 
 export class CreateBusinessWithUserDto {
@@ -162,6 +179,22 @@ export class BusinessDto {
     @IsOptional()
     @IsUUID()
     paymentProcessorId?: string | null;
+
+    @ApiPropertyOptional({
+        example: "550e8400-e29b-41d4-a716-446655440003",
+        description: "AI processor ID (OpenAI, AWS Bedrock, etc.)",
+    })
+    @IsOptional()
+    @IsUUID()
+    aiProcessorId?: string | null;
+
+    @ApiPropertyOptional({
+        example: "gpt-4o-mini",
+        description: "Default AI model",
+    })
+    @IsOptional()
+    @IsString()
+    defaultAiModel?: string | null;
 
     @IsOptional()
     createdAt?: Date;

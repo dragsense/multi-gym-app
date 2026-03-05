@@ -1,8 +1,11 @@
 // External Libraries
 import React, { type ReactNode, useMemo, useId, useTransition } from "react";
 import { Loader2 } from "lucide-react";
+
 // Custom Hooks
 import { type FormInputs, useInput } from "@/hooks/use-input";
+import { useI18n } from "@/hooks/use-i18n";
+import { buildSentence } from "@/locales/translations";
 
 // Types
 import type { TFormHandlerStore } from "@/stores";
@@ -30,9 +33,10 @@ const ReferralLinkFormModal = React.memo(function ReferralLinkFormModal({
   // React 19: Essential IDs and transitions
   const componentId = useId();
   const [, startTransition] = useTransition();
+  const { t } = useI18n();
 
   if (!store) {
-    return `Form store "${storeKey}" not found. Did you forget to register it?`;
+    return `${buildSentence(t, 'form', 'store')} "${storeKey}" ${buildSentence(t, 'not', 'found')}. ${buildSentence(t, 'did', 'you', 'forget', 'to', 'register', 'it')}?`;
   }
 
   const isEditing = store((state) => state.isEditing)
@@ -41,13 +45,41 @@ const ReferralLinkFormModal = React.memo(function ReferralLinkFormModal({
   const onClose = store((state) => state.extra.onClose)
 
   // React 19: Memoized fields for better performance
-  const storeFields = store((state) => state.fields)
+  const storeFields = store((state) => state.fields);
 
-
-  // React 19: Memoized fields for better performance
+  // React 19: Memoized fields for better performance and translated labels
   const fields = useMemo(() => ({
     ...storeFields,
-  } as TFieldConfigObject<TReferralLinkData>), [storeFields]);
+    title: {
+      ...storeFields.title,
+      label: buildSentence(t, "title"),
+      placeholder: buildSentence(t, "enterTitle"),
+    },
+    type: {
+      ...storeFields.type,
+      label: buildSentence(t, "type"),
+    },
+    description: {
+      ...storeFields.description,
+      label: buildSentence(t, "description"),
+      placeholder: buildSentence(t, "enterDescription"),
+    },
+    commissionPercentage: {
+      ...storeFields.commissionPercentage,
+      label: buildSentence(t, "commissionPercentage"),
+      placeholder: buildSentence(t, "enterCommissionPercentage"),
+    },
+    expiresAt: {
+      ...storeFields.expiresAt,
+      label: buildSentence(t, "expiresAt"),
+      placeholder: buildSentence(t, "enterExpiresAt"),
+    },
+    maxUses: {
+      ...storeFields.maxUses,
+      label: buildSentence(t, "maxUses"),
+      placeholder: buildSentence(t, "enterMaxUses"),
+    },
+  } as TFieldConfigObject<TReferralLinkData>), [storeFields, t]);
 
   const inputs = useInput<TReferralLinkData>({
     fields,
@@ -77,19 +109,19 @@ const ReferralLinkFormModal = React.memo(function ReferralLinkFormModal({
         }}
         data-component-id={componentId}
       >
-        Cancel
+        {buildSentence(t, 'cancel')}
       </Button>
       <Button type="submit" disabled={false} data-component-id={componentId}>
         {false && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? "Update" : "Add"}
+        {isEditing ? buildSentence(t, 'update') : buildSentence(t, 'add')}
       </Button>
     </div>
-  ), [componentId, isEditing, onClose]);
+  ), [componentId, isEditing, onClose, t, startTransition]);
 
   return <>
     <ModalForm<TReferralLinkData, IReferralLinkResponse, IReferralLinkFormModalExtraProps>
-      title={`${isEditing ? "Edit" : "Add"} Referral Link`}
-      description={`${isEditing ? "Update" : "Create"} a new referral link`}
+      title={buildSentence(t, isEditing ? 'edit' : 'add', 'referral', 'link')}
+      description={buildSentence(t, isEditing ? 'update' : 'add', 'referral', 'link')}
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}

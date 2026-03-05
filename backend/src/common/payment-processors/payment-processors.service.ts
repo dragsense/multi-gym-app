@@ -25,6 +25,8 @@ export class PaymentProcessorsService extends CrudService<PaymentProcessor> {
     const crudOptions: CrudOptions = {
       restrictedFields: [],
       searchableFields: ['type', 'description'],
+      superAdminOwnDataOnly: false
+
     };
     super(paymentProcessorRepository, moduleRef, crudOptions);
   }

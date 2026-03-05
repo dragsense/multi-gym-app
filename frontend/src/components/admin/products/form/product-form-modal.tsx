@@ -8,13 +8,22 @@ import { ModalForm } from "@/components/form-ui/modal-form";
 import { useInput } from "@/hooks/use-input";
 import type { TFormHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
-import type { TCustomInputWrapper, TFieldConfigObject } from "@/@types/form/field-config.type";
+import type {
+  TCustomInputWrapper,
+  TFieldConfigObject,
+} from "@/@types/form/field-config.type";
 import type { IMessageResponse } from "@shared/interfaces/api/response.interface";
-import type { TProductData, TUpdateProductData } from "@shared/types/products/product.type";
+import type {
+  TProductData,
+  TUpdateProductData,
+} from "@shared/types/products/product.type";
 import MultiFileUpload from "@/components/shared-ui/multi-file-upload";
 import { useSearchableProductTypes } from "@/hooks/use-searchable";
 import { SearchableInputWrapper } from "@/components/shared-ui/searchable-input-wrapper";
-import { VariantsMatrix, type VariantRow } from "@/components/admin/products/variants";
+import {
+  VariantsMatrix,
+  type VariantRow,
+} from "@/components/admin/products/variants";
 import type { IProductType } from "@shared/interfaces";
 import { FormErrors } from "@/components/shared-ui/form-errors";
 
@@ -23,11 +32,22 @@ export interface IProductFormModalExtraProps {
   onClose: () => void;
 }
 
-interface IProductFormModalProps
-  extends THandlerComponentProps<TFormHandlerStore<TProductData | TUpdateProductData, IMessageResponse, IProductFormModalExtraProps>> { }
+interface IProductFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<
+    TProductData | TUpdateProductData,
+    IMessageResponse,
+    IProductFormModalExtraProps
+  >
+> {}
 
 const DefaultImagesInput = React.memo(
-  ({ value, onChange }: { value?: File[]; onChange: (files: File[]) => void }) => (
+  ({
+    value,
+    onChange,
+  }: {
+    value?: File[];
+    onChange: (files: File[]) => void;
+  }) => (
     <MultiFileUpload
       value={value ?? []}
       onChange={onChange}
@@ -35,7 +55,7 @@ const DefaultImagesInput = React.memo(
       maxSizeInMB={10}
       acceptedTypes={["image/jpeg", "image/jpg", "image/png", "image/webp"]}
     />
-  )
+  ),
 );
 
 // Custom components - must be defined before early return
@@ -59,7 +79,10 @@ const ProductTypeSelect = React.memo((props: TCustomInputWrapper) => {
   );
 });
 
-export default function ProductFormModal({ storeKey, store }: IProductFormModalProps) {
+export default function ProductFormModal({
+  storeKey,
+  store,
+}: IProductFormModalProps) {
   const componentId = useId();
   const [, startTransition] = useTransition();
   const { t } = useI18n();
@@ -67,7 +90,8 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
   if (!store) {
     return (
       <div>
-        {buildSentence(t, "form", "store")} "{storeKey}" {buildSentence(t, "not", "found")}.
+        {buildSentence(t, "form", "store")} "{storeKey}"{" "}
+        {buildSentence(t, "not", "found")}.
       </div>
     );
   }
@@ -78,9 +102,10 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
   const isSubmitting = store((s) => s.isSubmitting);
   const isEditing = store((s) => s.isEditing);
 
-
   const memoizedFields = useMemo(() => {
-    const storeFields = fields as TFieldConfigObject<TProductData | TUpdateProductData>;
+    const storeFields = fields as TFieldConfigObject<
+      TProductData | TUpdateProductData
+    >;
     return {
       ...storeFields,
       defaultImages: {
@@ -88,22 +113,44 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
         label: t("defaultImages"),
         placeholder: t("defaultImages"),
         type: "custom" as const,
-        Component: ({ value, onChange }: { value?: File[]; onChange: (v: File[]) => void }) => (
-          <DefaultImagesInput value={value} onChange={onChange} />
-        ),
+        Component: ({
+          value,
+          onChange,
+        }: {
+          value?: File[];
+          onChange: (v: File[]) => void;
+        }) => <DefaultImagesInput value={value} onChange={onChange} />,
       },
-      name: { ...storeFields.name, label: t("name"), placeholder: t("productName") },
+      name: {
+        ...storeFields.name,
+        label: t("name"),
+        placeholder: t("productName"),
+      },
       productType: {
-        ...storeFields.productType, label: t("productType"), placeholder: t("selectProductType"), type: "custom" as const, Component: ({ value, onChange }: { value?: IProductType; onChange: (v: IProductType) => void }) => (
-          <ProductTypeSelect value={value} onChange={onChange} />
-        )
+        ...storeFields.productType,
+        label: t("productType"),
+        placeholder: t("selectProductType"),
+        type: "custom" as const,
+        Component: ({
+          value,
+          onChange,
+        }: {
+          value?: IProductType;
+          onChange: (v: IProductType) => void;
+        }) => <ProductTypeSelect value={value} onChange={onChange} />,
       },
       variants: {
         ...storeFields.variants,
         label: t("variants"),
         placeholder: t("variants"),
         type: "custom" as const,
-        Component: ({ value, onChange }: { value?: VariantRow[]; onChange: (v: VariantRow[]) => void }) => (
+        Component: ({
+          value,
+          onChange,
+        }: {
+          value?: VariantRow[];
+          onChange: (v: VariantRow[]) => void;
+        }) => (
           <VariantsMatrix
             value={value ?? []}
             onChange={(v) => {
@@ -115,10 +162,26 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
           />
         ),
       },
-      defaultSku: { ...storeFields.defaultSku, label: t("defaultSku"), placeholder: t("defaultSku") },
-      description: { ...storeFields.description, label: t("description"), placeholder: t("description") },
-      defaultPrice: { ...storeFields.defaultPrice, label: t("defaultPrice"), placeholder: "0" },
-      totalQuantity: { ...storeFields.totalQuantity, label: t("totalQuantity"), placeholder: "0" },
+      defaultSku: {
+        ...storeFields.defaultSku,
+        label: t("defaultSku"),
+        placeholder: t("defaultSku"),
+      },
+      description: {
+        ...storeFields.description,
+        label: t("description"),
+        placeholder: t("description"),
+      },
+      defaultPrice: {
+        ...storeFields.defaultPrice,
+        label: t("defaultPrice"),
+        placeholder: "0",
+      },
+      totalQuantity: {
+        ...storeFields.totalQuantity,
+        label: t("totalQuantity"),
+        placeholder: "0",
+      },
       isActive: { ...storeFields.isActive, label: t("isActive") },
     } as unknown as TFieldConfigObject<TProductData | TUpdateProductData>;
   }, [fields, t, isEditing, isSubmitting]);
@@ -135,7 +198,11 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
   const footer = useMemo(
     () => (
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => startTransition(onClose)}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => startTransition(onClose)}
+        >
           {t("cancel")}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
@@ -144,13 +211,19 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
         </Button>
       </div>
     ),
-    [onClose, isSubmitting, isEditing, t, startTransition]
+    [onClose, isSubmitting, isEditing, t, startTransition],
   );
 
   return (
-    <ModalForm<TProductData | TUpdateProductData, IMessageResponse, IProductFormModalExtraProps>
+    <ModalForm<
+      TProductData | TUpdateProductData,
+      IMessageResponse,
+      IProductFormModalExtraProps
+    >
       title={isEditing ? t("updateProduct") : t("createProduct")}
-      description={isEditing ? t("updateProductDetails") : t("createNewProduct")}
+      description={
+        isEditing ? t("updateProductDetails") : t("createNewProduct")
+      }
       open={open}
       onOpenChange={onOpenChange}
       formStore={store}
@@ -161,7 +234,9 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-6">
           <div>
-            <h3 className="text-sm font-semibold mb-3">{t("productDetails")}</h3>
+            <h3 className="text-sm font-semibold mb-3">
+              {t("productDetails")}
+            </h3>
             <div className="grid grid-cols-1 gap-4">
               {inputs.name as React.ReactNode}
               {inputs.description as React.ReactNode}
@@ -175,7 +250,6 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
           </div>
         </div>
         <div className="space-y-6">
-
           <div>
             <h3 className="text-sm font-semibold mb-3">{t("variants")}</h3>
             <div className="space-y-4">
@@ -183,13 +257,11 @@ export default function ProductFormModal({ storeKey, store }: IProductFormModalP
               {inputs.defaultPrice as React.ReactNode}
               {inputs.totalQuantity as React.ReactNode}
               {inputs.variants as React.ReactNode}
-
             </div>
           </div>
         </div>
       </div>
       <FormErrors />
-
     </ModalForm>
   );
 }

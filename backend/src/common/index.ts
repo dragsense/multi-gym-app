@@ -16,5 +16,7 @@ export { RolesModule } from './roles/roles.module';
 export { CacheModule } from './cache/cache.module';
 export { ScheduleModule } from './schedule/schedule.module';
 export { ActionModule } from './helper/action.module';
+export { MqttModule } from './mqtt/mqtt.module';
+export { AIProcessorsModule } from './ai-processors/ai-processors.module';
 
 

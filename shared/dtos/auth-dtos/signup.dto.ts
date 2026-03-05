@@ -14,6 +14,7 @@ import {
   ValidateIf,
   Min,
   ValidateNested,
+  Matches,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { FieldOptions, FieldType } from "../../decorators/field.decorator";
@@ -68,17 +69,19 @@ export class SignupDto {
 
   @ApiProperty({ example: "email@example.com" })
   @IsString()
-  @IsNotEmpty()
-  @IsEmail({}, { message: 'Email must be an email' })
+  @IsEmail({}, { message: 'Email must be a valid email' })
+  @IsNotEmpty({message: "Email is required"})
   @FieldType("email", true)
   email: string;
 
   @ApiProperty({ example: "secrete" })
   @IsString()
-  @IsNotEmpty()
-  @Length(6, 100)
+  @Length(8, 100)
+  @IsNotEmpty({message: "Password is required"})
   @FieldType("password", true)
-  @MinLength(8, { message: "Password must be at least 8 characters long" })
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
+    message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
+  })
   password: string;
 
   @ApiProperty({
@@ -87,8 +90,10 @@ export class SignupDto {
     minLength: 8,
   })
   @IsString()
-  @IsNotEmpty()
-  @MinLength(8, { message: "Password must be at least 8 characters long" })
+  @IsNotEmpty({message: "Confirm Password is required"})
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, {
+    message: "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)",
+  })
   @Validate(PasswordMatchConstraint)
   @FieldType("password", true)
   confirmPassword: string;
@@ -122,5 +127,8 @@ export class SignupResponseDto {
   message: string;
 
   @ApiProperty()
+  tenantId?: string | null;
+
+  @ApiProperty() 
   requiredOtp: boolean;
 }

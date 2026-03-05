@@ -293,38 +293,38 @@ export function TaskDetailContent({
                 {buildSentence(t, "delete")}
               </Button>
 
-        {/* More actions */}
-        {!(isCalendarEvent && isFutureEvent) && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <MoreVertical className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
+              {/* More actions */}
+              {!(isCalendarEvent && isFutureEvent) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onUpdateStatus(task)}>
-                <TrendingUp className="w-4 h-4 mr-2" />
-                {buildSentence(t, "update", "status")}
-              </DropdownMenuItem>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onUpdateStatus(task)}>
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      {buildSentence(t, "update", "status")}
+                    </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={() => onUpdateProgress(task)}>
-                <BarChart3 className="w-4 h-4 mr-2" />
-                {buildSentence(t, "update", "progress")}
-              </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onUpdateProgress(task)}>
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      {buildSentence(t, "update", "progress")}
+                    </DropdownMenuItem>
 
-              {task.status !== ETaskStatus.CANCELLED && (
-                <DropdownMenuItem
-                  onClick={() => onCancel(task)}
-                  className="text-destructive"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  {buildSentence(t, "cancel")}
-                </DropdownMenuItem>
+                    {task.status !== ETaskStatus.CANCELLED && (
+                      <DropdownMenuItem
+                        onClick={() => onCancel(task)}
+                        className="text-destructive"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        {buildSentence(t, "cancel")}
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
             </div>
           </div>
         }
@@ -380,8 +380,8 @@ export function TaskDetailContent({
                     {t("location")}
                   </div>
                   <div className="font-medium">
-                    {typeof task.location === 'string' 
-                      ? task.location 
+                    {typeof task.location === 'string'
+                      ? task.location
                       : task.location.name || task.location.address || t("location")}
                   </div>
                   {typeof task.location === 'object' && task.location.address && (
@@ -400,8 +400,8 @@ export function TaskDetailContent({
                     {t("door")}
                   </div>
                   <div className="font-medium">
-                    {typeof task.door === 'string' 
-                      ? task.door 
+                    {typeof task.door === 'string'
+                      ? task.door
                       : task.door.name || t("door")}
                   </div>
                   {typeof task.door === 'object' && task.door.description && (
@@ -412,7 +412,7 @@ export function TaskDetailContent({
                 </div>
               </div>
             )}
-            {task.description && (
+            {/* {task.description && (
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                 <div>
@@ -422,7 +422,7 @@ export function TaskDetailContent({
                   <div className="text-sm">{task.description}</div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

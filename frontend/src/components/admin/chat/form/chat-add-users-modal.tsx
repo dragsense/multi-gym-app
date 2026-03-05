@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 import { UserPlus, Search } from "lucide-react";
-import { useSearchableUsers } from "@/hooks/use-searchable";
+import { useSearchableChatUsers } from "@/hooks/use-searchable";
 
 // Types
 import type { UserDto } from "@shared/dtos";
@@ -39,7 +39,7 @@ const ChatAddUsersModal = React.memo(function ChatAddUsersModal({
 }: IChatAddUsersModalProps) {
   const { t } = useI18n();
   const [search, setSearch] = useState("");
-  const searchableUsers = useSearchableUsers({});
+  const searchableUsers = useSearchableChatUsers({});
   
   // Update search filters when search changes
   useEffect(() => {

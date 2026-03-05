@@ -30,18 +30,33 @@ const PermissionsSelect = React.memo((props: TCustomInputWrapper) => (
   <SearchableInputWrapper<PermissionDto>
     {...props}
     modal={true}
-    useSearchable={() => useSearchablePermissions({})}
+    useSearchable={() =>
+      useSearchablePermissions({
+        initialParams: {
+          // Fetch a larger set of permissions to avoid truncation
+          limit: 100,
+        },
+      })
+    }
     getLabel={(item) => {
       if (!item) return "Select Permission";
       return item.displayName || item.name || "Unknown Permission";
     }}
     getKey={(item) => item?.id?.toString() || ""}
     getValue={(item) => {
-      if (!item || !item.id) return { id: "", displayName: "" };
-      return { id: item.id, displayName: item.displayName || item.name || "" };
+      if (!item || !item.id) {
+        return { id: "", name: "", displayName: "" } as PermissionDto;
+      }
+
+      return {
+        id: item.id,
+        name: item.name,
+        displayName: item.displayName,
+      } as PermissionDto;
     }}
     shouldFilter={false}
     multiple={true}
+    allowSelectAll={true}
   />
 ));
 
@@ -126,7 +141,7 @@ export const RoleFormModal = React.memo(function RoleFormModal({
     <>
       <ModalForm<TRoleData, any, IRoleFormModalExtraProps>
         title={`${isEditing ? "Edit" : "Add"} Role`}
-        description={`${isEditing ? "Edit" : "Add a new"} Role`}
+        // description={`${isEditing ? "Edit" : "Add a new"} Role`}
         open={open}
         onOpenChange={onOpenChange}
         formStore={store}
@@ -136,7 +151,6 @@ export const RoleFormModal = React.memo(function RoleFormModal({
         <div className="space-y-6">
           {/* Basic Info */}
           <div>
-            <h3 className="text-sm font-semibold mb-3">Basic Info</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {inputs.name}
               {inputs.code}
@@ -145,7 +159,6 @@ export const RoleFormModal = React.memo(function RoleFormModal({
 
           {/* Additional Details */}
           <div>
-            <h3 className="text-sm font-semibold mb-3">Additional Details</h3>
             <div className="grid grid-cols-1 gap-6 items-start">
               {inputs.description}
               {inputs.rolePermissions}

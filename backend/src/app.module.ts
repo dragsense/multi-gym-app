@@ -23,7 +23,9 @@ import {
   getJwtConfig,
   bullQueueConfig,
   twilioConfig,
-  srsConfig,
+  mqttConfig,
+  aiProcessorsConfig,
+  mediamtxConfig,
 } from './config';
 
 import { AppController } from './app.controller';
@@ -31,6 +33,7 @@ import { AppService } from './app.service';
 
 // Feature modules - exported from modules index
 import {
+  AIAdapterModule,
   UsersModule,
   AuthModule,
   ChatModule,
@@ -88,6 +91,8 @@ import {
   RolesModule,
   HealthModule,
   NotificationModule,
+  MqttModule,
+  AIProcessorsModule,
 } from './common';
 
 import { SubdomainTenantMiddleware, RequestContextMiddleware, TenantMiddleware } from './middlewares';
@@ -122,7 +127,9 @@ import { JwtAuthGuard, ModuleAccessGuard, BusinessGuard, TenantGuard, UserLevelG
         healthConfig,
         bullQueueConfig,
         twilioConfig,
-        srsConfig,
+        mqttConfig,
+        aiProcessorsConfig,
+        mediamtxConfig,
       ],
       isGlobal: true,
     }),
@@ -208,6 +215,9 @@ import { JwtAuthGuard, ModuleAccessGuard, BusinessGuard, TenantGuard, UserLevelG
     HealthModule,
     RolesModule,
     ChatModule,
+    MqttModule,
+    AIProcessorsModule,
+    AIAdapterModule,
 
     // Feature modules
     MembersModule,

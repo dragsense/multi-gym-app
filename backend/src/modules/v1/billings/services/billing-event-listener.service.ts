@@ -68,19 +68,15 @@ export class BillingEventListenerService implements OnModuleInit {
         if (!billing) throw new NotFoundException('Billing not found');
         this.logger.log(`Billing created: ${billing.title} (ID: ${billing.id})`);
 
-        // Send notifications
+        // Send notifications: recipient only + platform owner (not all admins/business owners)
         await Promise.all([
-          // SMS notification to member (automatically triggered via notification service)
+          // Notify the billing recipient (e.g. business owner whose subscription was created)
           this.billingNotificationService.notifyBillingCreated(
             billing,
             data?.createdBy,
           ),
-          // In-app notifications to admins
+          // Notify platform owner only (not every SUPER_ADMIN/ADMIN to avoid spamming all business owners)
           this.billingNotificationService.notifyAdminsBillingCreated(
-            billing,
-            data?.createdBy,
-          ),
-          this.billingNotificationService.notifySuperAdminsBillingCreated(
             billing,
             data?.createdBy,
           ),

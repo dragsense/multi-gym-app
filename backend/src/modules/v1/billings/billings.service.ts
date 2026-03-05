@@ -74,6 +74,10 @@ export class BillingsService extends CrudService<Billing> {
     // Check if trainer exists and is actually a trainer
     const recipientUser = await this.usersService.getUser(
       createBillingDto.recipientUser.id,
+      undefined,
+      {
+        skipSuperAdminOwnDataOnly: true
+      }
     );
 
     if (!recipientUser) {
@@ -492,7 +496,9 @@ export class BillingsService extends CrudService<Billing> {
     }
 
     const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
+      currentUser.level === EUserLevels.PLATFORM_OWNER ||
+      currentUser.level === EUserLevels.SUPER_ADMIN ||
+      currentUser.level === EUserLevels.ADMIN;
     const isOwner =
       billing.recipientUser?.id === currentUser.id ||
       billing.createdByUserId === currentUser.id;
@@ -708,7 +714,9 @@ export class BillingsService extends CrudService<Billing> {
     }
 
     const isSuperAdmin =
-      currentUser.level === (EUserLevels.SUPER_ADMIN as number);
+      currentUser.level === EUserLevels.PLATFORM_OWNER ||
+      currentUser.level === EUserLevels.SUPER_ADMIN ||
+      currentUser.level === EUserLevels.ADMIN;
     const isCreator = billing.createdBy?.id === currentUser.id;
     const isRecipient = billing.recipientUser?.id === currentUser.id;
 

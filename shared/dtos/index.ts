@@ -16,6 +16,7 @@ export * from "./cart-dtos";
 export * from "./referral-link-dtos";
 export * from "./settings-dtos";
 export * from "./payment-processors-dtos";
+export * from "./ai-processors-dtos";
 export * from "./payment-card-dtos";
 export * from "./stripe-dtos";
 export * from "./paysafe-dtos";

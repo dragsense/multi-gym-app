@@ -88,6 +88,7 @@ export class BaseUsersService extends CrudService<User> {
         'isVerified',
         'refUserId',
         'isPlatformOwner',
+        'tenantId'
       ],
     });
   }

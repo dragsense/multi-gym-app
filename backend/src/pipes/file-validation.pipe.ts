@@ -131,8 +131,10 @@ export class FileValidationPipe implements PipeTransform {
       if (this.options.validateBannerAspectRatio) {
         const aspectRatio = metadata.width / metadata.height;
         if (aspectRatio < 2) {
+          // Keep validation strict for true banner layout, but avoid exposing
+          // low-level technical details (like exact aspect ratio) in the error.
           throw new BadRequestException(
-            `Image must be in banner format (landscape/wide). Width should be at least 2x the height. Current aspect ratio: ${aspectRatio.toFixed(2)}:1`,
+            'Image must be in banner format (landscape/wide). Width should be at least 2x the height.',
           );
         }
       }

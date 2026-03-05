@@ -5,20 +5,25 @@ import {
 } from '@nestjs/common';
 import { Chat } from '@/common/base-chat/entities/chat.entity';
 import { ChatMessage } from '@/common/base-chat/entities/chat-message.entity';
-import { CreateChatDto, ChatListDto, ChatMessageListDto, UpdateChatDto, ChatUserDto } from '@shared/dtos/chat-dtos/chat.dto';
+import {
+  CreateChatDto,
+  ChatListDto,
+  ChatMessageListDto,
+  UpdateChatDto,
+} from '@shared/dtos/chat-dtos/chat.dto';
 import { BaseChatService } from '@/common/base-chat/base-chat.service';
 import { BaseChatMessageService } from '@/common/base-chat/base-chat-message.service';
 import { BaseChatUserService } from '@/common/base-chat/base-chat-user.service';
 import { BaseChatUserMessageService } from '@/common/base-chat/base-chat-user-message.service';
 import { ChatNotificationService } from './services/chat-notification.service';
 import { User } from '@/common/base-user/entities/user.entity';
-import { UserDto } from '@shared/dtos/user-dtos/user.dto';
+import { UserDto, UserListDto } from '@shared/dtos/user-dtos/user.dto';
 import { ChatUser } from '@/common/base-chat/entities/chat-user.entity';
-import { IMessageResponse } from '@shared/interfaces';
+import { IPaginatedResponse, IMessageResponse } from '@shared/interfaces';
 import { BaseUsersService } from '@/common/base-user/base-users.service';
 import { FileUploadService } from '@/common/file-upload/file-upload.service';
-import { EFileType } from '@shared/enums';
-import { Brackets } from 'typeorm';
+import { EFileType, EUserLevels } from '@shared/enums';
+import { Brackets, SelectQueryBuilder } from 'typeorm';
 
 @Injectable()
 export class ChatService {
@@ -33,6 +38,36 @@ export class ChatService {
     private readonly baseUsersService: BaseUsersService,
     private readonly fileUploadService: FileUploadService,
   ) { }
+
+  /**
+   * Search users that are available to start a chat with.
+   * Members can only see staff/admin/platform users; higher levels can see all.
+   */
+  async getAvailableChatUsers(
+    currentUser: User,
+    query: UserListDto,
+  ): Promise<IPaginatedResponse<User>> {
+    return this.baseUsersService.get(query, UserListDto, {
+      beforeQuery: (qb: SelectQueryBuilder<User>) => {
+        // Exclude current user
+        qb.andWhere('entity.id != :currentUserId', {
+          currentUserId: currentUser.id,
+        });
+
+        // Only active users
+        qb.andWhere('entity.isActive = :isActive', { isActive: true });
+
+        // Members can only see administrative users (staff/admin/etc.)
+        if (currentUser.level === EUserLevels.MEMBER) {
+          qb.andWhere('entity.level <= :maxLevel', {
+            maxLevel: EUserLevels.STAFF,
+          });
+        }
+
+        return qb;
+      },
+    });
+  }
 
   /**
    * Create or get existing chat between users

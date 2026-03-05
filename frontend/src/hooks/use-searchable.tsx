@@ -113,6 +113,23 @@ export function useSearchableUsers({
   });
 }
 
+export function useSearchableChatUsers({
+  initialParams,
+}: {
+  initialParams?: IListQueryParams;
+} = {}) {
+  const memoizedKey = "searchable-chat-users";
+
+  const memoizedFetcher = useMemo(
+    () => (params: IListQueryParams) => fetchChatUsers(params),
+    [],
+  );
+
+  return useSearchableResource<IUser>(memoizedKey, memoizedFetcher, {
+    ...initialParams,
+  });
+}
+
 export function useSearchableTrainers({
   initialParams,
 }: {
