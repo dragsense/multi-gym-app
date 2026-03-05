@@ -122,38 +122,7 @@ services:
     networks:
       - app-network
 
-  # MQTT Broker (Eclipse Mosquitto)
-  mqtt:
-    image: eclipse-mosquitto:2
-    container_name: template-app-mqtt
-    restart: unless-stopped
-    ports:
-      - "1883:1883"   # MQTT
-      - "9001:9001"   # WebSocket
-    volumes:
-      - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
-    networks:
-      - app-network
 
-
-  # MediaMTx: RTSP → HLS/WebRTC; path-per-camera for thousands of streams
-  # Auth: shared/mediamtx.yml allows anonymous playback, admin/admin123 for Control API.
-  mediamtx:
-    image: bluenviron/mediamtx:latest
-    container_name: vivast-mediamtx
-    restart: unless-stopped
-    ports:
-      - "8888:8888"   # HLS
-      - "8889:8889"   # WebRTC (WHEP)
-      - "9997:9997"   # Control API
-      - "8189:8189/udp" # WebRTC ICE
-      - "8189:8189/tcp" # WebRTC ICE TCP fallback
-    volumes:
-      - ./mediamtx.yml:/mediamtx.yml:ro
-    command: ["/mediamtx.yml"]
-    # No healthcheck: official image has no wget/curl; app uses depends_on service_started
-    networks:
-      - app-network
 
 volumes:
   postgres_data:
