@@ -17,8 +17,13 @@ const businessService = new BaseService<
 export const fetchBusinesses = (params: IListQueryParams) =>
   businessService.get(params);
 
+export const fetchBusinessesList = (params: IListQueryParams) =>
+  businessService.get(params, '/list');
+
 export const fetchBusiness = (id: string, params?: IListQueryParams) =>
   businessService.getSingle(id, params);
+
+
 
 export const createBusiness = (data: TBusinessData) =>
   businessService.post(data);

@@ -70,8 +70,8 @@ export class CreateServiceOfferDto {
   @ValidateNested()
   @Expose()
   @Type(() => StaffDto)
+  @IsNotEmpty({message: "Trainer is required"})
   @FieldType("nested", true, StaffDto)
-  @IsOptional()
   trainer?: StaffDto;
 
   @ApiProperty({ type: TrainerServiceDto, description: "Associated trainer service" })

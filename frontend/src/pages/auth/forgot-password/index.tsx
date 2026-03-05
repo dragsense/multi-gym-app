@@ -25,7 +25,8 @@ export default function ForgotPasswordPage() {
   const { t } = useI18n();
 
   const FORGOT_PASSWORD_INITIAL_VALUES: TForgotPasswordData = {
-    email: ""
+    email: "",
+    business: undefined
   };
 
   return (

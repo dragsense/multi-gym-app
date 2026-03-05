@@ -24,10 +24,39 @@ import { buildSentence } from "@/locales/translations";
 // Stores
 import { AppCard } from "../layout-ui/app-card";
 import { PUBLIC_ROUTES } from "@/config/routes.config";
+import { SearchableInputWrapper } from "../shared-ui/searchable-input-wrapper";
+import { BusinessDto } from "@shared/dtos/business-dtos/business.dto";
+import { useSearchableBusiness } from "@/hooks/use-searchable";
+import { type TCustomInputWrapper } from "@/@types/form/field-config.type";
 
 interface IForgotPasswordFormProps extends THandlerComponentProps<
   TFormHandlerStore<TForgotPasswordData, IMessageResponse, any>
 > {}
+
+const BusinessSelect = React.memo((props: TCustomInputWrapper) => {
+  const searchableBusinesses = useSearchableBusiness({});
+  const { t } = useI18n();
+  return (
+    <SearchableInputWrapper<BusinessDto>
+      {...props}
+      modal={true}
+      useSearchable={() => searchableBusinesses}
+      getLabel={(item) => {
+        if (!item) return buildSentence(t, "select", "tenant");
+        return `${item.name}`;
+      }}
+      getKey={(item) => item.id.toString()}
+      getValue={(item) => {
+        return {
+          id: item.id,
+          tenantId: item.tenantId,
+          name: item.name,
+        };
+      }}
+      shouldFilter={false}
+    />
+  );
+});
 
 const ForgotPasswordForm = React.memo(function ForgotPasswordForm({
   storeKey,
@@ -52,6 +81,12 @@ const ForgotPasswordForm = React.memo(function ForgotPasswordForm({
       email: {
         ...fields.email,
         placeholder: buildSentence(t, "enter", "email"),
+      },
+      business: {
+        ...fields.business,
+        type: 'custom',
+        Component: BusinessSelect,
+        placeholder: t("Enter Tenant ID"),
       },
     }),
     [fields, t],
@@ -99,7 +134,10 @@ const ForgotPasswordForm = React.memo(function ForgotPasswordForm({
           </div>
         }
       >
-        <div className="flex flex-col gap-4 w-full">{inputs.email}</div>
+        <div className="flex flex-col gap-4 w-full">
+          {inputs.email}
+          {inputs.business}
+        </div>
       </AppCard>
     </Form>
   );

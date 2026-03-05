@@ -3,7 +3,7 @@ import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import { UserEmailService } from './user-email.service';
 import { UsersService } from '../users.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Processor('user')
 export class UserProcessor {

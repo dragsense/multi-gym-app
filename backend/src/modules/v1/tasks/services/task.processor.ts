@@ -4,7 +4,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { TaskEmailService } from './task-email.service';
 import { TasksService } from '../tasks.service';
 import { UsersService } from '@/modules/v1/users/users.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Processor('task')
 @Injectable()

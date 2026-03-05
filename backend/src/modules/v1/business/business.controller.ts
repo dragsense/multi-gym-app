@@ -69,7 +69,7 @@ export class BusinessController {
     @Public()
     findAllList() {
         return this.businessService.get({
-            _select: ['id', 'name', 'subdomain'],
+            _select: ['id', 'name', 'subdomain', 'tenantId'],
         }, BusinessListDto);
     }
 

@@ -133,8 +133,8 @@ export function MessageItemView({ message, onDelete, searchQuery = "", isHighlig
         <div className={`flex items-center gap-2 ${!isOwn ? "flex-row-reverse" : "flex-row"}`}>
           <div
             className={`inline-block p-3 rounded-lg ${isOwn
-              ? "bg-primary text-primary-foreground rounded-br-none"
-              : "bg-muted rounded-bl-none"
+              ? "bg-primary text-primary-foreground rounded-br-none flex-wrap max-w-[500px]"
+              : "bg-muted rounded-bl-none flex-wrap max-w-[500px]"
               }`}
           >
 
@@ -145,7 +145,7 @@ export function MessageItemView({ message, onDelete, searchQuery = "", isHighlig
             ) : (
               <>
                 {message.message && (
-                  <p className={`mb-0 whitespace-pre-wrap break-words ${isHighlighted ? "bg-yellow-200 dark:bg-yellow-800" : ""}`}>
+                  <p className={`mb-0  whitespace-pre-wrap break-words ${isHighlighted ? "bg-yellow-200 dark:bg-yellow-800" : ""}`}>
                     {searchQuery ? highlightText(message.message, searchQuery) : message.message}
                   </p>
                 )}

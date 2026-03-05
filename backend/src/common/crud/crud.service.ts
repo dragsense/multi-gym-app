@@ -4,6 +4,7 @@ import {
   BadRequestException,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   Repository,
   FindOptionsWhere,
@@ -12,20 +13,22 @@ import {
   QueryRunner,
   ObjectLiteral,
   EntityManager,
-  Between as TypeOrmBetween,
 } from 'typeorm';
 import { IPaginatedResponse } from '@shared/interfaces';
-import { CrudOptions, ICrudService } from './interfaces/crud.interface';
+import { CrudMethodConfig, CrudOptions, ICrudService } from './interfaces/crud.interface';
 import { EventPayload, EventService } from '../helper/services/event.service';
 import { LoggerService } from '../logger/logger.service';
+import { EUserLevels } from '@shared/enums/user.enum';
 import {
   getQueryFilters,
   getRelationFilters,
   QueryFilterOptions,
 } from '@shared/decorators/crud.dto.decorators';
 import { ModuleRef } from '@nestjs/core';
-import { RequestContext } from '../context/request-context';
+import { RequestContext } from '../../context/request-context';
 import { EntityRouterService } from '../database/entity-router.service';
+import { DatabaseConfig, DatabaseMode } from '@/config/database.config';
+import { APP_MODE } from '@/config/app.config';
 
 @Injectable()
 export class CrudService<T extends ObjectLiteral>
@@ -37,6 +40,8 @@ export class CrudService<T extends ObjectLiteral>
   public eventService!: EventService;
   protected options: CrudOptions;
   protected entityRouterService!: EntityRouterService;
+  protected dbMode: DatabaseMode = DatabaseMode.SINGLE;
+  protected appMode: APP_MODE = APP_MODE.MULTI_USER;
 
   constructor(
     repository: Repository<T>,
@@ -46,10 +51,13 @@ export class CrudService<T extends ObjectLiteral>
     this.repository = repository;
     this.moduleRef = moduleRef;
 
+
     // ✅ Merge default + custom options directly here
     this.options = {
       pagination: { defaultLimit: 10, maxLimit: 100 },
       defaultSort: { field: 'id', order: 'ASC' }, // Default sort by ID ascending
+      tenantScoped: true,
+      superAdminOwnDataOnly: true,
       ...options,
     };
   }
@@ -62,6 +70,85 @@ export class CrudService<T extends ObjectLiteral>
 
     this.entityRouterService = this.moduleRef.get(EntityRouterService, { strict: false });
 
+    const configService = this.moduleRef.get(ConfigService, { strict: false });
+    const dbConfig = configService?.get<DatabaseConfig>('database');
+    this.dbMode = dbConfig?.mode ?? DatabaseMode.SINGLE;
+    this.appMode = configService?.get<APP_MODE>('app.appMode') ?? APP_MODE.MULTI_USER;
+  }
+
+
+  private isTenantApp(): boolean {
+    return this.appMode === APP_MODE.MULTI_DOMAIN_TENANT || this.appMode === APP_MODE.SINGLE_DOMAIN_TENANT;
+
+  }
+
+  private shouldApplyTenantScope(): boolean {
+    return this.shouldApplyTenantScopeWithConfig();
+  }
+
+  private shouldApplyTenantScopeWithConfig(config?: CrudMethodConfig): boolean {
+    if (config?.skipTenantScope) {
+      return false;
+    }
+    if (this.options.tenantScoped === false) {
+      return false;
+    }
+    return this.dbMode === DatabaseMode.SINGLE && this.isTenantApp();
+  }
+
+  private getTenantIdForScope(config?: CrudMethodConfig): string | null {
+    if (config?.tenantId !== undefined) {
+      return config.tenantId ? String(config.tenantId) : null;
+    }
+    const tenantId = RequestContext.get<string>('tenantId');
+    return tenantId ? String(tenantId) : null;
+  }
+
+  private entityHasTenantIdColumn(): boolean {
+    return this.getRepository().metadata.columns.some(
+      (col) => col.propertyName === 'tenantId',
+    );
+  }
+
+  private applyTenantScope(query: any, alias = 'entity', config?: CrudMethodConfig): void {
+    if (!this.shouldApplyTenantScopeWithConfig(config)) return;
+
+    const tenantId = this.getTenantIdForScope(config);
+    if (!tenantId) return;
+
+    if (!this.entityHasTenantIdColumn()) return;
+
+    query.andWhere(`${alias}.tenantId = :tenantId`, { tenantId });
+  }
+
+  private shouldApplySuperAdminOwnScope(config?: CrudMethodConfig): boolean {
+    if (config?.skipSuperAdminOwnDataOnly) {
+      return false;
+    }
+    if (this.options.superAdminOwnDataOnly === false) {
+      return false;
+    }
+    const userLevel = RequestContext.get<number>('userLevel');
+    return userLevel === EUserLevels.SUPER_ADMIN;
+  }
+
+  private entityHasCreatedByUserIdColumn(): boolean {
+    return this.getRepository().metadata.columns.some(
+      (col) => col.propertyName === 'createdByUserId',
+    );
+  }
+
+  private applySuperAdminOwnScope(query: any, alias = 'entity', config?: CrudMethodConfig): void {
+    if (!this.shouldApplySuperAdminOwnScope(config)) return;
+
+    const userId = RequestContext.get<string>('userId');
+    if (!userId) return;
+
+    if (!this.entityHasCreatedByUserIdColumn()) return;
+
+    query.andWhere(`${alias}.createdByUserId = :createdByUserId`, {
+      createdByUserId: userId,
+    });
   }
 
   /**
@@ -76,6 +163,7 @@ export class CrudService<T extends ObjectLiteral>
       ) => any | Promise<any>;
       afterCreate?: (result: any, manager: EntityManager) => any | Promise<any>;
     },
+    config?: CrudMethodConfig,
   ): Promise<T> {
     // Get tenant-specific repository to ensure correct data source
     const repository = this.getRepository();
@@ -91,6 +179,16 @@ export class CrudService<T extends ObjectLiteral>
       const userId = RequestContext.get<string>('userId');
       if (userId && !processedData.createdByUserId) {
         processedData = { ...processedData, createdByUserId: userId };
+      }
+
+      if (
+        this.shouldApplyTenantScopeWithConfig(config) &&
+        this.entityHasTenantIdColumn()
+      ) {
+        const tenantId = this.getTenantIdForScope(config);
+        if (tenantId) {
+          processedData = { ...processedData, tenantId };
+        }
       }
 
       if (callbacks?.beforeCreate) {
@@ -144,7 +242,7 @@ export class CrudService<T extends ObjectLiteral>
         manager: EntityManager,
       ) => any | Promise<any>;
     },
-    deleted?: boolean
+    config?: CrudMethodConfig
   ): Promise<T> {
     // Get tenant-specific repository to ensure correct data source
     const repository = this.getRepository();
@@ -154,7 +252,13 @@ export class CrudService<T extends ObjectLiteral>
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const existingEntity = await this.getSingle(key, undefined, undefined, undefined, deleted);
+      const existingEntity = await this.getSingle(
+        key,
+        undefined,
+        undefined,
+        undefined,
+        config,
+      );
 
       if (!existingEntity) throw new NotFoundException('Entity not found');
 
@@ -214,13 +318,15 @@ export class CrudService<T extends ObjectLiteral>
     callbacks?: {
       beforeQuery?: (query: any) => any | Promise<any>;
     },
-    deleted?: boolean,
+    config?: CrudMethodConfig,
   ): Promise<T[]> {
     try {
       const { search, sortFields, sortOrder, sortBy, ...filters } =
         queryDto as any;
 
       const query = this.getRepository().createQueryBuilder('entity');
+      this.applyTenantScope(query, 'entity', config);
+      this.applySuperAdminOwnScope(query, 'entity', config);
 
       const mergedSortFields = [
         ...(sortFields || []),
@@ -244,7 +350,7 @@ export class CrudService<T extends ObjectLiteral>
         await callbacks.beforeQuery(query);
       }
 
-      if (!deleted) {
+      if (!config?.includeDeleted) {
         query.andWhere('entity.deletedAt IS NULL');
       }
 
@@ -271,7 +377,7 @@ export class CrudService<T extends ObjectLiteral>
     callbacks?: {
       beforeQuery?: (query: any) => any | Promise<any>;
     },
-    deleted?: boolean,
+    config?: CrudMethodConfig,
   ): Promise<IPaginatedResponse<T>> {
     try {
       const {
@@ -291,6 +397,8 @@ export class CrudService<T extends ObjectLiteral>
       const skip = (page - 1) * validatedLimit;
 
       const query = this.getRepository().createQueryBuilder('entity');
+      this.applyTenantScope(query, 'entity', config);
+      this.applySuperAdminOwnScope(query, 'entity', config);
 
       const mergedSortFields = [
         ...(sortFields || []),
@@ -314,7 +422,7 @@ export class CrudService<T extends ObjectLiteral>
         await callbacks.beforeQuery(query);
       }
 
-      if (!deleted) {
+      if (!config?.includeDeleted) {
         query.andWhere('entity.deletedAt IS NULL');
       }
 
@@ -355,10 +463,12 @@ export class CrudService<T extends ObjectLiteral>
     callbacks?: {
       beforeQuery?: (query: any, queryDto: any) => any | Promise<any>;
     },
-    deleted?: boolean,
+    config?: CrudMethodConfig,
   ): Promise<T | null> {
     try {
       const query = this.getRepository().createQueryBuilder('entity');
+      this.applyTenantScope(query, 'entity', config);
+      this.applySuperAdminOwnScope(query, 'entity', config);
 
       // Handle different key types
       if (typeof key === 'string' || typeof key === 'number') {
@@ -370,9 +480,20 @@ export class CrudService<T extends ObjectLiteral>
         // Only apply nested conditions if relations are defined
         const relations = (queryDto as any)?._relations || [];
 
+        const includeNullFilters = config?.includeNullFilters === true;
+
         Object.entries(key).forEach(([field, value]) => {
-          if (value !== undefined && value !== null && value !== '') {
-            if (field.includes('.')) {
+          if (
+            value === undefined ||
+            value === '' ||
+            (!includeNullFilters && value === null)
+          ) {
+            return;
+          }
+
+          const isNullValue = value === null;
+
+          if (field.includes('.')) {
               // For nested fields, check if the relation path exists in _relations
               const relationPath = field.split('.')[0]; // e.g., 'profile' from 'profile.firstName'
               const fullRelationPath = this.getRelationPath(field, relations); // e.g., 'profile.documents' from 'profile.documents.name'
@@ -381,18 +502,27 @@ export class CrudService<T extends ObjectLiteral>
                 relations.includes(relationPath) ||
                 relations.includes(fullRelationPath)
               ) {
-                // Create safe parameter name to avoid conflicts
+                if (isNullValue) {
+                  query.andWhere(`${field} IS NULL`);
+                } else {
+                  // Create safe parameter name to avoid conflicts
+                  const paramName = this.createSafeParameterName(field);
+                  query.andWhere(`${field} = :${paramName}`, {
+                    [paramName]: value,
+                  });
+                }
+              }
+              // If relation not defined, ignore the nested condition
+          } else {
+              // Direct entity field - always apply
+              if (isNullValue) {
+                query.andWhere(`entity.${field} IS NULL`);
+              } else {
                 const paramName = this.createSafeParameterName(field);
-                query.andWhere(`${field} = :${paramName}`, {
+                query.andWhere(`entity.${field} = :${paramName}`, {
                   [paramName]: value,
                 });
               }
-              // If relation not defined, ignore the nested condition
-            } else {
-              // Direct entity field - always apply
-       
-              query.andWhere(`entity.${field} = :${field}`, { [field]: value });
-            }
           }
         });
       } else {
@@ -407,7 +537,7 @@ export class CrudService<T extends ObjectLiteral>
       // Execute beforeQuery callback if provided
 
 
-      if (!deleted) {
+      if (!config?.includeDeleted) {
         query.andWhere('entity.deletedAt IS NULL');
       }
 
@@ -448,6 +578,7 @@ export class CrudService<T extends ObjectLiteral>
       ) => any | Promise<any>;
       afterDelete?: (entity: any, manager: EntityManager) => any | Promise<any>;
     },
+    config?: CrudMethodConfig,
   ): Promise<T> {
     // Get tenant-specific repository to ensure correct data source
     const repository = this.getRepository();
@@ -458,7 +589,13 @@ export class CrudService<T extends ObjectLiteral>
     await queryRunner.startTransaction();
 
     try {
-      const existingEntity = await this.getSingle(key);
+      const existingEntity = await this.getSingle(
+        key,
+        undefined,
+        undefined,
+        undefined,
+        config,
+      );
 
       // Execute beforeDelete callback if provided
       if (callbacks?.beforeDelete) {
@@ -515,6 +652,7 @@ export class CrudService<T extends ObjectLiteral>
         manager: EntityManager,
       ) => any | Promise<any>;
     },
+    config?: CrudMethodConfig,
   ): Promise<T> {
     // Get tenant-specific repository to ensure correct data source
     const repository = this.getRepository();
@@ -525,7 +663,17 @@ export class CrudService<T extends ObjectLiteral>
     await queryRunner.startTransaction();
 
     try {
-      const existingEntity = await this.getSingle(key, undefined, undefined, undefined, true);
+      const effectiveConfig: CrudMethodConfig = {
+        ...(config ?? {}),
+        includeDeleted: true,
+      };
+      const existingEntity = await this.getSingle(
+        key,
+        undefined,
+        undefined,
+        undefined,
+        effectiveConfig,
+      );
 
       // Execute beforeRestore callback if provided
       if (callbacks?.beforeRestore) {
@@ -581,6 +729,7 @@ export class CrudService<T extends ObjectLiteral>
       ) => any | Promise<any>;
       afterDelete?: (entity: any, manager: EntityManager) => any | Promise<any>;
     },
+    config?: CrudMethodConfig,
   ): Promise<void> {
     // Get tenant-specific repository to ensure correct data source
     const repository = this.getRepository();
@@ -591,7 +740,13 @@ export class CrudService<T extends ObjectLiteral>
     await queryRunner.startTransaction();
 
     try {
-      const existingEntity = await this.getSingle(key);
+      const existingEntity = await this.getSingle(
+        key,
+        undefined,
+        undefined,
+        undefined,
+        config,
+      );
 
       if (!existingEntity) throw new NotFoundException('Entity not found');
 
@@ -658,7 +813,7 @@ export class CrudService<T extends ObjectLiteral>
       const source = this.getRepository().metadata.name.toLowerCase();
       // Get tenantId from RequestContext (set by middleware during HTTP requests)
       const tenantId = RequestContext.get<string>('tenantId');
-      
+
       const payload: EventPayload = {
         entity: entity as T,
         entityId: entity ? (entity as any).id : undefined,

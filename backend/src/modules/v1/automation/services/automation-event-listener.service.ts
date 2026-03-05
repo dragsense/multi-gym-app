@@ -4,7 +4,7 @@ import { EventPayload } from '@/common/helper/services/event.service';
 import { AutomationService } from '../automation.service';
 import { AutomationExecutionService, AutomationContext } from './automation-execution.service';
 import { EAutomationTrigger } from '@shared/enums';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { Member } from '../../members/entities/member.entity';
 import { Billing } from '../../billings/entities/billing.entity';
 import { Checkin } from '../../checkins/entities/checkin.entity';

@@ -15,6 +15,7 @@ import {
   ApiTags,
   ApiParam,
 } from '@nestjs/swagger';
+import { Brackets, SelectQueryBuilder } from 'typeorm';
 
 import { TicketsService } from '../services/tickets.service';
 import {
@@ -43,8 +44,23 @@ export class TicketsController {
   @ApiResponse({ status: 200, type: TicketPaginatedDto })
   @Get()
   @MinUserLevel(EUserLevels.SUPER_ADMIN)
-  findAll(@Query() query: TicketListDto) {
-    return this.ticketsService.get(query, TicketListDto);
+  findAll(@Query() query: TicketListDto, @AuthUser() currentUser: User) {
+    const isPlatformOwner = currentUser.level === (EUserLevels.PLATFORM_OWNER as number);
+    return this.ticketsService.get(query, TicketListDto, {
+      beforeQuery: (qb: SelectQueryBuilder<Ticket>) => {
+        if (!isPlatformOwner) {
+          qb.leftJoin('entity.createdBy', '_ticketCreatedBy').andWhere(
+            new Brackets((b) => {
+              b.where('_ticketCreatedBy.id = :ticketOwnerId', {
+                ticketOwnerId: currentUser.id,
+              }).orWhere('_ticketCreatedBy.refUserId = :ticketOwnerId', {
+                ticketOwnerId: currentUser.id,
+              });
+            }),
+          );
+        }
+      },
+    });
   }
 
   @ApiOperation({ summary: 'Get ticket by ID' })
@@ -56,8 +72,24 @@ export class TicketsController {
   async findOne(
     @Param('id') id: string,
     @Query() query: SingleQueryDto<Ticket>,
+    @AuthUser() currentUser: User,
   ) {
-    const ticket = await this.ticketsService.getSingle(id, query);
+    const isPlatformOwner = currentUser.level === (EUserLevels.PLATFORM_OWNER as number);
+    const ticket = await this.ticketsService.getSingle(id, query, undefined, {
+      beforeQuery: isPlatformOwner
+        ? undefined
+        : (qb: SelectQueryBuilder<Ticket>) => {
+            qb.leftJoin('entity.createdBy', '_ticketCreatedBy').andWhere(
+              new Brackets((b) => {
+                b.where('_ticketCreatedBy.id = :ticketOwnerId', {
+                  ticketOwnerId: currentUser.id,
+                }).orWhere('_ticketCreatedBy.refUserId = :ticketOwnerId', {
+                  ticketOwnerId: currentUser.id,
+                });
+              }),
+            );
+          },
+    });
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
     }
@@ -83,7 +115,9 @@ export class TicketsController {
   async update(
     @Param('id') id: string,
     @Body() updateTicketDto: UpdateTicketDto,
+    @AuthUser() currentUser: User,
   ) {
+    await this.assertTicketAccess(id, currentUser);
     return this.ticketsService.updateTicket(id, updateTicketDto);
   }
 
@@ -92,7 +126,29 @@ export class TicketsController {
   @ApiResponse({ status: 200, description: 'Ticket deleted successfully' })
   @ApiResponse({ status: 404, description: 'Ticket not found' })
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @AuthUser() currentUser: User) {
+    await this.assertTicketAccess(id, currentUser);
     await this.ticketsService.delete(id);
+  }
+
+  private async assertTicketAccess(ticketId: string, currentUser: User) {
+    const isPlatformOwner = currentUser.level === (EUserLevels.PLATFORM_OWNER as number);
+    if (isPlatformOwner) return;
+    const ticket = await this.ticketsService.getSingle(ticketId, undefined, undefined, {
+      beforeQuery: (qb: SelectQueryBuilder<Ticket>) => {
+        qb.leftJoin('entity.createdBy', '_ticketCreatedBy').andWhere(
+          new Brackets((b) => {
+            b.where('_ticketCreatedBy.id = :ticketOwnerId', {
+              ticketOwnerId: currentUser.id,
+            }).orWhere('_ticketCreatedBy.refUserId = :ticketOwnerId', {
+              ticketOwnerId: currentUser.id,
+            });
+          }),
+        );
+      },
+    });
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
   }
 }

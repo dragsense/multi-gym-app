@@ -10,7 +10,15 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ChatService } from './chat.service';
-import { SendMessageDto, CreateChatDto, ChatListDto, ChatMessageListDto, ChatPaginatedDto, ChatMessagePaginatedDto, UpdateChatDto } from '@shared/dtos/chat-dtos/chat.dto';
+import {
+  SendMessageDto,
+  CreateChatDto,
+  ChatListDto,
+  ChatMessageListDto,
+  ChatPaginatedDto,
+  ChatMessagePaginatedDto,
+  UpdateChatDto,
+} from '@shared/dtos/chat-dtos/chat.dto';
 import { ChatMessageDto, ChatDto } from '@shared/dtos/chat-dtos/chat.dto';
 import { AuthUser } from '@/decorators/user.decorator';
 import { User } from '@/common/base-user/entities/user.entity';
@@ -21,6 +29,7 @@ import { MinUserLevel } from '@/decorators/level.decorator';
 import { EUserLevels } from '@shared/enums';
 import { Resource } from '@/decorators';
 import { EResource } from '@shared/enums';
+import { UserListDto, UserPaginatedDto } from '@shared/dtos';
 
 @ApiTags('Chat')
 @ApiBearerAuth('access-token')
@@ -77,6 +86,20 @@ export class ChatController {
     @Query() query: ChatListDto,
   ) {
     return this.chatService.getUserChats(currentUser.id, query);
+  }
+
+  @Get('available-users')
+  @ApiOperation({ summary: 'Search users available for chat' })
+  @ApiResponse({
+    status: 200,
+    description: 'Users retrieved successfully',
+    type: UserPaginatedDto,
+  })
+  async getAvailableChatUsers(
+    @AuthUser() currentUser: User,
+    @Query() query: UserListDto,
+  ) {
+    return this.chatService.getAvailableChatUsers(currentUser, query);
   }
 
   @Get(':chatId/messages')

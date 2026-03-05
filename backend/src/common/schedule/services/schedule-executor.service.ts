@@ -7,7 +7,7 @@ import { Repository, IsNull, Not } from 'typeorm';
 import { ScheduleService } from '../schedule.service';
 import { Schedule } from '../entities/schedule.entity';
 import { LoggerService } from '@/common/logger/logger.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { Business } from '@/modules/v1/business/entities/business.entity';
 @Injectable()
 export class ScheduleExecutorService implements OnModuleInit {
@@ -58,7 +58,7 @@ export class ScheduleExecutorService implements OnModuleInit {
 
     // Loop through each tenant and setup their schedules
     for (const business of businesses) {
-      await this.setupSchedulesForTenant(business.tenantId);
+      await this.setupSchedulesForTenant(business.tenantId ?? null);
     }
 
     this.logger.log('✅ Daily schedules setup completed for all tenants');

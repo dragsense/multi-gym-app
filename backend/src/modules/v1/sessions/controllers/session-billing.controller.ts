@@ -15,11 +15,13 @@ import { User } from '@/common/base-user/entities/user.entity';
 import { SessionPaymentIntentDto } from '@shared/dtos/session-dtos';
 import { Timezone } from '@/decorators/timezone.decorator';
 import { MinUserLevel } from '@/decorators/level.decorator';
-import { EUserLevels } from '@shared/enums';
+import { EResource, EUserLevels } from '@shared/enums';
+import { Resource } from '@/decorators';
 
 @ApiBearerAuth('access-token')
 @ApiTags('Session Billing')
 @MinUserLevel(EUserLevels.ADMIN)
+@Resource(EResource.SESSIONS)
 @Controller('session-billings')
 export class SessionBillingController {
   constructor(private readonly sessionBillingService: SessionBillingService) {}
@@ -67,6 +69,7 @@ export class SessionBillingController {
     status: 200,
     description: 'Returns payment status for the member and session',
   })
+  @MinUserLevel(EUserLevels.MEMBER)
   @Get('session/:sessionId/member/:memberId/payment-status')
   async checkMemberSessionPayment(
     @Param('sessionId') sessionId: string,

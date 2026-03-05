@@ -4,8 +4,14 @@ import React, { useState, useId, useMemo, useTransition } from 'react';
 // Types
 import { type TLoginData } from '@shared/types/auth.type';
 import { type ILoginResponse } from '@shared/interfaces/auth.interface';
+import type { BusinessDto } from '@shared/dtos';
 import { type TFormHandlerStore } from '@/stores';
 import { type THandlerComponentProps } from '@/@types/handler-types';
+import type {
+  TCustomInputWrapper,
+  TFieldConfigObject,
+} from "@/@types/form/field-config.type";
+
 
 // External Libraries
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -14,18 +20,48 @@ import { Link } from 'react-router-dom';
 // Components
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/form-ui/form';
+import { SearchableInputWrapper } from "@/components/shared-ui/searchable-input-wrapper";
 
 // Hooks
 import { type FormInputs, useInput } from '@/hooks/use-input';
 import { AppCard } from '../layout-ui/app-card';
-import { type TFieldConfigObject } from '@/@types/form/field-config.type';
 import { useI18n } from '@/hooks/use-i18n';
+import { useSearchableBusiness } from "@/hooks/use-searchable";
 
 // Stores
 import { PUBLIC_ROUTES } from '@/config/routes.config';
 
+import { buildSentence } from "@/locales/translations";
+
+
 interface ILoginFormProps extends THandlerComponentProps<TFormHandlerStore<TLoginData, ILoginResponse, any>> {
 }
+
+// Custom component - must be defined before early return
+const BusinessSelect = React.memo((props: TCustomInputWrapper) => {
+  const searchableBusinesses = useSearchableBusiness({});
+  const { t } = useI18n();
+  return (
+    <SearchableInputWrapper<BusinessDto>
+      {...props}
+      modal={true}
+      useSearchable={() => searchableBusinesses}
+      getLabel={(item) => {
+        if (!item) return buildSentence(t, "select", "tenant");
+        return `${item.name}`;
+      }}
+      getKey={(item) => item.id.toString()}
+      getValue={(item) => {
+        return {
+          id: item.id,
+          tenantId: item.tenantId,
+          name: item.name,
+        };
+      }}
+      shouldFilter={false}
+    />
+  );
+});
 
 const LoginForm = React.memo(function LoginForm({
   storeKey,
@@ -51,6 +87,12 @@ const LoginForm = React.memo(function LoginForm({
     email: {
       ...originalFields.email,
       placeholder: t("Enter Email"),
+    },
+    business: {
+      ...originalFields.business,
+      type: 'custom',
+      Component: BusinessSelect,
+      placeholder: t("Enter Tenant ID"),
     },
     password: {
       ...originalFields.password,
@@ -116,6 +158,7 @@ const LoginForm = React.memo(function LoginForm({
         <div className="flex flex-col gap-4 w-full">
           {inputs.email}
           {inputs.password}
+          {inputs.business}
         </div>
       </AppCard>
     </Form>

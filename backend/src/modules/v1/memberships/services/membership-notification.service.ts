@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { In } from 'typeorm';
 import { NotificationService } from '@/common/notification/notification.service';
 import { EntityRouterService } from '@/common/database/entity-router.service';
 import { User } from '@/common/base-user/entities/user.entity';
@@ -20,21 +19,20 @@ export class MembershipNotificationService {
     ) { }
 
     /**
-     * Notify admins when a membership is activated
+     * Notify business admin(s) when a membership is activated (when tenantId provided).
+     * Otherwise notifies platform owner. Member-related events should pass tenantId so the business's admins are notified.
      */
     async notifyAdminsMembershipActivated(
         memberMembership: MemberMembership,
         createdBy?: string,
+        tenantId?: string,
     ): Promise<void> {
         try {
-            const userRepo = this.entityRouterService.getRepository<User>(User);
+            const userRepo = this.entityRouterService.getRepository<User>(User, tenantId);
+            const isBusinessContext = !!tenantId;
             const adminUsers = await userRepo.find({
                 where: {
-                    level: In([
-                        EUserLevels.PLATFORM_OWNER,
-                        EUserLevels.SUPER_ADMIN,
-                        EUserLevels.ADMIN,
-                    ]),
+                    level: isBusinessContext ? EUserLevels.ADMIN : EUserLevels.PLATFORM_OWNER,
                     isActive: true,
                 },
                 select: ['id', 'email', 'firstName', 'lastName'],
@@ -63,28 +61,28 @@ export class MembershipNotificationService {
             );
 
             await Promise.all(notificationPromises);
-            this.logger.log(`✅ Membership activation notifications sent to ${adminUsers.length} admins`);
+            const recipientLabel = isBusinessContext ? 'business admin(s)' : 'platform owner(s)';
+            this.logger.log(`✅ Membership activation notifications sent to ${adminUsers.length} ${recipientLabel}`);
         } catch (error) {
             this.logger.error('❌ Failed to send membership activation notifications to admins', error);
         }
     }
 
     /**
-     * Notify admins when a membership is cancelled
+     * Notify business admin(s) when a membership is cancelled (when tenantId provided).
+     * Otherwise notifies platform owner.
      */
     async notifyAdminsMembershipCancelled(
         memberMembership: MemberMembership,
         cancelledBy?: string,
+        tenantId?: string,
     ): Promise<void> {
         try {
-            const userRepo = this.entityRouterService.getRepository<User>(User);
+            const userRepo = this.entityRouterService.getRepository<User>(User, tenantId);
+            const isBusinessContext = !!tenantId;
             const adminUsers = await userRepo.find({
                 where: {
-                    level: In([
-                        EUserLevels.PLATFORM_OWNER,
-                        EUserLevels.SUPER_ADMIN,
-                        EUserLevels.ADMIN,
-                    ]),
+                    level: isBusinessContext ? EUserLevels.ADMIN : EUserLevels.PLATFORM_OWNER,
                     isActive: true,
                 },
             });

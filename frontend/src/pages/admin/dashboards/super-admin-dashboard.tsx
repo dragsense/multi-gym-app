@@ -79,13 +79,13 @@ function SuperAdminDashboardView({ storeKey, store }: SuperAdminDashboardViewPro
   const handleLoginToBusiness = async () => {
     try {
       setIsLoading(true);
-      
+
       // Login to current user's business
       const response = await loginToMyBusiness();
-      
+
       if (response.redirectUrl) {
         // Redirect to the business portal
-        window.location.href = response.redirectUrl;
+        window.open(response.redirectUrl, "_blank");
       } else {
         toast.error(buildSentence(t, "failed", "to", "get", "redirect", "url"));
       }
@@ -160,7 +160,7 @@ function SuperAdminDashboardView({ storeKey, store }: SuperAdminDashboardViewPro
             </p>
             <p className="text-lg font-semibold">{business.name}</p>
           </div>
-          
+
           {business.subdomain && (
             <div>
               <p className="text-sm font-medium text-muted-foreground">

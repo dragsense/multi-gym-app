@@ -10,13 +10,6 @@ import { GeneralBaseEntity } from '@/common/entities';
 
 @Entity('schedules')
 export class Schedule extends GeneralBaseEntity {
-  @ApiPropertyOptional({
-    example: '550e8400-e29b-41d4-a716-446655440000',
-    description: 'Tenant ID for multi-tenant database routing',
-  })
-  @Column({ type: 'uuid', nullable: true })
-  @Index('idx_schedule_tenant_id')
-  tenantId?: string;
 
   @ApiProperty({ example: 'Daily Report Generation' })
   @Column({ default: 'Schedule' })

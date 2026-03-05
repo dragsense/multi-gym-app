@@ -30,6 +30,7 @@ import { Billing } from '../billings/entities/billing.entity';
 
 import { BillingsModule } from '../billings/billings.module';
 import { PaymentProcessorsModule } from '@/common/payment-processors/payment-processors.module';
+import { AIProcessorsModule } from '@/common/ai-processors/ai-processors.module';
 import { ScheduleModule } from '@/common/schedule/schedule.module';
 import { ActionModule } from '@/common/helper/action.module';
 import { PaymentAdapterModule } from '../payment-adapter/payment-adapter.module';
@@ -59,6 +60,7 @@ import { FileUploadModule } from '@/common/file-upload/file-upload.module';
     CrudModule,
     BillingsModule,
     PaymentProcessorsModule,
+    AIProcessorsModule,
     PaymentAdapterModule,
     SubscriptionsModule,
     ScheduleModule,

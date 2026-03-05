@@ -135,6 +135,7 @@ export default function BillingList({
     });
   };
 
+
   const { columns, listItem } = itemViews({
     handleEdit,
     handleDelete,

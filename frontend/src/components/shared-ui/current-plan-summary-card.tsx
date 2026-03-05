@@ -1,9 +1,10 @@
 // React
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 
 // Components
 import { AppCard } from "@/components/layout-ui/app-card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { CreditCard, Calendar, DollarSign, Clock, type LucideIcon } from "lucide-react";
 
 export interface IPlanSummaryDetail {
@@ -63,6 +64,8 @@ const getStatusBadgeVariant = (status: string | null | undefined): "default" | "
   }
 };
 
+const DESCRIPTION_PREVIEW_LENGTH = 120;
+
 export function CurrentPlanSummaryCard({
   title,
   planName,
@@ -77,6 +80,13 @@ export function CurrentPlanSummaryCard({
   actionContent,
 }: ICurrentPlanSummaryCardProps) {
   const componentId = useId();
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
+  const hasLongDescription = Boolean(description && description.length > DESCRIPTION_PREVIEW_LENGTH);
+  const showDescriptionPreview = hasLongDescription && !isDescriptionExpanded;
+  const displayDescription = showDescriptionPreview
+    ? `${description!.slice(0, DESCRIPTION_PREVIEW_LENGTH).trim()}...`
+    : description ?? "";
 
   if (isLoading) {
     return (
@@ -99,11 +109,11 @@ export function CurrentPlanSummaryCard({
       {isActive ? (
         <div className="space-y-4">
           {/* Header with name and status badge */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1">
+          <div className="flex items-start justify-between gap-3 min-w-0">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-2">
                 {planName && (
-                  <h4 className="font-semibold text-lg">{planName}</h4>
+                  <h4 className="font-semibold text-lg truncate">{planName}</h4>
                 )}
                 {status && (
                   <Badge variant={getStatusBadgeVariant(status)}>
@@ -112,9 +122,21 @@ export function CurrentPlanSummaryCard({
                 )}
               </div>
               {description && (
-                <p className="text-sm text-muted-foreground">
-                  {description}
-                </p>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground break-words whitespace-pre-wrap">
+                    {displayDescription}
+                  </p>
+                  {hasLongDescription && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 text-sm text-primary hover:no-underline"
+                      onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+                    >
+                      {isDescriptionExpanded ? "Show less" : "Show more"}
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
             {color && (

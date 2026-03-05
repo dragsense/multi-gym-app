@@ -1,7 +1,9 @@
-import { IsString, IsNotEmpty, IsEmail, IsOptional } from "class-validator";
+import { IsString, IsNotEmpty, IsEmail, ValidateNested, IsOptional } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { UserWithProfileSafeDto } from "../user-dtos";
 import { FieldType } from "../../decorators/field.decorator";
+import { BusinessDto } from "../business-dtos";
+import { Type, Expose } from "class-transformer";
 
 export class LoginDto {
   @ApiProperty({ example: "email@example.com", description: "User email" })
@@ -24,6 +26,15 @@ export class LoginDto {
   @IsOptional()
   @IsString()
   deviceId?: string;
+
+  @ApiProperty({ type: BusinessDto, description: "Business detail" })
+  @ValidateNested({ message: "Business details are required" })
+  @IsOptional()
+  @Expose()
+  @Type(() => BusinessDto)
+  @FieldType("nested", true, BusinessDto)
+  business?: BusinessDto;
+
 }
 
 export class LoginResponseDto {
@@ -32,6 +43,12 @@ export class LoginResponseDto {
 
   @ApiProperty()
   accessToken: { token: string, expiresIn: number };
+
+  @ApiProperty()
+  refreshToken: { token: string, expiresIn: number };
+
+  @ApiProperty()
+  tenantId: string;
 
   @ApiProperty()
   message: string;

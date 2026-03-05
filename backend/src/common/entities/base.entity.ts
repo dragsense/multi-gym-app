@@ -4,8 +4,9 @@ import {
   UpdateDateColumn,
   BaseEntity,
   Column,
+  Index,
 } from 'typeorm';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export abstract class GeneralBaseEntity extends BaseEntity {
   @ApiProperty({
@@ -28,6 +29,14 @@ export abstract class GeneralBaseEntity extends BaseEntity {
   })
   @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
+
+  @ApiPropertyOptional({
+    example: '550e8400-e29b-41d4-a716-446655440000',
+    description: 'Tenant ID for multi-tenant scoping',
+  })
+  @Index()
+  @Column({ type: 'uuid', nullable: true })
+  tenantId: string | null = null;
 
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',

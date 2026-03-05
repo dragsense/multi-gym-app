@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CamerasService } from '../../cameras/cameras.service';
 import { ECameraProtocol } from '@shared/enums';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { FileUploadService } from '@/common/file-upload/file-upload.service';
 import { CheckinSnapshotsService } from '../services/checkin-snapshots.service';
 

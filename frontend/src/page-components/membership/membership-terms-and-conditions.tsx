@@ -30,7 +30,10 @@ type IMembershipTermsAndConditionsProps = THandlerComponentProps<
   TSingleHandlerStore<IMembership, any>
 >;
 
-export default function MembershipTermsAndConditions({ storeKey, store }: IMembershipTermsAndConditionsProps) {
+export default function MembershipTermsAndConditions({
+  storeKey,
+  store,
+}: IMembershipTermsAndConditionsProps) {
   const [, startTransition] = useTransition();
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +46,7 @@ export default function MembershipTermsAndConditions({ storeKey, store }: IMembe
       response: state.response,
       setAction: state.setAction,
       reset: state.reset,
-    })
+    }),
   );
 
   const storeState = store ? store(selector) : null;
@@ -60,8 +63,16 @@ export default function MembershipTermsAndConditions({ storeKey, store }: IMembe
   }, [storeState, startTransition]);
 
   const updateTermsMutation = useApiMutation(
-    async ({ id, termsAndConditions }: { id: string; termsAndConditions?: string }) => {
-      const result = await updateMembership(id)({ termsAndConditions } as TUpdateMembershipData);
+    async ({
+      id,
+      termsAndConditions,
+    }: {
+      id: string;
+      termsAndConditions?: string;
+    }) => {
+      const result = await updateMembership(id)({
+        termsAndConditions,
+      } as TUpdateMembershipData);
       return result;
     },
     {
@@ -74,10 +85,21 @@ export default function MembershipTermsAndConditions({ storeKey, store }: IMembe
       },
       onError: (error: Error) => {
         startTransition(() => {
-          setError(error?.message || buildSentence(t, "failed", "to", "update", "terms", "and", "conditions"));
+          setError(
+            error?.message ||
+              buildSentence(
+                t,
+                "failed",
+                "to",
+                "update",
+                "terms",
+                "and",
+                "conditions",
+              ),
+          );
         });
       },
-    }
+    },
   );
 
   const handleConfirm = useCallback(() => {
@@ -87,7 +109,10 @@ export default function MembershipTermsAndConditions({ storeKey, store }: IMembe
 
   // Initialize values when membership changes and action is open
   useMemo(() => {
-    if (membership?.termsAndConditions && storeState?.action === "updateTermsAndConditions") {
+    if (
+      membership?.termsAndConditions &&
+      storeState?.action === "updateTermsAndConditions"
+    ) {
       setTermsAndConditions(membership.termsAndConditions);
     }
   }, [membership?.termsAndConditions, storeState?.action]);
@@ -113,50 +138,54 @@ export default function MembershipTermsAndConditions({ storeKey, store }: IMembe
     return null;
   }
 
-  const title = buildSentence(t, "terms", "and", "conditions");
+  const title = buildSentence(t, "Terms", "and", "conditions");
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <AppDialog
-          title={<DialogTitle>{title}</DialogTitle>}
-          footerContent={
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={updateTermsMutation.isPending}
-              >
-                {t("cancel")}
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                onClick={handleConfirm}
-                disabled={updateTermsMutation.isPending}
-              >
-                {updateTermsMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {buildSentence(t, "save")}
-              </Button>
-            </>
-          }
-        >
-          <div className="space-y-3 py-4 overflow-y-auto flex-1">
+        <div className="flex flex-col h-full max-h-[calc(90vh-100px)]">
+          <DialogTitle className="mb-4">{title}</DialogTitle>
+
+          <div className="flex-1 overflow-y-auto px-1 py-4 custom-scrollbar">
             <div className="space-y-2">
-              <Label>{buildSentence(t, "terms", "and", "conditions")}</Label>
               <QuillEditor
                 value={termsAndConditions}
                 onChange={setTermsAndConditions}
-                placeholder={buildSentence(t, "enter", "terms", "and", "conditions")}
+                placeholder={buildSentence(
+                  t,
+                  "enter",
+                  "terms",
+                  "and",
+                  "conditions",
+                )}
                 minHeight="300px"
               />
             </div>
             {error && <div className="text-sm text-red-500 mt-2">{error}</div>}
           </div>
-        </AppDialog>
+
+          <div className="mt-6 flex justify-end space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={updateTermsMutation.isPending}
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              onClick={handleConfirm}
+              disabled={updateTermsMutation.isPending}
+            >
+              {updateTermsMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {buildSentence(t, "save")}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

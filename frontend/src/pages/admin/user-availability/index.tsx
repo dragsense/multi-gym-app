@@ -10,7 +10,11 @@ import { SingleHandler } from "@/handlers";
 import { UserAvailabilityView } from "@/components/admin";
 
 // Page Components
-import { UserAvailabilityForm, type TUserAvailabilityExtraProps } from "@/page-components";
+import {
+  UserAvailabilityForm,
+  UserAvailabilityDeletePeriod,
+  type TUserAvailabilityExtraProps,
+} from "@/page-components";
 
 // API
 import { fetchUserAvailability } from "@/services/user-availability.api";
@@ -37,6 +41,10 @@ export default function UserAvailabilityPage() {
             {
               action: "createOrUpdate",
               comp: UserAvailabilityForm,
+            },
+            {
+              action: "deleteUnavailablePeriod",
+              comp: UserAvailabilityDeletePeriod,
             },
           ]}
         />

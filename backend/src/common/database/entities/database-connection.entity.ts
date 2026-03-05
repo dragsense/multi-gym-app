@@ -23,6 +23,7 @@ export enum ConnectionStatus {
 @Index('idx_connection_name', ['connectionName'], { unique: true })
 @Index('idx_connection_type', ['connectionType'])
 @Index('idx_status', ['status'])
+@Index('idx_tenant_id', ['tenantId'])
 export class DatabaseConnectionEntity extends GeneralBaseEntity {
   @ApiProperty({
     example: 'main',
@@ -81,15 +82,6 @@ export class DatabaseConnectionEntity extends GeneralBaseEntity {
   })
   @Column({ type: 'varchar', length: 255, nullable: true })
   schema?: string;
-
-  @ApiProperty({
-    example: '550e8400-e29b-41d4-a716-446655440000',
-    description: 'Tenant ID (for tenant-specific connections)',
-    required: false,
-  })
-  @Column({ type: 'uuid', nullable: true })
-  @Index('idx_tenant_id', ['tenantId'])
-  tenantId?: string;
 
   @ApiProperty({
     enum: ConnectionStatus,

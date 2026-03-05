@@ -118,6 +118,12 @@ export class ResourceSeed {
       displayName: 'Service Offers',
       description: 'Service offer management',
     },
+    {
+      name: EResource.LINK_MEMBERS,
+      displayName: 'Link Members',
+      description: 'Link members management',
+    },
+   
   ];
 
   async run(dataSource?: DataSource): Promise<void> {

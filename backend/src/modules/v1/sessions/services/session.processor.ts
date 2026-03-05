@@ -5,7 +5,7 @@ import { SessionEmailService } from '@/modules/v1/sessions/services/session-emai
 import { SessionsService } from '../sessions.service';
 import { UsersService } from '@/modules/v1/users/users.service';
 import { ESessionStatus } from '@shared/enums';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Processor('session')
 @Injectable()
@@ -122,7 +122,7 @@ export class SessionProcessor {
           undefined,
           undefined,
           undefined,
-          true,
+          { includeDeleted: true },
         );
         if (!session) throw new NotFoundException('Session not found');
         const user = await this.usersService.getUser(recipientId as string);

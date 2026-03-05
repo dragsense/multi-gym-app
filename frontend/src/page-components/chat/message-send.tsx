@@ -90,9 +90,7 @@ export default function MessageSend({
           chatId: chatId,
           message: message?.trim() || "",
         }, file);
-
-
-        toast.success("Message sent");
+        // toast.success("Message sent");
       } catch (error) {
         toast.error("Failed to send message");
       } finally {

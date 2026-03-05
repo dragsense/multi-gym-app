@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { BullModule } from '@nestjs/bull';
 
@@ -23,7 +23,9 @@ import {
   getJwtConfig,
   bullQueueConfig,
   twilioConfig,
-  srsConfig,
+  mqttConfig,
+  aiProcessorsConfig,
+  mediamtxConfig,
 } from './config';
 
 import { AppController } from './app.controller';
@@ -31,6 +33,7 @@ import { AppService } from './app.service';
 
 // Feature modules - exported from modules index
 import {
+  AIAdapterModule,
   UsersModule,
   AuthModule,
   ChatModule,
@@ -88,22 +91,23 @@ import {
   RolesModule,
   HealthModule,
   NotificationModule,
-  RequestContextMiddleware,
-  RequestContextInterceptor,
-  UserLevelGuard,
+  MqttModule,
+  AIProcessorsModule,
 } from './common';
 
+import { SubdomainTenantMiddleware, RequestContextMiddleware, TenantMiddleware } from './middlewares';
+import { UserContextInterceptor, ResponseEncryptionInterceptor } from './interceptors';
+
 import { join } from 'path';
-import { ResponseEncryptionInterceptor } from './interceptors/response-encryption-interceptor';
 import { EncryptionService } from './lib/encryption.service';
 import { getBullQueueConfig } from './config/bull-queue.config';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtAuthGuard } from './guards/auth.gaurd';
-import { AdminBusinessGuard } from './guards/admin-business.guard';
-import { TenantGuard } from './guards/tenant.guard';
-import { ModuleAccessGuard } from './guards/module-access.guard';
 import { ProfilesModule } from './modules/v1/users/profiles/profiles.module';
-import { UerPermissionGuard } from './guards/user-permission.guard';
+import { JwtAuthGuard, ModuleAccessGuard, BusinessGuard, TenantGuard, UserLevelGuard, UerPermissionGuard } from './guards';
+
+
+
+
 
 @Module({
   imports: [
@@ -123,7 +127,9 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
         healthConfig,
         bullQueueConfig,
         twilioConfig,
-        srsConfig,
+        mqttConfig,
+        aiProcessorsConfig,
+        mediamtxConfig,
       ],
       isGlobal: true,
     }),
@@ -157,7 +163,7 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
     }),
 
 
-    
+
     // Serve frontend static files, excluding API and uploads
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '../../../../', 'frontend', 'dist'),
@@ -209,6 +215,9 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
     HealthModule,
     RolesModule,
     ChatModule,
+    MqttModule,
+    AIProcessorsModule,
+    AIAdapterModule,
 
     // Feature modules
     MembersModule,
@@ -255,29 +264,15 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
   controllers: [AppController],
   providers: [
     AppService,
-    EncryptionService,
-    ResponseEncryptionInterceptor,
     RequestContextMiddleware,
-    RequestContextInterceptor,
+    TenantMiddleware,
+    SubdomainTenantMiddleware,
+    EncryptionService,
+    UserContextInterceptor,
+    ResponseEncryptionInterceptor,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: UerPermissionGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: UserLevelGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: AdminBusinessGuard,
     },
     {
       provide: APP_GUARD,
@@ -285,9 +280,24 @@ import { UerPermissionGuard } from './guards/user-permission.guard';
     },
     {
       provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: BusinessGuard,
+    },
+    {
+      provide: APP_GUARD,
       useClass: ModuleAccessGuard,
     },
-
+    {
+      provide: APP_GUARD,
+      useClass: UserLevelGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: UerPermissionGuard,
+    }
   ],
 })
 export class AppModule { }

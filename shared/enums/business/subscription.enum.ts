@@ -1,22 +1,22 @@
 // Subscription Status Enum
 export enum ESubscriptionStatus {
-  ACTIVE = "active",
-  INACTIVE = "inactive",
-  EXPIRED = "expired",
-}
-
-// Subscription Type Enum
-export enum ESubscriptionType {
-  PAID = "paid",
-  TRIAL = "trial",
-}
-
-// Subscription Frequency Enum (customize as needed)
-export enum ESubscriptionFrequency {
-  MONTHLY = "monthly",
-  YEARLY = "yearly",
-  WEEKLY = "weekly",
-}
+    ACTIVE = "active",
+    INACTIVE = "inactive",
+    EXPIRED = "expired",
+  }
+  
+  // Subscription Type Enum
+  export enum ESubscriptionType {
+    PAID = "paid",
+    TRIAL = "trial",
+  }
+  
+  // Subscription Frequency Enum (customize as needed)
+  export enum ESubscriptionFrequency {
+    MONTHLY = "monthly",
+    YEARLY = "yearly",
+    WEEKLY = "weekly",
+  }
 
 
 export enum ESubscriptionFeatures {

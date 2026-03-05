@@ -23,12 +23,14 @@ import { ProfilesService } from './profiles/profiles.service';
 import { BaseUsersService } from '@/common/base-user/base-users.service';
 import { EUserLevels } from '@shared/enums/user.enum';
 import { Profile } from './profiles/entities/profile.entity';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { RolesService } from '@/common/roles/roles.service';
 import { PermissionsService } from '@/common/roles/services/permissions.service';
 import { UserRole } from '@/common/roles/entities/user-role.entity';
 import { UserPermission } from '@/common/roles/entities/user-permission.entity';
 import { PrivilegeAssignmentService } from './services/privilege-assignment.service';
+import { UserAvailabilityService } from '../user-availability/user-availability.service';
+import { CrudMethodConfig } from '@/common/crud/interfaces/crud.interface';
 
 @Injectable()
 export class UsersService {
@@ -43,7 +45,8 @@ export class UsersService {
     private readonly rolesService: RolesService,
     private readonly permissionsService: PermissionsService,
     private readonly privilegeAssignmentService: PrivilegeAssignmentService,
-    ) {}
+    private readonly userAvailabilityService: UserAvailabilityService
+  ) { }
 
   private generateStrongPassword(length: number): string {
     const chars = {
@@ -89,8 +92,8 @@ export class UsersService {
     return this.baseUsersService.getUserByEmailWithPassword(email);
   }
 
-  async getUser(payload: any, query?: SingleQueryDto<User>): Promise<User> {
-    const user = await this.baseUsersService.getSingle(payload, query);
+  async getUser(payload: any, query?: SingleQueryDto<User>, config?: CrudMethodConfig): Promise<User> {
+    const user = await this.baseUsersService.getSingle(payload, query, undefined, undefined, config);
     if (!user) throw new NotFoundException('User not found');
 
     return user;
@@ -197,6 +200,22 @@ export class UsersService {
 
     user.password = tempPassword as string;
     user.passwordHistory = [];
+
+    const defaultAvailability = this.userAvailabilityService.getDefaultAvailability();
+
+    this.userAvailabilityService
+      .createOrUpdateUserAvailability(defaultAvailability, user.id)
+      .then(() => {
+        this.customLogger.log(
+          `Default availability created/updated for userId=${user.id} during user onboarding`
+        );
+      })
+      .catch((error) => {
+        this.customLogger.error(
+          `Failed to create/update user availability for userId=${user.id}`,
+          error
+        );
+      });
 
     return { message: 'User created successfully.', user };
   }

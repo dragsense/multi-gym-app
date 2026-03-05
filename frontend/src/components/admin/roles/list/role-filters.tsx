@@ -3,8 +3,8 @@ import { useId, useMemo, useTransition } from "react";
 
 // Types
 import type { TListHandlerStore } from "@/stores";
-import type { IRole } from '@shared/interfaces';
-import type { TFieldConfigObject } from '@/@types/form/field-config.type';
+import type { IRole } from "@shared/interfaces";
+import type { TFieldConfigObject } from "@/@types/form/field-config.type";
 import type { TRoleListData } from "@shared/types";
 
 // Components
@@ -27,21 +27,38 @@ export function RoleFilters({ store }: IRoleFiltersProps) {
   const filters = store((state) => state.filters);
   const setFilters = store.getState().setFilters;
 
+  const fields = useMemo(
+    () =>
+      ({
+        ...filteredFields,
+        search: {
+          ...filteredFields.search,
+          placeholder: "Search by title",
+        },
+      }) as TFieldConfigObject<TRoleListData>,
+    [filteredFields],
+  );
+
   const inputs = useInput<TRoleListData>({
-    fields: filteredFields as TFieldConfigObject<TRoleListData>,
+    fields,
   });
 
   // React 19: Memoized active filters check for better performance
-  const hasActiveFilters = useMemo(() => Object.keys(filters).length > 0, [filters]);
+  const hasActiveFilters = useMemo(
+    () => Object.keys(filters).length > 0,
+    [filters],
+  );
 
   const handleClearFilters = () => {
     startTransition(() => setFilters({}));
   };
 
   return (
-    <div className="flex-1 flex items-end gap-2 flex-wrap" data-component-id={componentId}>
+    <div
+      className="flex-1 flex items-end gap-2 flex-wrap"
+      data-component-id={componentId}
+    >
       {inputs.search}
-      {inputs.isSystem}
 
       {hasActiveFilters && (
         <Button

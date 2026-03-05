@@ -16,6 +16,7 @@ import { getBillingStatusColor } from "@shared/enums/billing.enum";
 import { OrderTimeline } from "./order-timeline";
 import type { TSingleHandlerStore } from "@/stores";
 import type { THandlerComponentProps } from "@/@types/handler-types";
+import { EUserLevels } from "@shared/enums";
 
 type TOrderDetailExtraProps = {
   canUpdateStatus?: boolean;
@@ -266,7 +267,8 @@ export default function OrderDetailContent({ store }: IOrderDetailContentProps) 
       )}
 
       {/* Actions */}
-      <div className="flex gap-2">
+      {user?.level === EUserLevels.MEMBER ||user?.level === EUserLevels.STAFF && (
+          <div className="flex gap-2 justify-center items-center w-full">
         <Button variant="outline" asChild>
           <Link to={`${segment}/${ADMIN_ROUTES.ORDERS}`}>
             {t("myOrders")}
@@ -277,7 +279,9 @@ export default function OrderDetailContent({ store }: IOrderDetailContentProps) 
             {t("continueShopping")}
           </Link>
         </Button>
-      </div>
+      </div> 
+      )}
+   
     </div>
   );
 }

@@ -11,7 +11,7 @@ import {
 
 @Entity('subscriptions')
 export class Subscription extends GeneralBaseEntity {
-  @ApiProperty({ example: 'Premium Plan', description: 'Subscription title' })
+  @ApiProperty({ example: 'Premium Plan', description: 'Subscription name' })
   @Column({ type: 'varchar', length: 255 })
   title: string;
 
@@ -38,7 +38,7 @@ export class Subscription extends GeneralBaseEntity {
     example: 1,
     description: 'Sort order for subscription list',
   })
-  @Column({ type: 'int', nullable: true, default: 0 })
+  @Column({ type: 'int', nullable: true })
   sortOrder?: number;
 
   @ApiPropertyOptional({
@@ -49,11 +49,11 @@ export class Subscription extends GeneralBaseEntity {
   color?: string;
 
   @ApiProperty({ example: 99.99, description: 'Subscription price' })
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
-  price?: number;
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  price: number;
 
   @ApiPropertyOptional({ example: 20, description: 'Discount % (0-100)' })
-  @Column({ type: 'int', nullable: true, default: 0 })
+  @Column({ type: 'int', nullable: true })
   discountPercentage?: number;
 
   @ApiProperty({
@@ -71,15 +71,15 @@ export class Subscription extends GeneralBaseEntity {
 
   @ApiProperty({
     example: [
-     ESubscriptionFeatures.TASKS,
-     ESubscriptionFeatures.SESSIONS,
-     ESubscriptionFeatures.ROLES,
-     ESubscriptionFeatures.CHECKINS,
-     ESubscriptionFeatures.ADVERTISEMENTS,
-     ESubscriptionFeatures.CHAT,
-     ESubscriptionFeatures.POS,
-     ESubscriptionFeatures.EQUIPMENT_RESERVATION,
-     ESubscriptionFeatures.LOCATIONS,
+      ESubscriptionFeatures.TASKS,
+      ESubscriptionFeatures.SESSIONS,
+      ESubscriptionFeatures.ROLES,
+      ESubscriptionFeatures.CHECKINS,
+      ESubscriptionFeatures.ADVERTISEMENTS,
+      ESubscriptionFeatures.CHAT,
+      ESubscriptionFeatures.POS,
+      ESubscriptionFeatures.EQUIPMENT_RESERVATION,
+      ESubscriptionFeatures.LOCATIONS,
     ],
     description: 'Modules included in this subscription',
     enum: ESubscriptionFeatures,
@@ -102,7 +102,7 @@ export class Subscription extends GeneralBaseEntity {
     example: 10,
     description: 'Trial period in days',
   })
-  @Column({ type: 'int', nullable: true, default: 0 })
+  @Column({ type: 'int', nullable: true, })
   trialPeriod?: number;
 
   @ApiProperty({

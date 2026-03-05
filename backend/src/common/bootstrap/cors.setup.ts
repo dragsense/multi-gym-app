@@ -84,6 +84,7 @@ export function setupCors(app: INestApplication, configService: ConfigService) {
       'Authorization',
       'X-CSRF-Token',
       'X-Timezone',
+      'X-Tenant-Id'
     ],
     exposedHeaders: ['Content-Disposition'],
     credentials: true,

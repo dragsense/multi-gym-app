@@ -19,7 +19,7 @@ import {
   EScheduleFrequency,
   EScheduleStatus,
 } from '@shared/enums/schedule.enum';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Injectable()
 export class TaskEventListenerService implements OnModuleInit {

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsUrl, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsUrl, IsUUID, IsOptional } from 'class-validator';
 
 export class BusinessImpersonateResponseDto {
   @ApiProperty({
@@ -25,6 +25,14 @@ export class BusinessImpersonateResponseDto {
   @IsString()
   @IsNotEmpty()
   subdomain: string;
+
+  @ApiProperty({
+    example: 'tenantId',
+    description: 'tenantId of the business',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  tenantId: string;
 }
 
 export class ValidateImpersonationTokenDto {
@@ -35,4 +43,13 @@ export class ValidateImpersonationTokenDto {
   @IsString()
   @IsNotEmpty()
   token: string;
+
+
+  @ApiProperty({
+    example: 'tenantId',
+    description: 'tenantId of the business',
+  })
+  @IsString()
+  @IsOptional()
+  tenantId?: string;
 }

@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { PaymentProcessorsSeed } from '../common/payment-processors/seeder/payment-processors.seed';
+import { AIProcessorsSeed } from '../common/ai-processors/seeder/ai-processors.seed';
 import { UserSeed } from '../common/base-user/seeder/user.seed';
 import { ResourceSeed } from '../common/roles/seeder/resource.seed';
 import { PageSeed } from '../modules/v1/cms/seeder/page.seed';
@@ -12,6 +13,7 @@ export class SeedRunnerService implements OnModuleInit {
   private readonly logger = new LoggerService(SeedRunnerService.name);
   constructor(
     private paymentProcessorsSeed: PaymentProcessorsSeed,
+    private aiProcessorsSeed: AIProcessorsSeed,
     private userSeed: UserSeed,
     private resourceSeed: ResourceSeed,
     private pageSeed: PageSeed,
@@ -35,6 +37,7 @@ export class SeedRunnerService implements OnModuleInit {
         await this.resourceSeed.run(dataSource);
         await this.permissionSeed.run(dataSource);
         await this.paymentProcessorsSeed.run(dataSource);
+        await this.aiProcessorsSeed.run(dataSource);
         await this.pageSeed.run(dataSource);
  
         await this.userSeed.run();

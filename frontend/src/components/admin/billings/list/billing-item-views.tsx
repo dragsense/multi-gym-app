@@ -66,6 +66,7 @@ export function billingItemViews({
 
   const { user } = useAuthUser();
 
+
   // Table columns
   const columns: ColumnDef<IBilling>[] = [
     {
@@ -211,7 +212,7 @@ export function billingItemViews({
               </TooltipContent>
             </Tooltip>
           )}
-          {handleSendEmail && user?.level <= EUserLevels.ADMIN && (
+          {handleSendEmail && isAdmin && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -247,17 +248,27 @@ export function billingItemViews({
               </TooltipContent>
             </Tooltip>
           )}
-          {handleCashPayment && row.original.isCashable && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleCashPayment(row.original.id)}
-              data-component-id={componentId}
-              className="text-amber-600 hover:text-amber-700"
-              title={t("mark_as_paid")}
-            >
-              <Banknote className="h-4 w-4" />
-            </Button>
+          {handleCashPayment && isAdmin && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                {row.original.isCashable &&
+                  row.original.status !== EBillingStatus.PAID && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCashPayment(row.original.id)}
+                      data-component-id={componentId}
+                      className="text-amber-600 hover:text-amber-700"
+                      title={t("mark_as_paid")}
+                    >
+                      <Banknote className="h-4 w-4" />
+                    </Button>
+                  )}
+              </TooltipTrigger>
+              <TooltipContent>
+                {buildSentence(t, "mark_as_paid")}
+              </TooltipContent>
+            </Tooltip>
           )}
           {user?.level === EUserLevels.ADMIN && <Tooltip>
             <TooltipTrigger asChild>

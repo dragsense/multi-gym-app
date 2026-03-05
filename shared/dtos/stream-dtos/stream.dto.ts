@@ -1,5 +1,5 @@
 export class StreamResponseDto {
-    flvUrl: string;
-    hlsUrl: string;
-    whepUrl: string;
-  }
+  cameraId: string;
+  hlsUrl: string;
+  webrtcUrl: string;
+}

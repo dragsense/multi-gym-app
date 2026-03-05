@@ -1,11 +1,20 @@
 import { registerAs } from '@nestjs/config';
 
+export enum APP_MODE {
+  SINGLE_DOMAIN_TENANT = 'single_domain_tenant',
+  MULTI_DOMAIN_TENANT = 'multi_domain_tenant',
+  MULTI_USER = 'multi_user',
+  SINGE_USER = 'single_user'
+}
+
 export default registerAs('app', () => ({
   name: process.env.APP_NAME || 'WEB_API',
 
   appUrl: process.env.APP_URL || 'http://localhost:5173',
   loginPath: process.env.APP_LOGIN_PATH || 'login',
   passwordResetPath: process.env.APP_PASSWORD_RESET_PATH || 'reset-password',
+
+  appMode: process.env.APP_MODE || APP_MODE.SINGE_USER,
 
   host: process.env.HOST || 'localhost',
   port: parseInt(process.env.PORT ?? '3000', 10),

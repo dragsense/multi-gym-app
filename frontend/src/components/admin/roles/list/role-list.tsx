@@ -69,14 +69,18 @@ export const RoleList = ({
     });
   };
 
-  const viewPermissions = (roleId: string) => {
+  const viewPermissions = (roleId: string, roleName: string) => {
     startTransition(() => {
-      setListAction('viewPermissions', { roleId });
+      setListAction('viewPermissions', { roleId, roleName });
     });
   };
 
   // React 19: Memoized columns for better performance
-  const { columns } = useMemo(() => itemViews({ editRole, deleteRole, viewPermissions, settings }), [editRole, deleteRole, viewPermissions, settings]);
+  const { columns } = useMemo(
+    () =>
+      itemViews({ editRole, deleteRole, viewPermissions, settings }),
+    [editRole, deleteRole, viewPermissions, settings],
+  );
 
   return (
     <div className="space-y-4" data-component-id={componentId}>

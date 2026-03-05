@@ -1,27 +1,14 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { BullModule } from '@nestjs/bull';
 import { StreamsService } from './streams.service';
 import { StreamsController } from './streams.controller';
 import { CamerasModule } from '../cameras.module';
-import { FfmpegProcessor } from './ffmpeg.processor';
-import { SrsApiService } from './srs-api.service';
-import { StreamCheckProcessor } from './stream-check.processor';
+import { MediaMtxApiService } from './services/mediamtx-api.service';
 
 @Module({
-  imports: [
-    ConfigModule,
-    forwardRef(() => CamerasModule),
-    BullModule.registerQueue({ name: 'stream-check' }),
-    BullModule.registerQueue({ name: 'ffmpeg-stream' }),
-  ],
+  imports: [ConfigModule, forwardRef(() => CamerasModule)],
   controllers: [StreamsController],
-  providers: [
-    StreamsService,
-    FfmpegProcessor,
-    SrsApiService,
-    StreamCheckProcessor,
-  ],
-  exports: [StreamsService, FfmpegProcessor],
+  providers: [StreamsService, MediaMtxApiService],
+  exports: [StreamsService],
 })
-export class StreamsModule { }
+export class StreamsModule {}

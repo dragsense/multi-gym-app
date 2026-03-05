@@ -25,7 +25,7 @@ import { EUserLevels } from '@shared/enums';
 import { MinUserLevel } from '@/decorators/level.decorator';
 import Stripe from 'stripe';
 import { UsersService } from '../../users/users.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @ApiBearerAuth('access-token')
 @ApiTags('Stripe Customer')

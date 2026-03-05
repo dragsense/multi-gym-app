@@ -5,7 +5,7 @@ import { ModuleRef } from '@nestjs/core';
 import { CrudService } from '@/common/crud/crud.service';
 import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
 import { BusinessTheme } from '../entities/business-theme.entity';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { FileUploadService } from '@/common/file-upload/file-upload.service';
 import { EFileType, EUserLevels } from '@shared/enums';
 import { FileUpload } from '@/common/file-upload/entities/file-upload.entity';

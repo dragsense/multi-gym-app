@@ -22,7 +22,7 @@ import {
 import { User } from '@/common/base-user/entities/user.entity';
 import { MinUserLevel } from '@/decorators/level.decorator';
 import { EUserLevels } from '@shared/enums';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @ApiTags('Settings - Stripe Connect')
 @ApiBearerAuth()

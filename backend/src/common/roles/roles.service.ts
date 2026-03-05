@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
@@ -133,4 +133,6 @@ export class RolesService extends CrudService<Role> {
     // Load role with permissions for response
     return { message: 'Role updated successfully' };
   }
+
+ 
 }

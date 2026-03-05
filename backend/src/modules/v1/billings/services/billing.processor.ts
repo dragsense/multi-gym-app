@@ -4,7 +4,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { BillingEmailService } from '@/modules/v1/billings/services/billing-email.service';
 import { BillingsService } from '../billings.service';
 import { UsersService } from '@/modules/v1/users/users.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Processor('billing')
 @Injectable()

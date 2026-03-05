@@ -5,7 +5,10 @@ import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
 
 import type { TFormHandlerStore } from "@/stores";
-import type { TAccessFeatureData, TUpdateAccessFeatureData } from "@shared/types/access-feature.type";
+import type {
+  TAccessFeatureData,
+  TUpdateAccessFeatureData,
+} from "@shared/types/access-feature.type";
 import type { TAccessFeatureResponse } from "@shared/interfaces/access-feature.interface";
 
 import { Button } from "@/components/ui/button";
@@ -18,8 +21,13 @@ export interface IAccessFeaturesFormModalExtraProps {
   onClose: () => void;
 }
 
-interface IAccessFeaturesFormModalProps extends THandlerComponentProps<TFormHandlerStore<TAccessFeatureData, TAccessFeatureResponse, IAccessFeaturesFormModalExtraProps>> {
-}
+interface IAccessFeaturesFormModalProps extends THandlerComponentProps<
+  TFormHandlerStore<
+    TAccessFeatureData,
+    TAccessFeatureResponse,
+    IAccessFeaturesFormModalExtraProps
+  >
+> {}
 
 const AccessFeaturesFormModal = React.memo(function AccessFeaturesFormModal({
   storeKey,
@@ -30,7 +38,7 @@ const AccessFeaturesFormModal = React.memo(function AccessFeaturesFormModal({
   const { t } = useI18n();
 
   if (!store) {
-    return `${buildSentence(t, 'form', 'store')} "${storeKey}" ${buildSentence(t, 'not', 'found')}. ${buildSentence(t, 'did', 'you', 'forget', 'to', 'register', 'it')}?`;
+    return `${buildSentence(t, "form", "store")} "${storeKey}" ${buildSentence(t, "not", "found")}. ${buildSentence(t, "did", "you", "forget", "to", "register", "it")}?`;
   }
 
   const isEditing = store((state) => state.isEditing);
@@ -41,19 +49,24 @@ const AccessFeaturesFormModal = React.memo(function AccessFeaturesFormModal({
 
   const storeFields = store((state) => state.fields);
 
-  const fields = useMemo(() => ({
-    ...storeFields,
-    name: {
-      ...(storeFields as TFieldConfigObject<TAccessFeatureData>).name,
-      label: buildSentence(t, 'name'),
-      placeholder: buildSentence(t, 'enter', 'name'),
-    },
-    description: {
-      ...(storeFields as TFieldConfigObject<TAccessFeatureData>).description,
-      label: buildSentence(t, 'description'),
-      placeholder: buildSentence(t, 'enter', 'description'),
-    },
-  } as TFieldConfigObject<TAccessFeatureData>), [storeFields, t]);
+  const fields = useMemo(
+    () =>
+      ({
+        ...storeFields,
+        name: {
+          ...(storeFields as TFieldConfigObject<TAccessFeatureData>).name,
+          label: buildSentence(t, "name"),
+          placeholder: buildSentence(t, "enter", "name"),
+        },
+        description: {
+          ...(storeFields as TFieldConfigObject<TAccessFeatureData>)
+            .description,
+          label: buildSentence(t, "description"),
+          placeholder: buildSentence(t, "enter", "description"),
+        },
+      }) as TFieldConfigObject<TAccessFeatureData>,
+    [storeFields, t],
+  );
 
   const inputs = useInput<TAccessFeatureData | TUpdateAccessFeatureData>({
     fields,
@@ -68,33 +81,49 @@ const AccessFeaturesFormModal = React.memo(function AccessFeaturesFormModal({
     }
   };
 
-  const formButtons = useMemo(() => (
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={(e) => {
-          e.preventDefault();
-          startTransition(() => {
-            onClose();
-          });
-        }}
-        data-component-id={componentId}
-      >
-        {t('cancel')}
-      </Button>
-      <Button type="submit" disabled={isSubmitting} data-component-id={componentId}>
-        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isEditing ? t('update') : t('add')}
-      </Button>
-    </div>
-  ), [componentId, isEditing, onClose, isSubmitting, t]);
+  const formButtons = useMemo(
+    () => (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={(e) => {
+            e.preventDefault();
+            startTransition(() => {
+              onClose();
+            });
+          }}
+          data-component-id={componentId}
+        >
+          {t("cancel")}
+        </Button>
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          data-component-id={componentId}
+        >
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isEditing ? t("update") : t("add")}
+        </Button>
+      </div>
+    ),
+    [componentId, isEditing, onClose, isSubmitting, t],
+  );
 
   return (
     <>
-      <ModalForm<TAccessFeatureData, TAccessFeatureResponse, IAccessFeaturesFormModalExtraProps>
-        title={buildSentence(t, isEditing ? 'edit' : 'add', 'access', 'features')}
-        description={buildSentence(t, isEditing ? 'edit' : 'add', 'a', 'new', 'access', 'features')}
+      <ModalForm<
+        TAccessFeatureData,
+        TAccessFeatureResponse,
+        IAccessFeaturesFormModalExtraProps
+      >
+        title={buildSentence(
+          t,
+          isEditing ? "edit" : "add",
+          "access",
+          "features",
+        )}
+        // description={buildSentence(t, isEditing ? 'edit' : 'add', 'a', 'new', 'access', 'features')}
         open={open}
         onOpenChange={onOpenChange}
         formStore={store}
@@ -102,12 +131,8 @@ const AccessFeaturesFormModal = React.memo(function AccessFeaturesFormModal({
         width="2xl"
       >
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            {inputs.name}
-          </div>
-          <div>
-            {inputs.description}
-          </div>
+          {inputs.name}
+          {inputs.description}
         </div>
       </ModalForm>
     </>
@@ -115,4 +140,3 @@ const AccessFeaturesFormModal = React.memo(function AccessFeaturesFormModal({
 });
 
 export default AccessFeaturesFormModal;
-

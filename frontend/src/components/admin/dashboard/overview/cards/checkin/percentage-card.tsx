@@ -108,7 +108,7 @@ function PercentageCard({ data, isLoading, error }: PercentageCardProps) {
           {/* Legend */}
           <div className="flex items-center gap-6 justify-center mt-4">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-600 rounded"></div>
+              <div className="w-4 h-4 bg-primary rounded"></div>
               <span className="text-sm text-gray-700">{t('Attended')}</span>
             </div>
             <div className="flex items-center gap-2">

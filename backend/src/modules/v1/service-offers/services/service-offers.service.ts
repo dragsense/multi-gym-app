@@ -8,7 +8,7 @@ import { CrudService } from '@/common/crud/crud.service';
 import { ServiceOffer } from '../entities/service-offer.entity';
 import { CreateServiceOfferDto, UpdateServiceOfferDto, UpdateServiceOfferStatusDto } from '@shared/dtos';
 import { CrudOptions } from '@/common/crud/interfaces/crud.interface';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 import { EUserLevels } from '@shared/enums';
 import { User } from '@/common/base-user/entities/user.entity';
 import { StaffService } from '../../staff/staff.service';

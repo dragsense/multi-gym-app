@@ -175,7 +175,7 @@ export default function CartList({
   }
 
   return (
-    <div className="space-y-4 max-w-2xl" data-component-id={componentId}>
+    <div className="space-y-4 max-w-5xl mx-auto justify-center items-center" data-component-id={componentId}>
       <div className="space-y-4">
         {items.map((item, idx) => (
           <CartLineCard

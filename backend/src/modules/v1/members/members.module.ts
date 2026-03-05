@@ -15,6 +15,7 @@ import { UsersModule } from '../users/users.module';
 import { Billing } from '../billings/entities/billing.entity';
 import { Session } from '../sessions/entities/session.entity';
 import { ProfilesModule } from '../users/profiles/profiles.module';
+import { NotificationModule } from '@/common/notification/notification.module';
 
 @Module({
   imports: [
@@ -22,9 +23,14 @@ import { ProfilesModule } from '../users/profiles/profiles.module';
     CrudModule,
     UsersModule,
     ProfilesModule,
+    NotificationModule,
   ],
   exports: [MembersService, MemberNoteService, LinkMemberService],
   controllers: [MembersController, MemberNoteController, LinkMemberController],
-  providers: [MembersService, MemberNoteService, LinkMemberService],
+  providers: [
+    MembersService,
+    MemberNoteService,
+    LinkMemberService,
+  ],
 })
-export class MembersModule { }
+export class MembersModule {}

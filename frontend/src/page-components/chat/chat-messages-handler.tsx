@@ -50,6 +50,8 @@ export function ChatMessagesHandler({
       ListComponent={MessageList}
       storeKey={storeKey + "-messages-" + selectedChat.id}
       initialParams={{
+        page: 1,
+        limit: 50,
         sortBy: "createdAt",
         sortOrder: "ASC",
       }}

@@ -9,7 +9,7 @@ import type {
   CreateChatDto,
   SendMessageDto,
 } from "@shared/dtos/chat-dtos/chat.dto";
-import type { IChatUser } from "@shared/interfaces";
+import type { IChatUser, IUser } from "@shared/interfaces";
 
 // Constants
 const CHAT_API_PATH = "/chat";
@@ -68,3 +68,6 @@ export const getChatParticipants = (chatId: string) =>
 
 export const makeUserAdmin = (chatId: string, userId: string) =>
   chatService.patch<{ message: string }>(undefined)({}, undefined, `/${chatId}/users/${userId}/admin`);
+
+export const fetchChatUsers = (params: IListQueryParams) =>
+  chatService.get<IUser>(params, "/available-users");

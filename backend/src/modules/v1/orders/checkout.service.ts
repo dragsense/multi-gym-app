@@ -18,7 +18,7 @@ import { ProductVariant } from '../product/entities/product-variant.entity';
 import { OrderHistoryService } from './order-history.service';
 import { EOrderStatus } from '@shared/enums/order.enum';
 import { OrderHistory } from './entities/order-history.entity';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 @Injectable()
 export class CheckoutService {

@@ -11,6 +11,58 @@ export interface CrudOptions {
   };
   restrictedFields?: string[];
   selectableFields?: string[];
+  /**
+   * When true, automatically scope queries by tenantId (if present in RequestContext)
+   * ONLY applies in DB_MODE=single and only if the entity has a tenantId column.
+   *
+   * Default: true
+   */
+  tenantScoped?: boolean;
+
+  /**
+   * When true and current user is SUPER_ADMIN, automatically scope queries to
+   * only return rows created by that user (createdByUserId = RequestContext.userId),
+   * but only if the entity has a createdByUserId column.
+   *
+   * Default: true
+   */
+  superAdminOwnDataOnly?: boolean;
+}
+
+export interface CrudMethodConfig {
+  /**
+   * Include soft-deleted rows (i.e. do NOT apply `deletedAt IS NULL`).
+   *
+   * Default: false
+   */
+  includeDeleted?: boolean;
+
+  /**
+   * Skip tenant scoping even if enabled at service level.
+   *
+   * Default: false
+   */
+  skipTenantScope?: boolean;
+
+  /**
+   * Skip SUPER_ADMIN "own data only" scoping even if enabled at service level.
+   *
+   * Default: false
+   */
+  skipSuperAdminOwnDataOnly?: boolean;
+
+  /**
+   * Allow null values to be used as filters (generates `IS NULL` clauses).
+   *
+   * Default: false
+   */
+  includeNullFilters?: boolean;
+
+  /**
+   * Override tenantId used for scoping (undefined = use RequestContext).
+   * - `null` disables tenant scoping for this call.
+   */
+  tenantId?: string | null;
 }
 
 export interface ICrudService<T extends ObjectLiteral> {
@@ -26,6 +78,7 @@ export interface ICrudService<T extends ObjectLiteral> {
       ) => any | Promise<any>;
       afterCreate?: (result: any, manager: EntityManager) => any | Promise<any>;
     },
+    config?: CrudMethodConfig,
   ): Promise<T>;
 
   /**
@@ -45,7 +98,7 @@ export interface ICrudService<T extends ObjectLiteral> {
         manager: EntityManager,
       ) => any | Promise<any>;
     },
-    deleted?: boolean
+    config?: CrudMethodConfig,
   ): Promise<T>;
 
   /**
@@ -57,7 +110,7 @@ export interface ICrudService<T extends ObjectLiteral> {
     callbacks?: {
       beforeQuery?: (query: any, queryDto: any) => any | Promise<any>;
     },
-    deleted?: boolean,
+    config?: CrudMethodConfig,
   ): Promise<IPaginatedResponse<T>>;
 
   /**
@@ -69,7 +122,7 @@ export interface ICrudService<T extends ObjectLiteral> {
     callbacks?: {
       beforeQuery?: (query: any) => any | Promise<any>;
     },
-    deleted?: boolean,
+    config?: CrudMethodConfig,
   ): Promise<T[]>;
 
   /**
@@ -82,7 +135,7 @@ export interface ICrudService<T extends ObjectLiteral> {
     callbacks?: {
       beforeQuery?: (query: any, queryDto: any) => any | Promise<any>;
     },
-    deleted?: boolean,
+    config?: CrudMethodConfig,
   ): Promise<T | null>;
 
   /**
@@ -97,6 +150,7 @@ export interface ICrudService<T extends ObjectLiteral> {
       ) => any | Promise<any>;
       afterDelete?: (entity: any, manager: EntityManager) => any | Promise<any>;
     },
+    config?: CrudMethodConfig,
   ): Promise<T>;
 
   /**
@@ -114,6 +168,7 @@ export interface ICrudService<T extends ObjectLiteral> {
         manager: EntityManager,
       ) => any | Promise<any>;
     },
+    config?: CrudMethodConfig,
   ): Promise<T>;
 
   /**
@@ -128,6 +183,7 @@ export interface ICrudService<T extends ObjectLiteral> {
       ) => any | Promise<any>;
       afterDelete?: (entity: any, manager: EntityManager) => any | Promise<any>;
     },
+    config?: CrudMethodConfig,
   ): Promise<void>;
 
   /**

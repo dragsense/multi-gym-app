@@ -35,8 +35,8 @@ export class CreateBusinessDto {
     })
     @IsNotEmpty({ message: "Subdomain is required" })
     @IsString({ message: "Subdomain must be a valid text" })
-    @IsNotIn(["dev", "staging", "testing", "formance"], {
-        message: "Subdomain cannot be a reserved name (dev, staging, testing, formance).",
+    @IsNotIn(["dev", "staging", "testing", "impersonate", "server", "inbox", "formance"], {
+        message: "Subdomain cannot be a reserved name (dev, staging, testing, formance, impersonate, server, inbox).",
     })
     @Matches(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
         message: "Subdomain can only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen, and cannot contain dots or special characters.",
@@ -51,7 +51,24 @@ export class CreateBusinessDto {
     @IsOptional()
     @IsUUID()
     @FieldType("custom", false)
-    paymentProcessorId?: string | null; */
+    paymentProcessorId?: string | null;
+
+    @ApiPropertyOptional({
+        example: "550e8400-e29b-41d4-a716-446655440003",
+        description: "AI processor ID (OpenAI, AWS Bedrock, etc.)",
+    })
+    @IsOptional()
+    @IsUUID()
+    @FieldType("custom", false)
+    aiProcessorId?: string | null;
+
+    @ApiPropertyOptional({
+        example: "gpt-4o-mini",
+        description: "Default AI model when not specified",
+    })
+    @IsOptional()
+    @IsString()
+    defaultAiModel?: string | null; */
 }
 
 export class CreateBusinessWithUserDto {
@@ -70,8 +87,8 @@ export class CreateBusinessWithUserDto {
     })
     @IsNotEmpty({ message: "Subdomain is required" })
     @IsString({ message: "Subdomain must be a valid text" })
-    @IsNotIn(["dev", "staging", "testing", "formance"], {
-        message: "Subdomain cannot be a reserved name (dev, staging, testing, formance).",
+    @IsNotIn(["dev", "staging", "testing", "inbox", "server", "formance"], {
+        message: "Subdomain cannot be a reserved name (dev, staging, testing, inbox, formance, server).",
     })
     @Matches(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/, {
         message: "Subdomain can only contain lowercase letters, numbers, and hyphens. It cannot start or end with a hyphen, and cannot contain dots or special characters.",
@@ -95,7 +112,7 @@ export class CreateBusinessWithUserDto {
     paymentProcessorId?: string | null; */
 }
 
-export class UpdateBusinessDto extends PartialType(CreateBusinessDto) {}
+export class UpdateBusinessDto extends PartialType(CreateBusinessDto) { }
 
 export class UpdateBusinessWithUserDto extends PartialType(
     OmitType(CreateBusinessWithUserDto, ["user"])
@@ -170,6 +187,22 @@ export class BusinessDto {
     @IsOptional()
     @IsUUID()
     paymentProcessorId?: string | null;
+
+    @ApiPropertyOptional({
+        example: "550e8400-e29b-41d4-a716-446655440003",
+        description: "AI processor ID (OpenAI, AWS Bedrock, etc.)",
+    })
+    @IsOptional()
+    @IsUUID()
+    aiProcessorId?: string | null;
+
+    @ApiPropertyOptional({
+        example: "gpt-4o-mini",
+        description: "Default AI model",
+    })
+    @IsOptional()
+    @IsString()
+    defaultAiModel?: string | null;
 
     @IsOptional()
     createdAt?: Date;

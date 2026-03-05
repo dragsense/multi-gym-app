@@ -33,7 +33,8 @@ export class MfaService {
     if (!user) throw new NotFoundException('User not found');
 
     const otp = await this.otpService.initiateLoginOtp(user, deviceId);
-    await this.sendOtpEmail(email, otp);
+    const normalizedEmail = user.email.split("_", 1)[0];
+    await this.sendOtpEmail(normalizedEmail, otp);
     this.logger.log(`OTP generated and sent to ${email}`);
     return otp;
   }

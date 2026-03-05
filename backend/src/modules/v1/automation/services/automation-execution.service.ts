@@ -4,7 +4,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { Automation } from '../entities/automation.entity';
 import { EmailTemplate } from '../../cms/entities/email-template.entity';
 import { TemplateRendererService } from '../../cms/services/template-renderer.service';
-import { RequestContext } from '@/common/context/request-context';
+import { RequestContext } from '@/context/request-context';
 
 export interface AutomationContext {
   [key: string]: any;

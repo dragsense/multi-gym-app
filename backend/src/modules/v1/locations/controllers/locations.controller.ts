@@ -54,9 +54,9 @@ export class LocationsController {
   constructor(private readonly locationsService: LocationsService) { }
 
   @Get()
+  @MinUserLevel(EUserLevels.MEMBER)
   @ApiOperation({ summary: 'Get all locations with pagination and filters' })
   @ApiResponse({ status: 200, type: LocationPaginationDto })
-  @MinUserLevel(EUserLevels.MEMBER)
   findAll(@Query() query: LocationListDto, @AuthUser() currentUser: User) {
     return this.locationsService.get(query, LocationListDto, {
       beforeQuery: async (query: SelectQueryBuilder<Location>) => {
@@ -92,6 +92,7 @@ export class LocationsController {
   }
 
   @Get(':id')
+  @MinUserLevel(EUserLevels.MEMBER)
   @ApiOperation({ summary: 'Get a single location by ID' })
   @ApiParam({ name: 'id', description: 'Location ID' })
   @ApiResponse({ status: 200, type: Location })

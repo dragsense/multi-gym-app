@@ -12,7 +12,7 @@ import React, {
 import { type FormInputs, useInput } from "@/hooks/use-input";
 import { useI18n } from "@/hooks/use-i18n";
 import { buildSentence } from "@/locales/translations";
-import { useSearchableUsers } from "@/hooks/use-searchable";
+import { useSearchableChatUsers } from "@/hooks/use-searchable";
 import { Loader2 } from "lucide-react";
 
 // Types
@@ -45,7 +45,7 @@ interface IChatFormModalProps
 
 // Custom component for user multi-select
 const UserMultiSelect = React.memo((props: TCustomInputWrapper & { multiple?: boolean }) => {
-  const searchableUsers = useSearchableUsers({});
+  const searchableUsers = useSearchableChatUsers({});
   const { t } = useI18n();
   return (
     <SearchableInputWrapper<UserDto>
